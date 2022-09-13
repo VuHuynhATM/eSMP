@@ -14,7 +14,7 @@ namespace eSMP.Models
         public DbSet<Category> Categorys { get; set; }
         public DbSet<Sub_Category> SubCategories { get; set; }
 
-        public const string ConnectStrring = @"Data Source=ec2-13-212-76-146.ap-southeast-1.compute.amazonaws.com,1433;Initial Catalog=eSMP;User ID=sa;Password = Sa123456";
+        public const string ConnectStrring = @"Data Source=.;Initial Catalog=eSMP;User ID=sa;Password =123456";
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(ConnectStrring);

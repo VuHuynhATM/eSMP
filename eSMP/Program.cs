@@ -4,19 +4,19 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication;
 using eSMP.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-
-
-
-var webcontext = new WebContext();
-await webcontext.Database.MigrateAsync();
-
-builder.Services.AddScoped<WebContext, WebContext>();
+builder.Services.AddDbContext<WebContext>(option =>
+{
+    option.UseSqlServer(builder.Configuration.GetConnectionString("MyDB"));
+});
 /*
  dotnet tool install --global dotnet-ef
 dotnet ef migrations add name
@@ -24,10 +24,12 @@ dotnet ef migrations list
 dotnet ef migrations remove
 donet ed database update
 donet ed database drop
- 
  */
 
-builder.Services.AddSingleton(FirebaseApp.Create());
+builder.Services.AddSingleton(FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromFile(@"firebase-config.json")
+}));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, (o) => { });
 

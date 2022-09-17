@@ -5,6 +5,7 @@ namespace eSMP.Models
 {
     public class WebContext : DbContext
     {
+        public WebContext(DbContextOptions options) : base(options) { }
         public DbSet<User> Users { get; set; }
         public DbSet<Store> Stores { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -13,13 +14,6 @@ namespace eSMP.Models
         public DbSet<Store_Img> Store_Imgs { get; set; }
         public DbSet<Category> Categorys { get; set; }
         public DbSet<Sub_Category> SubCategories { get; set; }
-
-        public const string ConnectStrring = @"Data Source=.;Initial Catalog=eSMP;User ID=sa;Password =123456";
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(ConnectStrring);
-            optionsBuilder.UseLoggerFactory(GetLoggerFactory());       // bật logger
-        }
 
         private ILoggerFactory GetLoggerFactory()
         {

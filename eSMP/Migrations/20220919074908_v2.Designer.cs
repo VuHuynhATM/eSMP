@@ -12,8 +12,8 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    [Migration("20220915081809_v1")]
-    partial class v1
+    [Migration("20220919074908_v2")]
+    partial class v2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -151,9 +151,11 @@ namespace eSMP.Migrations
 
                     b.HasKey("StoreID");
 
-                    b.HasIndex("AddressID");
+                    b.HasIndex("AddressID")
+                        .IsUnique();
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserID")
+                        .IsUnique();
 
                     b.ToTable("Store");
                 });
@@ -259,15 +261,15 @@ namespace eSMP.Migrations
             modelBuilder.Entity("eSMP.Models.Store", b =>
                 {
                     b.HasOne("eSMP.Models.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne()
+                        .HasForeignKey("eSMP.Models.Store", "AddressID")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("eSMP.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne()
+                        .HasForeignKey("eSMP.Models.Store", "UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Address");

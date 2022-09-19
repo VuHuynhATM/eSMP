@@ -7,16 +7,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using eSMP.Services;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<WebContext>(option =>
-{
-    option.UseSqlServer(builder.Configuration.GetConnectionString("MyDB"));
-});
+
+builder.Services.AddScoped<WebContext, WebContext>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserReposity, UserRepository>();
+
+
+var dbcontext = new WebContext();
+dbcontext.Database.EnsureCreated();
 /*
  dotnet tool install --global dotnet-ef
 dotnet ef migrations add name
@@ -26,13 +33,55 @@ donet ed database update
 donet ed database drop
  */
 
-builder.Services.AddSingleton(FirebaseApp.Create(new AppOptions
+//firebase
+/*builder.Services.AddSingleton(FirebaseApp.Create(new AppOptions
 {
     Credential = GoogleCredential.FromFile(@"firebase-config.json")
 }));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, (o) => { });
+                .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, (o) => { });*/
 
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromFile(@"firebase-config.json")
+});
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer("Firebase", opt =>
+{
+    opt.Authority = builder.Configuration["Jwt:Firebase:ValidIssuer"];
+    opt.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Firebase:ValidIssuer"],
+        ValidAudience = builder.Configuration["Jwt:Firebase:ValidAudience"]
+    };
+});
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer("AuthDemo", opt =>
+    {
+        opt.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:AuthDemo:ValidIssuer"],
+            ValidAudience = builder.Configuration["Jwt:AuthDemo:ValidAudience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:AuthDemo:Key"]))
+        };
+    });
+
+builder.Services.AddAuthorization(opt =>
+{
+    opt.DefaultPolicy = new AuthorizationPolicyBuilder()
+    .AddAuthenticationSchemes("Firebase", "AuthDemo")
+    .RequireAuthenticatedUser()
+    .Build();
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -47,6 +96,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
 
 app.UseAuthentication();
 

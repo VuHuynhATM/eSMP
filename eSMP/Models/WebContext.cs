@@ -5,7 +5,6 @@ namespace eSMP.Models
 {
     public class WebContext : DbContext
     {
-        public WebContext(DbContextOptions options) : base(options) { }
         public DbSet<User> Users { get; set; }
         public DbSet<Store> Stores { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -15,6 +14,14 @@ namespace eSMP.Models
         public DbSet<Category> Categorys { get; set; }
         public DbSet<Sub_Category> SubCategories { get; set; }
 
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=eSMP;User ID=sa;Password =123456");
+            }
+        }
         private ILoggerFactory GetLoggerFactory()
         {
             IServiceCollection serviceCollection = new ServiceCollection();
@@ -27,7 +34,16 @@ namespace eSMP.Models
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-           
+            modelBuilder
+                .Entity<Store>()
+                .HasOne(e => e.User)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder
+                .Entity<Store>()
+                .HasOne(e => e.Address)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

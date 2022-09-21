@@ -1,5 +1,4 @@
-﻿using eSMPWebAPI.Authentication;
-using FirebaseAdmin;
+﻿using FirebaseAdmin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication;
 using eSMP.Models;

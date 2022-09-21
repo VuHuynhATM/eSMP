@@ -20,7 +20,7 @@ namespace eSMP.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles ="Customer")]
         public IEnumerable<WeatherForecast> Get()
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast

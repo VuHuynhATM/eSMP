@@ -3,17 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace eSMP.Models
 {
-    [Table("Store_img")]
-    public class Store_Img
+    [Table("Store_Address")]
+    public class Store_Address
     {
         [Key]
-        public int Store_ImgID { get; set; }
-        public Boolean IsActive { get; set; }
+        public int Store_AddressID { get; set; }
         public int StoreID { get; set; }//FK
         [ForeignKey("StoreID")]
         public Store Store { get; set; }
-        public int ImageID { get; set; }//Fk
-        [ForeignKey("ImageID")]
-        public Image Image { get; set; }
+        public int AddressID { get; set; }//FK
+        [ForeignKey("AddressID")]
+        public Address Address { get; set; }
     }
 }

@@ -19,12 +19,27 @@ namespace eSMP.Controllers
         }
         [HttpPost]
         [Authorize]
-        [Route("sign-in")]
-        public IActionResult Post(UserLogin user)
+        [Route("usersign-in")]
+        public IActionResult UserLogin(UserLogin user)
         {
             try
             {
                 var result=_userReposity.LoginByPhone(user.Phone);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPost]
+        [Authorize]
+        [Route("adminsign-in")]
+        public IActionResult AdminLogin(AdminLogin user)
+        {
+            try
+            {
+                var result=_userReposity.LoginByEmail(user.Email, user.Pasword);
                 return Ok(result);
             }
             catch(Exception ex)

@@ -47,5 +47,50 @@ namespace eSMP.Controllers
                 return BadRequest(ex);
             }
         }
+        [HttpPost]
+        [Authorize]
+        [Route("user-register")]
+        public IActionResult UserRegister(UserRegister user)
+        {
+            try
+            {
+                var result=_userReposity.RigisterUser(user);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPost]
+        [Authorize]
+        [Route("supplier-register")]
+        public IActionResult SupplierRegister(UserRegister user)
+        {
+            try
+            {
+                var result = _userReposity.RigisterSupplier(user);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPost]
+        [Route("check-user")]
+        public IActionResult CheckUser(string phone)
+        {
+            try
+            {
+                var result=_userReposity.CheckPhone(phone);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }

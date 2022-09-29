@@ -13,10 +13,13 @@ namespace eSMP.Models
         public string Email { get; set; }
         public string Phone { get; set; }
         public string? Password { get; set; }
+        public DateTime Crete_date { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public string Gender { get; set; }
         public string Token { get; set; }
         public int StatusID { get; set; }//FK
         [ForeignKey("StatusID")]
-        public User_Status status { get; set; } 
+        public Boolean isActive { get; set; } 
         public int RoleID { get; set; }//FK
         [ForeignKey("RoleID")]
         public Role Role { get; set; }

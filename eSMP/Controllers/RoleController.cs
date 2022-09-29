@@ -19,7 +19,11 @@ namespace eSMP.Controllers
         public IActionResult GetAll()
         {
             var roleList=_context.Roles.ToList();
-            return Ok(roleList);
+            Result result = new Result();
+            result.Success = true;
+            result.Message = "Thanh cong";
+            result.Data = roleList;
+            return Ok(result);
         }
         [HttpGet("{id}")]
         public IActionResult GetRoleById(int id)

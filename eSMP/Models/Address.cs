@@ -8,9 +8,12 @@ namespace eSMP.Models
     {
         [Key]
         public int AddressID { get; set; }
-        public string context { get; set; }
-        public double latitude { get; set; }
-        public double longitude { get; set; }
+        public string Context { get; set; }
+        public string Province { get; set; }
+        public string District { get; set; }
+        public string Ward { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

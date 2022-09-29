@@ -12,8 +12,8 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    [Migration("20220921074451_v2")]
-    partial class v2
+    [Migration("20220924084612_v1")]
+    partial class v1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -125,10 +125,20 @@ namespace eSMP.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreID"), 1L, 1);
 
+                    b.Property<int>("AddressID")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Create_date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ImageID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -144,61 +154,15 @@ namespace eSMP.Migrations
 
                     b.HasKey("StoreID");
 
+                    b.HasIndex("AddressID");
+
+                    b.HasIndex("ImageID");
+
                     b.HasIndex("Store_StatusID");
 
                     b.HasIndex("UserID");
 
                     b.ToTable("Store");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Store_Address", b =>
-                {
-                    b.Property<int>("Store_AddressID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Store_AddressID"), 1L, 1);
-
-                    b.Property<int>("AddressID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StoreID")
-                        .HasColumnType("int");
-
-                    b.HasKey("Store_AddressID");
-
-                    b.HasIndex("AddressID");
-
-                    b.HasIndex("StoreID");
-
-                    b.ToTable("Store_Address");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Store_Img", b =>
-                {
-                    b.Property<int>("Store_ImgID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Store_ImgID"), 1L, 1);
-
-                    b.Property<int>("ImageID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("StoreID")
-                        .HasColumnType("int");
-
-                    b.HasKey("Store_ImgID");
-
-                    b.HasIndex("ImageID");
-
-                    b.HasIndex("StoreID", "ImageID")
-                        .IsUnique();
-
-                    b.ToTable("Store_img");
                 });
 
             modelBuilder.Entity("eSMP.Models.Store_Status", b =>
@@ -212,8 +176,9 @@ namespace eSMP.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int>("StatusName")
-                        .HasColumnType("int");
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Store_StatusID");
 
@@ -249,6 +214,11 @@ namespace eSMP.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"), 1L, 1);
 
+                    b.Property<DateTime>("Crete_date")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -261,7 +231,7 @@ namespace eSMP.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("RoleID")
                         .HasColumnType("int");
@@ -284,6 +254,9 @@ namespace eSMP.Migrations
                     b.HasIndex("RoleID");
 
                     b.HasIndex("StatusID");
+
+                    b.HasIndex("Phone", "RoleID")
+                        .IsUnique();
 
                     b.ToTable("User");
                 });
@@ -337,6 +310,18 @@ namespace eSMP.Migrations
 
             modelBuilder.Entity("eSMP.Models.Store", b =>
                 {
+                    b.HasOne("eSMP.Models.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("eSMP.Models.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("eSMP.Models.Store_Status", "Store_Status")
                         .WithMany()
                         .HasForeignKey("Store_StatusID")
@@ -346,50 +331,16 @@ namespace eSMP.Migrations
                     b.HasOne("eSMP.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Store_Status");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Store_Address", b =>
-                {
-                    b.HasOne("eSMP.Models.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.Store", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Address");
 
-                    b.Navigation("Store");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Store_Img", b =>
-                {
-                    b.HasOne("eSMP.Models.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.Store", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Image");
 
-                    b.Navigation("Store");
+                    b.Navigation("Store_Status");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("eSMP.Models.Sub_Category", b =>

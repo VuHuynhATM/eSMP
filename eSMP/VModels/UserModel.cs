@@ -10,10 +10,15 @@ namespace eSMP.VModels
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Password { get; set; }
-        public string Status { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public string Gender { get; set; }
+        public DateTime Crete_date { get; set; }
+        public Boolean IsActive { get; set; }
         public string Token { get; set; }
-        public string Role { get; set; }
-        public string Image { get; set; }
+        public Role Role { get; set; }
+        public Image Image { get; set; }
+
+        public List<Address> addresses { get; set; }
 
     }
     public class UserLogin
@@ -34,7 +39,22 @@ namespace eSMP.VModels
         public string ImageName { get; set; }
         public string Imagepath { get; set; }
         public string contextAddress { get; set; }
-        public double latitude { get; set; }
-        public double longitude { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public string Gender { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string Province { get; set; }
+        public string District { get; set; }
+        public string Ward { get; set; }
+    }
+    public class UserAddAddress
+    {
+        public int UserID { get; set; }
+        public string contextAddress { get; set; }
+        public string Province { get; set; }
+        public string District { get; set; }
+        public string Ward { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }

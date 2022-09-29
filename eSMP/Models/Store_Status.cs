@@ -8,7 +8,7 @@ namespace eSMP.Models
     {
         [Key]
         public int Store_StatusID { get; set; }
-        public int StatusName { get; set; }
+        public string StatusName { get; set; }
         public Boolean IsActive { get; set; }
 
     }

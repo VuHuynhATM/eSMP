@@ -17,8 +17,6 @@ namespace eSMP.Models
         public DateTime DateOfBirth { get; set; }
         public string Gender { get; set; }
         public string Token { get; set; }
-        public int StatusID { get; set; }//FK
-        [ForeignKey("StatusID")]
         public Boolean isActive { get; set; } 
         public int RoleID { get; set; }//FK
         [ForeignKey("RoleID")]

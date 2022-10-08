@@ -18,7 +18,7 @@ namespace eSMP.Controllers
         }
         [HttpPost]
         [Authorize]
-        [Route("customersign-in")]
+        [Route("customersign_in")]
         public IActionResult CustomerLogin(UserLogin user)
         {
             try
@@ -34,8 +34,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        [Authorize]
-        [Route("suppliersign-in")]
+        [Route("suppliersign_in")]
         public IActionResult SuplierLogin(UserLogin user)
         {
             try
@@ -51,8 +50,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        [Authorize]
-        [Route("adminsign-in")]
+        [Route("adminsign_in")]
         public IActionResult AdminLogin(AdminLogin user)
         {
             try
@@ -68,7 +66,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        [Route("user-register")]
+        [Route("user_register")]
         public IActionResult UserRegister(UserRegister user)
         {
             try
@@ -84,7 +82,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        [Route("supplier-register")]
+        [Route("supplier_register")]
         public IActionResult SupplierRegister(UserRegister user)
         {
             try
@@ -101,7 +99,7 @@ namespace eSMP.Controllers
         }
 
         [HttpPost]
-        [Route("check-user")]
+        [Route("check_user")]
         public IActionResult CheckUser(string phone,int roleID)
         {
             try
@@ -116,7 +114,7 @@ namespace eSMP.Controllers
         }
 
         [HttpGet]
-        [Route("get-users")]
+        [Route("get_users")]
         public IActionResult GetAllUser()
         {
             try
@@ -134,7 +132,7 @@ namespace eSMP.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("Search-user")]
+        [Route("Search_user")]
         public IActionResult SearchUser(string phone, int roleID)
         {
             try
@@ -149,14 +147,14 @@ namespace eSMP.Controllers
                 return BadRequest(ex);
             }
         }
-        [HttpPost]
+        [HttpPut]
         [Authorize]
-        [Route("Update-user-status")]
-        public IActionResult UpdateUserStatus(int UserID, int statusID)
+        [Route("Update_user_status")]
+        public IActionResult UpdateUserStatus(int UserID, Boolean iaActive)
         {
             try
             {
-                var result = _userReposity.UpdatteUserStatus(UserID, statusID);
+                var result = _userReposity.UpdatteUserStatus(UserID, iaActive);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -164,8 +162,7 @@ namespace eSMP.Controllers
                 return BadRequest(ex);
             }
         }
-        [HttpPost]
-        [Authorize]
+        [HttpDelete]
         [Route("remove_user")]
         public IActionResult RemoveUser(int UserID)
         {
@@ -198,7 +195,24 @@ namespace eSMP.Controllers
                 return BadRequest(ex);
             }
         }
-        [HttpPost]
+        [HttpDelete]
+        [Authorize]
+        [Route("remove_address")]
+        public IActionResult RemoveAddress(int addressID)
+        {
+            try
+            {
+                var result = _userReposity.RemoveAddress(addressID);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
         [Authorize]
         [Route("edt_address")]
         public IActionResult EditAddress(Address address)
@@ -206,6 +220,107 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.UpdateAddress(address);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Authorize]
+        [Route("edit_name")]
+        public IActionResult EditName(EditName name)
+        {
+            try
+            {
+                var result = _userReposity.UpdateName(name);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "Customer, Supplier")]
+        [Route("edit_email")]
+        public IActionResult EditEmail(EditEmail email)
+        {
+            try
+            {
+                var result = _userReposity.UpdateEmail(email);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Authorize]
+        [Route("edit_gender")]
+        public IActionResult EditGender(EditGender gender)
+        {
+            try
+            {
+                var result = _userReposity.UpdateGender(gender);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Authorize]
+        [Route("edit_birth")]
+        public IActionResult EditBirth(EditBirth birth)
+        {
+            try
+            {
+                var result = _userReposity.UpdateBirth(birth);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Authorize]
+        [Route("edit_image")]
+        public IActionResult EditImage(EditImage image)
+        {
+            try
+            {
+                var result = _userReposity.UpdateImage(image);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Route("refeshtoken")]
+        public IActionResult RefeshToken(int userID, string token)
+        {
+            try
+            {
+                var result = _userReposity.RefeshToken(userID,token);
                 if (result == null)
                     return NotFound();
                 return Ok(result);

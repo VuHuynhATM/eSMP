@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221007020132_v8")]
+    partial class v8
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,51 +60,6 @@ namespace eSMP.Migrations
                     b.HasKey("AddressID");
 
                     b.ToTable("Address");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Brand", b =>
-                {
-                    b.Property<int>("BrandID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BrandID"), 1L, 1);
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("BrandID");
-
-                    b.ToTable("Brand");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Brand_Model", b =>
-                {
-                    b.Property<int>("Brand_ModelID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Brand_ModelID"), 1L, 1);
-
-                    b.Property<int>("BrandID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Brand_ModelID");
-
-                    b.HasIndex("BrandID");
-
-                    b.ToTable("Brand_Model");
                 });
 
             modelBuilder.Entity("eSMP.Models.Category", b =>
@@ -166,9 +123,6 @@ namespace eSMP.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Discount")
-                        .HasColumnType("float");
 
                     b.Property<int>("Item_StatusID")
                         .HasColumnType("int");
@@ -238,32 +192,6 @@ namespace eSMP.Migrations
                     b.HasKey("Item_StatusID");
 
                     b.ToTable("ItemStatus");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Model_Item", b =>
-                {
-                    b.Property<int>("Model_ItemID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Model_ItemID"), 1L, 1);
-
-                    b.Property<int>("Brand_ModelID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ItemID")
-                        .HasColumnType("int");
-
-                    b.HasKey("Model_ItemID");
-
-                    b.HasIndex("Brand_ModelID");
-
-                    b.HasIndex("ItemID");
-
-                    b.ToTable("Model_Item");
                 });
 
             modelBuilder.Entity("eSMP.Models.Role", b =>
@@ -577,17 +505,6 @@ namespace eSMP.Migrations
                     b.ToTable("User_Address");
                 });
 
-            modelBuilder.Entity("eSMP.Models.Brand_Model", b =>
-                {
-                    b.HasOne("eSMP.Models.Brand", "Brand")
-                        .WithMany()
-                        .HasForeignKey("BrandID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Brand");
-                });
-
             modelBuilder.Entity("eSMP.Models.Item", b =>
                 {
                     b.HasOne("eSMP.Models.Item_Status", "Item_Status")
@@ -630,25 +547,6 @@ namespace eSMP.Migrations
                         .IsRequired();
 
                     b.Navigation("Image");
-
-                    b.Navigation("Item");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Model_Item", b =>
-                {
-                    b.HasOne("eSMP.Models.Brand_Model", "Brand_Model")
-                        .WithMany()
-                        .HasForeignKey("Brand_ModelID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("ItemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Brand_Model");
 
                     b.Navigation("Item");
                 });

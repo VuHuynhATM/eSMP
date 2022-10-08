@@ -57,4 +57,31 @@ namespace eSMP.VModels
         public double Latitude { get; set; }
         public double Longitude { get; set; }
     }
+
+    public class EditName
+    {
+        public int UserID { get; set; }
+        public string UserName { get; set; }
+    }
+    public class EditEmail
+    {
+        public int UserID { get; set; }
+        public string UserEmail { get; set; }
+    }
+    public class EditGender
+    {
+        public int UserID { get; set; }
+        public string UserGender { get; set; }
+    }
+    public class EditBirth
+    {
+        public int UserID { get; set; }
+        public DateTime UserBirth { get; set; }
+    }
+    public class EditImage
+    {
+        public int UserID { get; set; }
+        public string PathImage { get; set; }
+        public string FileName { get; set; }
+    }
 }

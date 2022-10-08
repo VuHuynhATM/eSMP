@@ -7,7 +7,8 @@ namespace eSMP.Models
     public class Sub_Category
     {
         [Key]
-        public int ID { get; set; }
+        public int Sub_CategoryID { get; set; }
+        public string Sub_categoryName { get; set; }
         public Boolean IsActive { get; set; }
         public int CategoryID { get; set; }//FK
         [ForeignKey("CategoryID")]

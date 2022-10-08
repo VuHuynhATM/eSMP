@@ -12,9 +12,16 @@ namespace eSMP.VModels
         public string Email { get; set; }
         public string Phone { get; set; }
         public int Pick_date { get; set; }
+        public int UserID { get; set; }
         public Address Address { get; set; }
         public Store_Status Store_Status { get; set; }
         public Image Image { get; set; }
+    }
+    public class StoreViewModel
+    {
+        public int StoreID { get; set; }
+        public string StoreName { get; set; }
+        public string Imagepath { get; set; }
     }
     public class StoreRegister
     {

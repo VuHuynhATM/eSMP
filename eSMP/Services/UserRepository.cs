@@ -1,6 +1,5 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
-using Firebase.Auth;
 using User = eSMP.Models.User;
 
 namespace eSMP.Services
@@ -24,7 +23,7 @@ namespace eSMP.Services
             {
                 if (CheckRole(phone, 2).Success)
                 {
-                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.StatusID != 2 && user.RoleID == 2);
+                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.isActive && user.RoleID == 2);
                     if (u != null)
                     {
                         UserModel model = new UserModel
@@ -69,7 +68,7 @@ namespace eSMP.Services
             {
                 if (CheckRole(phone, 3).Success)
                 {
-                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.StatusID != 2 && user.RoleID == 3);
+                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.isActive && user.RoleID == 3);
                     if (u != null)
                     {
                         UserModel model = new UserModel
@@ -107,25 +106,11 @@ namespace eSMP.Services
                 return result;
             }
         }
-        public void CreateTokenByPhone(int UserID)
+        public void CreateTokenByUserID(int UserID)
         {
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == UserID);
-                string token = _tokenService.BuildToken(_configuration["Jwt:AuthDemo:Key"], _configuration["Jwt:AuthDemo:ValidIssuer"], user);
-                user.Token = token;
-                _context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                return;
-            }
-        }
-        public void CreateTokenByEmail(string email)
-        {
-            try
-            {
-                var user = _context.Users.SingleOrDefault(u => u.Email == email);
                 string token = _tokenService.BuildToken(_configuration["Jwt:AuthDemo:Key"], _configuration["Jwt:AuthDemo:ValidIssuer"], user);
                 user.Token = token;
                 _context.SaveChanges();
@@ -140,39 +125,36 @@ namespace eSMP.Services
             Result result = new Result();
             try
             {
-                if (Checkadmin(email, password))
+                if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
                 {
-                    if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+                    var u = _context.Users.SingleOrDefault(user => user.Email == email && user.Password == password && user.RoleID == 1);
+                    if (u != null)
                     {
-                        var u = _context.Users.SingleOrDefault(user => user.Email == email && user.Password == password && user.RoleID == 1);
-                        if (u != null)
+                        CreateTokenByUserID(u.UserID);
+                        UserModel model = new UserModel
                         {
-                            CreateTokenByEmail(email);
-                            UserModel model = new UserModel
-                            {
-                                UserID = u.UserID,
-                                Email = u.Email,
-                                Phone = u.Phone,
-                                IsActive = u.isActive,
-                                Password = u.Password,
-                                UserName = u.UserName,
-                                DateOfBirth = u.DateOfBirth,
-                                Gender = u.Gender,
-                                Crete_date = u.Crete_date,
-                                Token = u.Token,
-                                Role = GetUserRole(u.RoleID),
-                                Image = GetUserImage(u.ImageID),
-                                addresses = GetAddresses(u.UserID),
-                            };
-                            result.Success = true;
-                            result.Message = "Đăng nhập thành công";
-                            result.Data = model;
-                            return result;
-                        }
+                            UserID = u.UserID,
+                            Email = u.Email,
+                            Phone = u.Phone,
+                            IsActive = u.isActive,
+                            Password = u.Password,
+                            UserName = u.UserName,
+                            DateOfBirth = u.DateOfBirth,
+                            Gender = u.Gender,
+                            Crete_date = u.Crete_date,
+                            Token = u.Token,
+                            Role = GetUserRole(u.RoleID),
+                            Image = GetUserImage(u.ImageID),
+                            addresses = GetAddresses(u.UserID),
+                        };
+                        result.Success = true;
+                        result.Message = "Đăng nhập thành công";
+                        result.Data = model;
+                        return result;
                     }
                 }
                 result.Success = false;
-                result.Message = "Nhập sai số điện thoại";
+                result.Message = "Nhập sai email hoặc password";
                 result.Data = "";
                 return result;
             }
@@ -206,7 +188,7 @@ namespace eSMP.Services
                         new_user.Crete_date = DateTime.UtcNow;
                         new_user.DateOfBirth = user.DateOfBirth;
                         new_user.Gender = user.Gender;
-                        new_user.StatusID = 1;
+                        new_user.isActive = true;
                         new_user.RoleID = 2;
                         new_user.Token = " ";
                         new_user.Image = image;
@@ -215,19 +197,20 @@ namespace eSMP.Services
                         address.Context = user.contextAddress;
                         address.Latitude = user.Latitude;
                         address.Longitude = user.Longitude;
-                        address.Province=user.Province;
-                        address.District= user.District;
+                        address.Province = user.Province;
+                        address.District = user.District;
                         address.Ward = user.Ward;
                         address.IsActive = true;
 
                         User_Address user_Address = new User_Address();
                         user_Address.Address = address;
                         user_Address.User = new_user;
+                        user_Address.IsActive = true;
                         _context.User_Addresses.Add(user_Address);
                         _context.SaveChanges();
                         UserModel model = new UserModel();
                         model = (UserModel)CustomerLogin(user.Phone).Data;
-                        CreateTokenByPhone(model.UserID);
+                        CreateTokenByUserID(model.UserID);
                         var u = (UserModel)CustomerLogin(user.Phone).Data;
                         result.Success = true;
                         result.Message = "Đăng ký thành công";
@@ -268,17 +251,6 @@ namespace eSMP.Services
             return result;
 
         }
-        public Boolean Checkadmin(string email, string password)
-        {
-            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
-            {
-                var user = _context.Users.SingleOrDefault(u => u.Email == email && u.Password == password);
-                if (user != null)
-                    return true;
-            }
-            return false;
-
-        }
         public Result RigisterSupplier(UserRegister user)
         {
             Result result = new Result();
@@ -301,7 +273,7 @@ namespace eSMP.Services
                         new_user.Crete_date = DateTime.UtcNow;
                         new_user.DateOfBirth = user.DateOfBirth;
                         new_user.Gender = user.Gender;
-                        new_user.StatusID = 1;
+                        new_user.isActive = true;
                         new_user.RoleID = 3;
                         new_user.Token = " ";
                         new_user.Image = image;
@@ -323,7 +295,7 @@ namespace eSMP.Services
 
                         UserModel model = new UserModel();
                         model = (UserModel)SupplierLogin(user.Phone).Data;
-                        CreateTokenByPhone(model.UserID);
+                        CreateTokenByUserID(model.UserID);
                         var u = (UserModel)SupplierLogin(user.Phone).Data;
                         result.Success = true;
                         result.Message = "Đăng ký thành công";
@@ -358,7 +330,7 @@ namespace eSMP.Services
                         IsActive = ud.Address.IsActive,
                         Latitude = ud.Address.Latitude,
                         Longitude = ud.Address.Longitude,
-                        Province = ud.Address.Province, 
+                        Province = ud.Address.Province,
                         District = ud.Address.District,
                         Ward = ud.Address.Ward
                     });
@@ -371,7 +343,7 @@ namespace eSMP.Services
                 return null;
             }
         }
-        public Result UpdatteUserStatus(int userID, int statusID)
+        public Result UpdatteUserStatus(int userID, Boolean iaActive)
         {
             Result result = new Result();
             try
@@ -379,7 +351,7 @@ namespace eSMP.Services
                 var user = _context.Users.SingleOrDefault(u => u.UserID == userID);
                 if (user != null)
                 {
-                    user.StatusID = statusID;
+                    user.isActive = iaActive;
                     _context.Update(user);
                     _context.SaveChanges();
                     result.Success = true;
@@ -407,7 +379,7 @@ namespace eSMP.Services
             {
                 var listuser = _context.Users.ToList();
                 var r = new List<UserModel>();
-                if (listuser.Count > 0)
+               /* if (listuser.Count > 0)
                     foreach (var user in listuser)
                     {
                         UserModel model = new UserModel
@@ -427,10 +399,10 @@ namespace eSMP.Services
                             IsActive = user.isActive
                         };
                         r.Add(model);
-                    }
+                    }*/
                 result.Success = true;
                 result.Message = "thành công";
-                result.Data = r;
+                result.Data = listuser;
                 return result;
             }
             catch
@@ -498,6 +470,13 @@ namespace eSMP.Services
                     var user = _context.Users.SingleOrDefault(u => u.UserID == userID);
                     if (user != null)
                     {
+                        var image=_context.Images.SingleOrDefault(i => i.ImageID == user.ImageID);
+                        _context.Images.Remove(image);
+                        List<Address> listAddress = GetAddresses(user.UserID);
+                        foreach (Address address in listAddress)
+                        {
+                            _context.Addresss.Remove(address);
+                        }
                         _context.Users.Remove(user);
                         _context.SaveChanges();
                         result.Success = true;
@@ -524,27 +503,27 @@ namespace eSMP.Services
             Result result = new Result();
             try
             {
-                var user=_context.Users.SingleOrDefault(u => u.UserID == address.UserID);
-                if(user != null)
+                var user = _context.Users.SingleOrDefault(u => u.UserID == address.UserID);
+                if (user != null)
                 {
-                    Address newAddress=new Address();
+                    Address newAddress = new Address();
                     newAddress.Context = address.contextAddress;
-                    newAddress.Province=address.Province;
-                    newAddress.District=address.District;
-                    newAddress.Ward=address.Ward;
-                    newAddress.Latitude=address.Latitude;
-                    newAddress.Longitude=address.Longitude;
+                    newAddress.Province = address.Province;
+                    newAddress.District = address.District;
+                    newAddress.Ward = address.Ward;
+                    newAddress.Latitude = address.Latitude;
+                    newAddress.Longitude = address.Longitude;
                     newAddress.IsActive = true;
 
                     User_Address user_Address = new User_Address();
                     user_Address.Address = newAddress;
-                    user_Address.User=user;
+                    user_Address.User = user;
                     user_Address.IsActive = true;
                     _context.User_Addresses.Add(user_Address);
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thêm địa chỉ thành công";
-                    result.Data = "";
+                    result.Data = GetAddresses(address.UserID);
                     return result;
                 }
                 result.Success = false;
@@ -562,7 +541,6 @@ namespace eSMP.Services
         }
         public Result UpdateAddress(Address address)
         {
-
             Result result = new Result();
             try
             {
@@ -579,6 +557,209 @@ namespace eSMP.Services
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Sửa địa chỉ thành công";
+                    result.Data = addressUpdate;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "địa chỉ không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result UpdateName(EditName name)
+        {
+            Result result = new Result();
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserID == name.UserID);
+                if (user != null)
+                {
+                    user.UserName = name.UserName;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thay đổi thành công";
+                    result.Data = user;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thay đổi không thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result UpdateEmail(EditEmail email)
+        {
+            Result result = new Result();
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserID == email.UserID);
+                if (user != null)
+                {
+                    user.Email = email.UserEmail;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thay đổi thành công";
+                    result.Data = user;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thay đổi không thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result UpdateBirth(EditBirth birth)
+        {
+            Result result = new Result();
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserID == birth.UserID);
+                if (user != null)
+                {
+                    user.DateOfBirth = birth.UserBirth;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thay đổi thành công";
+                    result.Data = user;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thay đổi không thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result UpdateGender(EditGender gender)
+        {
+            Result result = new Result();
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserID == gender.UserID);
+                if (user != null)
+                {
+                    user.Gender = gender.UserGender;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thay đổi thành công";
+                    result.Data = user;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thay đổi không thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result UpdateImage(EditImage image)
+        {
+            Result result = new Result();
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserID == image.UserID);
+                if (user != null)
+                {
+                    var img = _context.Images.SingleOrDefault(i => i.ImageID == user.ImageID);
+                    if (img != null)
+                    {
+                        img.Crete_date = DateTime.UtcNow;
+                        img.FileName = image.FileName;
+                        img.Path = image.PathImage;
+                        _context.SaveChanges();
+                        result.Success = true;
+                        result.Message = "Thay đổi thành công";
+                        result.Data = img;
+                        return result;
+                    }
+                }
+                result.Success = false;
+                result.Message = "Thay đổi không thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result RefeshToken(int userID, string token)
+        {
+            Result result = new Result();
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserID == userID && u.Token == token);
+                if (user != null)
+                {
+                    CreateTokenByUserID(userID);
+                    result.Success = true;
+                    result.Message = "Gia hạn thành công";
+                    result.Data = user.Token;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Gia hạn không thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result RemoveAddress(int addressID)
+        {
+            Result result = new Result();
+            try
+            {
+                var address = _context.Addresss.SingleOrDefault(a => a.AddressID == addressID);
+                if (address!= null)
+                {
+                    _context.Addresss.Remove(address);
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Xoá địa chỉ thành công";
                     result.Data = "";
                     return result;
                 }
@@ -596,6 +777,23 @@ namespace eSMP.Services
             }
         }
 
+        public void Updaterole()
+        {
+            try
+            {
+                var role = _context.Roles.SingleOrDefault(s => s.RoleID == 4);
+                if(role!= null)
+                {
+                    var check= role.IsActive;
+                    role.IsActive=!check;
+                    _context.SaveChanges();
+                }    
 
+            }
+            catch
+            {
+                return ;
+            }
+        }
     }
 }

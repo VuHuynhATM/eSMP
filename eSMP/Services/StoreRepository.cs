@@ -1,22 +1,15 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
-using Firebase.Auth;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace eSMP.Services
 {
     public class StoreRepository : IStoreReposity
     {
         private readonly WebContext _context;
-        private readonly IConfiguration _configuration;
-        private readonly ITokenService _tokenService;
 
-        public StoreRepository(WebContext context, IConfiguration configuration, ITokenService tokenService)
+        public StoreRepository(WebContext context)
         {
             _context = context;
-            _configuration = configuration;
-            _tokenService = tokenService;
         }
 
         public Result CteateStore(StoreRegister store)
@@ -98,7 +91,8 @@ namespace eSMP.Services
                     Pick_date = store.Pick_date,
                     Address = GetAddress(store.AddressID),
                     Image = GetImage(store.ImageID),
-                    Store_Status = GetStatus(store.Store_StatusID)
+                    Store_Status = GetStatus(store.Store_StatusID),
+                    UserID=store.UserID,
                 };
                 return model;
             }
@@ -177,7 +171,8 @@ namespace eSMP.Services
                         Pick_date = store.Pick_date,
                         Address = GetAddress(store.AddressID),
                         Image = GetImage(store.ImageID),
-                        Store_Status = GetStatus(store.Store_StatusID)
+                        Store_Status = GetStatus(store.Store_StatusID),
+                        UserID=store.UserID,
                     };
                     list.Add(model);
                 }
@@ -214,7 +209,8 @@ namespace eSMP.Services
                         Pick_date = store.Pick_date,
                         Address = GetAddress(store.AddressID),
                         Image = GetImage(store.ImageID),
-                        Store_Status = GetStatus(store.Store_StatusID)
+                        Store_Status = GetStatus(store.Store_StatusID),
+                        UserID= store.UserID,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -265,6 +261,29 @@ namespace eSMP.Services
                 result.Data = "";
                 return result;
             }
+        }
+
+        public StoreViewModel GetStoreModel(int storeID)
+        {
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
+                if (store != null)
+                {
+                    StoreViewModel model = new StoreViewModel
+                    {
+                        StoreID = store.StoreID,
+                        StoreName=store.StoreName,
+                        Imagepath=GetImage(store.ImageID).Path,
+                    };
+                    return model;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return null;
         }
     }
 }

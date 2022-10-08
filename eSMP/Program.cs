@@ -21,6 +21,10 @@ builder.Services.AddScoped<WebContext, WebContext>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserReposity, UserRepository>();
 builder.Services.AddScoped<IStoreReposity, StoreRepository>();
+builder.Services.AddScoped<ICategoryReposity, CategoryRepository>();
+builder.Services.AddScoped<ISpecificationReposity, SpecificationRepository>();
+builder.Services.AddScoped<IItemReposity, ItemRepository>();
+builder.Services.AddScoped<IBrandReposity, BrandRepository>();
 
 
 var dbcontext = new WebContext();

@@ -15,6 +15,16 @@ namespace eSMP.Models
         public DbSet<Store_Status> Store_Statuses { get; set; }
         public DbSet<Category> Categorys { get; set; }
         public DbSet<Sub_Category> SubCategories { get; set; }
+        public DbSet<Item_Status> Item_Statuses { get; set; }
+        public DbSet<Specification> Specification { get; set; }
+        public DbSet<Specification_Value> Specification_Values { get; set; }
+        public DbSet<Sub_Item> Sub_Items { get; set; }
+        public DbSet<Item> Items { get; set; }
+        public DbSet<Item_Image> Item_Images { get; set; }
+        public DbSet<SubCate_Specification> SubCate_Specifications { get; set; }
+        public DbSet<Brand>Brands { get; set; }
+        public DbSet<Brand_Model> Brand_Models { get; set; }
+        public DbSet<Model_Item> Model_Items { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -52,6 +62,14 @@ namespace eSMP.Models
             modelBuilder.Entity<Store>()
                 .HasIndex(e => new { e.UserID })
                 .IsUnique();
+            modelBuilder.Entity<Specification_Value>()
+                .HasOne(e => e.Specification)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Item_Image>()
+                .HasOne(e => e.Item)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

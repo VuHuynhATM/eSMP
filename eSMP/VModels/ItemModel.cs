@@ -8,9 +8,11 @@ namespace eSMP.VModels
         public int ItemID { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public double Discount { get; set; }
         public float Rate { get; set; }
         public double Price { get; set; }
         public string Item_Image { get; set; }
+        public string Province { get; set; }
     }
     public class ItemModel
     {
@@ -20,6 +22,7 @@ namespace eSMP.VModels
         public float Rate { get; set; }
         public double MaxPrice { get; set; }
         public double MinPrice { get; set; }
+        public double Discount {get; set; } 
         public DateTime Create_date { get; set; }
         public int Sub_CategoryID { get; set; }
         public Item_Status Item_Status { get; set; }
@@ -35,6 +38,7 @@ namespace eSMP.VModels
         public int Sub_ItemID { get; set; }
         public string Sub_ItemName { get; set; }
         public int Amount { get; set; }
+        public double Discount { get; set; }
         public double Price { get; set; }
         public Boolean IsActive { get; set; }
     }
@@ -53,6 +57,7 @@ namespace eSMP.VModels
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public double Discount { get; set; }
         public int StoreID { get; set; }
         public int Sub_CategoryID { get; set; }
         public List<ItemImageRegister> List_Image { get; set; }

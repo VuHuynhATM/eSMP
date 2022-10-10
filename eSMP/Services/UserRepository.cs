@@ -379,7 +379,7 @@ namespace eSMP.Services
             {
                 var listuser = _context.Users.ToList();
                 var r = new List<UserModel>();
-               /* if (listuser.Count > 0)
+                if (listuser.Count > 0)
                     foreach (var user in listuser)
                     {
                         UserModel model = new UserModel
@@ -399,7 +399,7 @@ namespace eSMP.Services
                             IsActive = user.isActive
                         };
                         r.Add(model);
-                    }*/
+                    }
                 result.Success = true;
                 result.Message = "thành công";
                 result.Data = listuser;

@@ -13,6 +13,6 @@ namespace eSMP.Models
         public Item Item { get; set; }
         public int ImageID { get; set; }//Fk
         [ForeignKey("ImageID")]
-        public Image Image { get; set; }
+        public Image? Image { get; set; }
     }
 }

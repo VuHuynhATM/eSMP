@@ -69,6 +69,29 @@ namespace eSMP.Services
             }
         }
 
+        public Brand_Model GetBrandModelByID(int BrandModelID)
+        {
+            try
+            {
+                return _context.Brand_Models.SingleOrDefault(e => e.Brand_ModelID == BrandModelID);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public Brand GetBrandByID(int BrandID)
+        {
+            try
+            {
+                return _context.Brands.SingleOrDefault(e => e.BrandID == BrandID);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public List<BrandModel> GetModelForItem(int ItemID)
         {
             try
@@ -82,13 +105,14 @@ namespace eSMP.Services
                         if (list.Count == 0)
                         {
                             BrandModel model = new BrandModel();
-                            model.BrandID = item.Brand_Model.Brand.BrandID;
-                            model.Name = item.Brand_Model.Brand.Name;
+                            model.BrandID = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).BrandID;
+                            model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
+                            model.listModel = new List<BrandItemModel>();
                             List<BrandItemModel> listmodel = new List<BrandItemModel>();
                             BrandItemModel brand_Model = new BrandItemModel();
-                            brand_Model.Brand_ModelID = item.Brand_Model.BrandID;
-                            brand_Model.Name = item.Brand_Model.Name;
-                            brand_Model.IsActive = item.Brand_Model.IsActive;
+                            brand_Model.Brand_ModelID = item.Brand_ModelID;
+                            brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
+                            brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
                             listmodel.Add(brand_Model);
                             model.listModel = listmodel;
                             list.Add(model);
@@ -96,19 +120,19 @@ namespace eSMP.Services
                         else
                         {
                             BrandModel model = new BrandModel();
-                            model.BrandID = item.Brand_Model.Brand.BrandID;
-                            model.Name = item.Brand_Model.Brand.Name;
+                            model.BrandID = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).BrandID;
+                            model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
                             foreach (var i in list)
                             {
                                 Boolean checkinList = false;
                                 if (i.BrandID == model.BrandID)
                                 {
                                     checkinList = true;
-                                    List<BrandItemModel> listmodel = model.listModel;
+                                    List<BrandItemModel> listmodel = i.listModel;
                                     BrandItemModel brand_Model = new BrandItemModel();
-                                    brand_Model.Brand_ModelID = item.Brand_Model.BrandID;
-                                    brand_Model.Name = item.Brand_Model.Name;
-                                    brand_Model.IsActive = item.Brand_Model.IsActive;
+                                    brand_Model.Brand_ModelID = item.Brand_ModelID;
+                                    brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
+                                    brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
                                     listmodel.Add(brand_Model);
                                     model.listModel = listmodel;
                                     list.Add(model);
@@ -117,9 +141,9 @@ namespace eSMP.Services
                                 {
                                     List<BrandItemModel> listmodel = new List<BrandItemModel>();
                                     BrandItemModel brand_Model = new BrandItemModel();
-                                    brand_Model.Brand_ModelID = item.Brand_Model.BrandID;
-                                    brand_Model.Name = item.Brand_Model.Name;
-                                    brand_Model.IsActive = item.Brand_Model.IsActive;
+                                    brand_Model.Brand_ModelID = item.Brand_ModelID;
+                                    brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
+                                    brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
                                     listmodel.Add(brand_Model);
                                     model.listModel = listmodel;
                                     list.Add(model);

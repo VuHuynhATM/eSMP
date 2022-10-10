@@ -1,5 +1,6 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
+using System.Security.Policy;
 
 namespace eSMP.Services
 {
@@ -10,7 +11,7 @@ namespace eSMP.Services
         private readonly ISpecificationReposity _specificationReposity;
         private readonly IBrandReposity _brandReposity;
 
-        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity,IBrandReposity brandReposity)
+        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IBrandReposity brandReposity)
         {
             _context = context;
             _storeReposity = storeReposity;
@@ -28,8 +29,9 @@ namespace eSMP.Services
                 newItem.Description = item.Description;
                 newItem.Create_date = DateTime.UtcNow;
                 newItem.StoreID = item.StoreID;
-                newItem.Sub_CategoryID=item.Sub_CategoryID;
+                newItem.Sub_CategoryID = item.Sub_CategoryID;
                 newItem.Rate = 0;
+                newItem.Discount = item.Discount;
                 newItem.Item_StatusID = 1;
 
                 var listsub = item.List_SubItem;
@@ -37,7 +39,7 @@ namespace eSMP.Services
                 {
                     Sub_Item sub = new Sub_Item();
                     sub.Sub_ItemName = itemsub.Sub_ItemName;
-                    sub.Amount=itemsub.Amount;
+                    sub.Amount = itemsub.Amount;
                     sub.IsActive = true;
                     sub.Price = itemsub.Price;
                     sub.Item = newItem;
@@ -49,7 +51,7 @@ namespace eSMP.Services
                 {
                     Image i = new Image();
                     i.Crete_date = DateTime.UtcNow;
-                    i.FileName=image.FileName;
+                    i.FileName = image.FileName;
                     i.Path = image.Path;
                     i.IsActive = true;
 
@@ -62,15 +64,15 @@ namespace eSMP.Services
                 var listSpec = item.List_Specitication;
                 foreach (var specitication in listSpec)
                 {
-                    Specification_Value specification_Value=new Specification_Value();
-                    specification_Value.SpecificationID=specitication.SpecificationID;
+                    Specification_Value specification_Value = new Specification_Value();
+                    specification_Value.SpecificationID = specitication.SpecificationID;
                     specification_Value.Value = specitication.Value;
-                    specification_Value.ItemID =specitication.ItemID;
-                    specification_Value.IsActive= true;
+                    specification_Value.Item = newItem;
+                    specification_Value.IsActive = true;
                     _context.Specification_Values.Add(specification_Value);
                 }
-                var listModel=item.ListModel;
-                foreach(var model in listModel)
+                var listModel = item.ListModel;
+                foreach (var model in listModel)
                 {
                     Model_Item model_Item = new Model_Item();
                     model_Item.Item = newItem;
@@ -123,7 +125,7 @@ namespace eSMP.Services
             }
             return null;
         }
-        public double GetMinPrice(int itemID)
+        public double GetMinPriceForItem(int itemID)
         {
             var listsubItem = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
             if (listsubItem.Count > 0)
@@ -141,7 +143,7 @@ namespace eSMP.Services
             }
             return 0;
         }
-        public double GetMaxPrice(int itemID)
+        public double GetMaxPriceForItem(int itemID)
         {
             var listsubItem = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
             if (listsubItem.Count > 0)
@@ -181,7 +183,9 @@ namespace eSMP.Services
                             Rate = item.Rate,
                             Item_Image = GetItemImage(item.ItemID)[0].Path,
                             Name = item.Name,
-                            Price = GetMinPrice(item.ItemID),
+                            Price = GetMinPriceForItem(item.ItemID),
+                            Discount = item.Discount,
+                            Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                         };
                         listmodel.Add(model);
                     }
@@ -206,12 +210,12 @@ namespace eSMP.Services
         public int GetTotalAmount(int ItemID)
         {
             int amount = 0;
-            var subItems=_context.Sub_Items.Where(x => x.ItemID == ItemID).ToList();
-            if(subItems.Count>0)
+            var subItems = _context.Sub_Items.Where(x => x.ItemID == ItemID).ToList();
+            if (subItems.Count > 0)
             {
                 foreach (var item in subItems)
                 {
-                    amount=amount+item.Amount;
+                    amount = amount + item.Amount;
                 }
             }
             return amount;
@@ -219,7 +223,7 @@ namespace eSMP.Services
         public List<SubItemModel> GetListSubItem(int itemID)
         {
             var listSub = _context.Sub_Items.Where(s => s.ItemID == itemID).ToList();
-            if(listSub.Count > 0)
+            if (listSub.Count > 0)
             {
                 List<SubItemModel> list = new List<SubItemModel>();
                 foreach (var item in listSub)
@@ -237,7 +241,7 @@ namespace eSMP.Services
                 return list;
             }
             return null;
-        } 
+        }
         public Result GetItemDetail(int itemID)
         {
             Result result = new Result();
@@ -252,8 +256,9 @@ namespace eSMP.Services
                         Name = item.Name,
                         Description = item.Description,
                         Create_date = item.Create_date,
-                        MaxPrice = GetMaxPrice(item.ItemID),
-                        MinPrice = GetMinPrice(item.ItemID),
+                        MaxPrice = GetMaxPriceForItem(item.ItemID),
+                        MinPrice = GetMinPriceForItem(item.ItemID),
+                        Discount = item.Discount,
                         Rate = item.Rate,
                         Sub_CategoryID = item.Sub_CategoryID,
                         Store = _storeReposity.GetStoreModel(item.StoreID),
@@ -282,6 +287,10 @@ namespace eSMP.Services
                 return result;
             }
         }
+        public Item GetItem(int ItemID)
+        {
+            return _context.Items.SingleOrDefault(i => i.ItemID == ItemID);
+        }
         public Result RemoveItem(int itemID)
         {
             Result result = new Result();
@@ -290,13 +299,13 @@ namespace eSMP.Services
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
                 if (item != null)
                 {
-                    var listSub=_context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
-                    foreach(var subItem in listSub)
+                    var listSub = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
+                    foreach (var subItem in listSub)
                     {
                         _context.Sub_Items.Remove(subItem);
                     }
-                    var listImageItem=GetItemImage(item.ItemID);
-                    foreach(var imageItem in listImageItem)
+                    var listImageItem = GetItemImage(item.ItemID);
+                    foreach (var imageItem in listImageItem)
                     {
                         _context.Images.Remove(imageItem);
                     }
@@ -313,6 +322,79 @@ namespace eSMP.Services
                 return result;
             }
             catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        // Tính khổng cách hai điểm khi biết kinh độ, vĩ độ
+        public static double distanceBetween2Points(double la1, double lo1, double la2, double lo2)
+        {
+            double R = 6371;
+            double dLat = (la2 - la1) * (Math.PI / 180);
+            double dLon = (lo2 - lo1) * (Math.PI / 180);
+            double la1ToRad = la1 * (Math.PI / 180);
+            double la2ToRad = la2 * (Math.PI / 180);
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Cos(la1ToRad)
+                        * Math.Cos(la2ToRad) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            double d = R * c;
+            return d;
+        }
+        public Result SearchItem(string? search, double? min, double? max, int? cateID, int? subCateID, int? brandID, int? brandModelID)
+        {
+            Result result = new Result();
+            try
+            {
+                var listItem = _context.Items.AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    listItem = listItem.Where(i=>i.Name.Contains(search));
+                }
+                else
+                {
+                    listItem = listItem.Where(i => i.Name.Contains(""));
+                }
+
+                if (min.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Sub_Items.Where(si=>si.ItemID==i.ItemID).Min(si=>si.Price)>min);
+                }
+
+                if (max.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price) < max);
+                }
+
+                if (cateID.HasValue)
+                {
+                    listItem = listItem.Where(i =>_context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == i.Sub_CategoryID).CategoryID==cateID);
+                }
+                List<ItemViewModel> listmodel = new List<ItemViewModel>();
+                foreach (var item in listItem.ToList())
+                {
+                    ItemViewModel model = new ItemViewModel
+                    {
+                        ItemID = item.ItemID,
+                        Description = item.Description,
+                        Rate = item.Rate,
+                        Item_Image = GetItemImage(item.ItemID)[0].Path,
+                        Name = item.Name,
+                        Price = GetMinPriceForItem(item.ItemID),
+                        Discount = item.Discount,
+                        Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                    };
+                    listmodel.Add(model);
+                }
+                result.Success = true;
+                result.Message = "Thành Công";
+                result.Data = listmodel;
+                return result;
+            }
+            catch(Exception ex)
             {
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";

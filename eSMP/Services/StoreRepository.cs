@@ -113,6 +113,21 @@ namespace eSMP.Services
                 return null;
             }
         }
+        public Address GetAddressByStoreID(int StoreID)
+        {
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == StoreID);
+
+                if (store != null)
+                    return GetAddress(store.AddressID);
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
         public Store_Status GetStatus(int statusID)
         {
             try

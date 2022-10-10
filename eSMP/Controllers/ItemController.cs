@@ -68,5 +68,19 @@ namespace eSMP.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet]
+        [Route("search")]
+        public IActionResult SearchItem(string? search, double? min, double? max, int? cateID, int? subCateID, int? brandID, int? brandModelID)
+        {
+            try
+            {
+                var result = _itemReposity.SearchItem(search, min, max, cateID, subCateID, brandID, brandModelID);
+                return Ok(result);
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
     }
 }

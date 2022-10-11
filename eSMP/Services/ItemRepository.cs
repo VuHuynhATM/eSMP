@@ -1,5 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
+using Microsoft.EntityFrameworkCore;
+using System.Drawing;
 using System.Security.Policy;
 
 namespace eSMP.Services
@@ -32,7 +34,7 @@ namespace eSMP.Services
                 newItem.Sub_CategoryID = item.Sub_CategoryID;
                 newItem.Rate = 0;
                 newItem.Discount = item.Discount;
-                newItem.Item_StatusID = 1;
+                newItem.Item_StatusID = 3;
 
                 var listsub = item.List_SubItem;
                 foreach (var itemsub in listsub)
@@ -40,7 +42,7 @@ namespace eSMP.Services
                     Sub_Item sub = new Sub_Item();
                     sub.Sub_ItemName = itemsub.Sub_ItemName;
                     sub.Amount = itemsub.Amount;
-                    sub.IsActive = true;
+                    sub.Sub_ItemID = 3;
                     sub.Price = itemsub.Price;
                     sub.Item = newItem;
                     _context.Sub_Items.Add(sub);
@@ -94,6 +96,7 @@ namespace eSMP.Services
                 return result;
             }
         }
+
         public List<Image> GetItemImage(int itemID)
         {
             try
@@ -116,6 +119,7 @@ namespace eSMP.Services
                 return null;
             }
         }
+
         public Image GetImage(int imageID)
         {
             Image image = _context.Images.SingleOrDefault(i => i.ImageID == imageID);
@@ -125,6 +129,7 @@ namespace eSMP.Services
             }
             return null;
         }
+
         public double GetMinPriceForItem(int itemID)
         {
             var listsubItem = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
@@ -143,6 +148,7 @@ namespace eSMP.Services
             }
             return 0;
         }
+
         public double GetMaxPriceForItem(int itemID)
         {
             var listsubItem = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
@@ -160,11 +166,13 @@ namespace eSMP.Services
             }
             return 0;
         }
+
         public Item_Status GetItemStatus(int statusID)
         {
             var result = _context.Item_Statuses.SingleOrDefault(s => s.Item_StatusID == statusID);
             return result;
         }
+
         public Result GetAllItem()
         {
             Result result = new Result();
@@ -207,6 +215,7 @@ namespace eSMP.Services
                 return result;
             }
         }
+
         public int GetTotalAmount(int ItemID)
         {
             int amount = 0;
@@ -220,6 +229,7 @@ namespace eSMP.Services
             }
             return amount;
         }
+
         public List<SubItemModel> GetListSubItem(int itemID)
         {
             var listSub = _context.Sub_Items.Where(s => s.ItemID == itemID).ToList();
@@ -232,7 +242,7 @@ namespace eSMP.Services
                     {
                         Sub_ItemID = item.Sub_ItemID,
                         Amount = item.Amount,
-                        IsActive = item.IsActive,
+                        SubItem_StatusID = item.SubItem_StatusID,
                         Price = item.Price,
                         Sub_ItemName = item.Sub_ItemName,
                     };
@@ -242,6 +252,7 @@ namespace eSMP.Services
             }
             return null;
         }
+
         public Result GetItemDetail(int itemID)
         {
             Result result = new Result();
@@ -287,10 +298,12 @@ namespace eSMP.Services
                 return result;
             }
         }
+
         public Item GetItem(int ItemID)
         {
             return _context.Items.SingleOrDefault(i => i.ItemID == ItemID);
         }
+
         public Result RemoveItem(int itemID)
         {
             Result result = new Result();
@@ -329,50 +342,80 @@ namespace eSMP.Services
                 return result;
             }
         }
-        // Tính khổng cách hai điểm khi biết kinh độ, vĩ độ
-        public static double distanceBetween2Points(double la1, double lo1, double la2, double lo2)
-        {
-            double R = 6371;
-            double dLat = (la2 - la1) * (Math.PI / 180);
-            double dLon = (lo2 - lo1) * (Math.PI / 180);
-            double la1ToRad = la1 * (Math.PI / 180);
-            double la2ToRad = la2 * (Math.PI / 180);
-            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Cos(la1ToRad)
-                        * Math.Cos(la2ToRad) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            double d = R * c;
-            return d;
-        }
-        public Result SearchItem(string? search, double? min, double? max, int? cateID, int? subCateID, int? brandID, int? brandModelID)
+
+        public Result SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot)
         {
             Result result = new Result();
             try
             {
                 var listItem = _context.Items.AsQueryable();
 
+
+                //Fillter
                 if (!string.IsNullOrEmpty(search))
                 {
-                    listItem = listItem.Where(i=>i.Name.Contains(search));
+                    listItem = listItem.Where(i => i.Name.Contains(search));
                 }
                 else
                 {
                     listItem = listItem.Where(i => i.Name.Contains(""));
                 }
-
                 if (min.HasValue)
                 {
-                    listItem = listItem.Where(i => _context.Sub_Items.Where(si=>si.ItemID==i.ItemID).Min(si=>si.Price)>min);
+                    listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price) > min);
                 }
-
                 if (max.HasValue)
                 {
                     listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price) < max);
                 }
-
+                if (rate.HasValue)
+                {
+                    listItem = listItem.Where(i => i.Rate >= rate);
+                }
                 if (cateID.HasValue)
                 {
-                    listItem = listItem.Where(i =>_context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == i.Sub_CategoryID).CategoryID==cateID);
+                    listItem = listItem.Where(i => _context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == i.Sub_CategoryID).CategoryID == cateID);
                 }
+                if (subCateID.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == i.Sub_CategoryID).Sub_CategoryID == subCateID);
+                }
+                if (brandID.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Model_Items.SingleOrDefault(mi => mi.ItemID == i.ItemID && _context.Brand_Models.SingleOrDefault(bm => bm.Brand_ModelID == mi.Brand_ModelID && bm.BrandID == brandID) != null) != null);
+                }
+                if (brandModelID.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Model_Items.SingleOrDefault(mi => mi.ItemID == i.ItemID && mi.Brand_ModelID == brandModelID) != null);
+                }
+
+                //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
+                
+                //listItem = listItem.OrderByDescending(i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID==a.AddressID).Longitude);
+
+                if (!string.IsNullOrEmpty(sortBy))
+                {
+                    switch (sortBy)
+                    {
+                        case "price_desc":
+                            listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            break;
+                        case "price_asc":
+                            listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            break;
+                    }
+                }
+                if (lot.HasValue && lat.HasValue)
+                {
+                    double lo = lot.Value;
+                    double la = lat.Value;
+                    listItem = listItem.OrderBy(i =>
+                                    6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                    );
+                }
+
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())
                 {
@@ -394,7 +437,319 @@ namespace eSMP.Services
                 result.Data = listmodel;
                 return result;
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        
+        public Result UpdatesubItem(SubItemUpdate subItem)
+        {
+            Result result = new Result();
+            try
+            {
+                var si = _context.Sub_Items.SingleOrDefault(i => i.Sub_ItemID == subItem.SubItemID);
+                if (si != null)
+                {
+                    si.Amount = subItem.Amount;
+                    si.Price = subItem.Price;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Cập nhập thành công";
+                    result.Data = si;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "subItemID không hợp lệ";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+
+        public Result AddsubItem(int itemID, Sub_ItemRegister subItem)
+        {
+            Result result=new Result();
+            try
+            {
+                var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
+                if (item != null)
+                {
+                    Sub_Item si=new Sub_Item();
+                    si.Sub_ItemName = subItem.Sub_ItemName;
+                    si.Amount=subItem.Amount;
+                    si.Price = subItem.Price;
+                    si.SubItem_StatusID = 3;
+                    si.ItemID = item.ItemID;
+                    _context.Sub_Items.Add(si);
+                    _context.SaveChanges();
+                    result.Success = false;
+                    result.Message = "Thêm thành công";
+                    result.Data = si;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "subItemID không hợp lệ";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result ActivesubItem(int subitemID)
+        {
+            Result result =new Result();
+            try
+            {
+                var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
+                if(subitem != null)
+                {
+                    subitem.SubItem_StatusID = 1;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Active thành công";
+                    result.Data = subitem;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "SubItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result ActiveItem(int itemID)
+        {
+            Result result = new Result();
+            try
+            {
+                var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
+                if (item != null)
+                {
+                    item.Item_StatusID = 1;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Active thành công";
+                    result.Data = item;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "ItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result BlocksubItem(int subitemID)
+        {
+            Result result = new Result();
+            try
+            {
+                var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
+                if (subitem != null)
+                {
+                    subitem.SubItem_StatusID = 2;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Khoá thành công";
+                    result.Data = subitem;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "SubItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result BlockItem(int itemID)
+        {
+            Result result = new Result();
+            try
+            {
+                var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
+                if (item != null)
+                {
+                    item.Item_StatusID = 2;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Khoá thành công";
+                    result.Data = item;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "ItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result HiddensubItem(int subitemID)
+        {
+            Result result = new Result();
+            try
+            {
+                var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
+                if (subitem != null)
+                {
+                    subitem.SubItem_StatusID = 4;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Ẩn thành công";
+                    result.Data = subitem;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "SubItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result HiddenItem(int itemID)
+        {
+            Result result = new Result();
+            try
+            {
+                var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
+                if (item != null)
+                {
+                    item.Item_StatusID = 4;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Ẩn thành công";
+                    result.Data = item;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "ItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result UnHiddensubItem(int subitemID)
+        {
+            Result result = new Result();
+            try
+            {
+                var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
+                if (subitem != null)
+                {
+                    if (subitem.SubItem_StatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "SubItem hiện bị khoá";
+                        result.Data = "";
+                        return result;
+                    }
+                    subitem.SubItem_StatusID = 1;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Huỷ ẩn thành công";
+                    result.Data = subitem;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "SubItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result UnHiddenItem(int itemID)
+        {
+            Result result = new Result();
+            try
+            {
+                var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
+                if (item != null)
+                {
+                    if (item.Item_StatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "SubItem hiện bị khoá";
+                        result.Data = "";
+                        return result;
+                    }
+                    item.Item_StatusID = 1;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Huỷ ẩn thành công";
+                    result.Data = item;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "ItemID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
             {
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";

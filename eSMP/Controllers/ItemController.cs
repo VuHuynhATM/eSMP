@@ -1,4 +1,5 @@
-﻿using eSMP.Services;
+﻿using eSMP.Models;
+using eSMP.Services;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +16,12 @@ namespace eSMP.Controllers
         {
             _itemReposity = itemReposity;
         }
-        [HttpGet]   
+        [HttpGet]
         public IActionResult GetAllItem()
         {
             try
             {
-                var result=_itemReposity.GetAllItem();
+                var result = _itemReposity.GetAllItem();
                 return Ok(result);
             }
             catch
@@ -70,16 +71,120 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("search")]
-        public IActionResult SearchItem(string? search, double? min, double? max, int? cateID, int? subCateID, int? brandID, int? brandModelID)
+        public IActionResult SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo)
         {
             try
             {
-                var result = _itemReposity.SearchItem(search, min, max, cateID, subCateID, brandID, brandModelID);
+                var result = _itemReposity.SearchItem(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo);
                 return Ok(result);
             }
             catch
             {
                 return BadRequest();
+            }
+        }
+        [HttpPut]
+        [Route("active_item")]
+        public IActionResult ActiveItem(int itemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.ActiveItem(itemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("active_subItem")]
+        public IActionResult ActiveSubItem(int subItemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.ActivesubItem(subItemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("block_item")]
+        public IActionResult BlockItem(int itemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.BlockItem(itemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("block_subItem")]
+        public IActionResult BlockSubItem(int subItemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.BlocksubItem(subItemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("hidden_item")]
+        public IActionResult HiddenItem(int itemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.HiddenItem(itemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("hiden_subItem")]
+        public IActionResult HiddenSubItem(int subItemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.HiddensubItem(subItemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("unhidden_item")]
+        public IActionResult UnHiddenItem(int itemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.UnHiddenItem(itemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("unhiden_subItem")]
+        public IActionResult UnHiddenSubItem(int subItemID)
+        {
+            try
+            {
+                return Ok(_itemReposity.UnHiddensubItem(subItemID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
     }

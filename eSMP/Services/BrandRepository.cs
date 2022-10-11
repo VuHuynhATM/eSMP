@@ -106,7 +106,7 @@ namespace eSMP.Services
                         {
                             BrandModel model = new BrandModel();
                             model.BrandID = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).BrandID;
-                            model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
+                            model.Name = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).Name;
                             model.listModel = new List<BrandItemModel>();
                             List<BrandItemModel> listmodel = new List<BrandItemModel>();
                             BrandItemModel brand_Model = new BrandItemModel();
@@ -121,10 +121,10 @@ namespace eSMP.Services
                         {
                             BrandModel model = new BrandModel();
                             model.BrandID = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).BrandID;
-                            model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
+                            model.Name = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).Name;
+                            Boolean checkinList = false;
                             foreach (var i in list)
                             {
-                                Boolean checkinList = false;
                                 if (i.BrandID == model.BrandID)
                                 {
                                     checkinList = true;
@@ -135,19 +135,18 @@ namespace eSMP.Services
                                     brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
                                     listmodel.Add(brand_Model);
                                     model.listModel = listmodel;
-                                    list.Add(model);
                                 }
-                                if (!checkinList)
-                                {
-                                    List<BrandItemModel> listmodel = new List<BrandItemModel>();
-                                    BrandItemModel brand_Model = new BrandItemModel();
-                                    brand_Model.Brand_ModelID = item.Brand_ModelID;
-                                    brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
-                                    brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
-                                    listmodel.Add(brand_Model);
-                                    model.listModel = listmodel;
-                                    list.Add(model);
-                                }
+                            }
+                            if (!checkinList)
+                            {
+                                List<BrandItemModel> listmodel = new List<BrandItemModel>();
+                                BrandItemModel brand_Model = new BrandItemModel();
+                                brand_Model.Brand_ModelID = item.Brand_ModelID;
+                                brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
+                                brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
+                                listmodel.Add(brand_Model);
+                                model.listModel = listmodel;
+                                list.Add(model);
                             }
                         }
                     }

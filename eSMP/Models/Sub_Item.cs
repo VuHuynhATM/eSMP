@@ -14,6 +14,8 @@ namespace eSMP.Models
         public int ItemID { get; set; }//Fk
         [ForeignKey("ItemID")]
         public Item Item { get; set; }
-        public Boolean IsActive { get; set; }
+        public int SubItem_StatusID { get; set; }//fk
+        [ForeignKey("SubItem_StatusID")]
+        public SubItem_Status SubItem_Status { get; set; }
     }
 }

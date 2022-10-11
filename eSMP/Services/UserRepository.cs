@@ -23,9 +23,10 @@ namespace eSMP.Services
             {
                 if (CheckRole(phone, 2).Success)
                 {
-                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.isActive && user.RoleID == 2);
+                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.RoleID == 2);
                     if (u != null)
                     {
+                        CreateTokenByUserID(u.UserID);
                         UserModel model = new UserModel
                         {
                             UserID = u.UserID,
@@ -42,6 +43,13 @@ namespace eSMP.Services
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
                         };
+                        if (!model.IsActive)
+                        {
+                            result.Success = false;
+                            result.Message = "Tài khoản hiện bị khoá";
+                            result.Data = "";
+                            return result;
+                        }
                         result.Success = true;
                         result.Message = "Đăng nhập thành Công";
                         result.Data = model;
@@ -68,9 +76,10 @@ namespace eSMP.Services
             {
                 if (CheckRole(phone, 3).Success)
                 {
-                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.isActive && user.RoleID == 3);
+                    var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.RoleID == 3);
                     if (u != null)
                     {
+                        CreateTokenByUserID(u.UserID);
                         UserModel model = new UserModel
                         {
                             UserID = u.UserID,
@@ -87,6 +96,13 @@ namespace eSMP.Services
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
                         };
+                        if (!model.IsActive)
+                        {
+                            result.Success = false;
+                            result.Message = "Tài khoản hiện bị khoá";
+                            result.Data = "";
+                            return result;
+                        }
                         result.Success = true;
                         result.Message = "Đăng nhập thành công";
                         result.Data = model;
@@ -147,6 +163,13 @@ namespace eSMP.Services
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
                         };
+                        if (!model.IsActive)
+                        {
+                            result.Success = false;
+                            result.Message = "Tài khoản hiện bị khoá";
+                            result.Data = "";
+                            return result;
+                        }
                         result.Success = true;
                         result.Message = "Đăng nhập thành công";
                         result.Data = model;

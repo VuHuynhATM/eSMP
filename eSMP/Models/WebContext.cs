@@ -25,6 +25,7 @@ namespace eSMP.Models
         public DbSet<Brand>Brands { get; set; }
         public DbSet<Brand_Model> Brand_Models { get; set; }
         public DbSet<Model_Item> Model_Items { get; set; }
+        public DbSet<SubItem_Status> subItem_Statuses { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -70,6 +71,10 @@ namespace eSMP.Models
                 .HasOne(e => e.Item)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Sub_Item>()
+                .HasOne(e => e.SubItem_Status)
+                .WithMany()
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

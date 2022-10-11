@@ -16,6 +16,7 @@ namespace eSMP.Services
             _configuration = configuration;
             _tokenService = tokenService;
         }
+        
         public Result CustomerLogin(string phone)
         {
             Result result = new Result();
@@ -608,7 +609,7 @@ namespace eSMP.Services
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = user;
+                    result.Data = GetUserbyID(user.UserID); ;
                     return result;
                 }
                 result.Success = false;
@@ -636,7 +637,7 @@ namespace eSMP.Services
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = user;
+                    result.Data = GetUserbyID(user.UserID); ;
                     return result;
                 }
                 result.Success = false;
@@ -664,7 +665,7 @@ namespace eSMP.Services
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = user;
+                    result.Data = GetUserbyID(user.UserID); ;
                     return result;
                 }
                 result.Success = false;
@@ -692,7 +693,7 @@ namespace eSMP.Services
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = user;
+                    result.Data = GetUserbyID(user.UserID); ;
                     return result;
                 }
                 result.Success = false;
@@ -725,7 +726,7 @@ namespace eSMP.Services
                         _context.SaveChanges();
                         result.Success = true;
                         result.Message = "Thay đổi thành công";
-                        result.Data = img;
+                        result.Data = GetUserbyID(user.UserID);
                         return result;
                     }
                 }
@@ -818,5 +819,41 @@ namespace eSMP.Services
                 return ;
             }
         }
+
+        public UserModel GetUserbyID(int userID)
+        {
+            try
+            {
+                var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
+                if (u != null)
+                {
+                    CreateTokenByUserID(u.UserID);
+                    UserModel model = new UserModel
+                    {
+                        UserID = u.UserID,
+                        Email = u.Email,
+                        Phone = u.Phone,
+                        IsActive = u.isActive,
+                        Password = u.Password,
+                        UserName = u.UserName,
+                        Crete_date = u.Crete_date,
+                        DateOfBirth = u.DateOfBirth,
+                        Gender = u.Gender,
+                        Token = u.Token,
+                        Role = GetUserRole(u.RoleID),
+                        Image = GetUserImage(u.ImageID),
+                        addresses = GetAddresses(u.UserID),
+                    };
+                    return model;
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+            
+        
     }
 }

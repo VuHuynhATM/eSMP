@@ -426,7 +426,7 @@ namespace eSMP.Services
                     }
                 result.Success = true;
                 result.Message = "thành công";
-                result.Data = listuser;
+                result.Data = r;
                 return result;
             }
             catch

@@ -309,6 +309,12 @@ namespace eSMP.Services
                 var store=_context.Stores.SingleOrDefault(s => s.StoreID == storeID);
                 if (store != null)
                 {
+                    store.Store_StatusID = 1;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Kích hoạt cửa hàng thành công";
+                    result.Data = store;
+                    return result;
 
                 }
                 result.Success = false;
@@ -327,17 +333,106 @@ namespace eSMP.Services
 
         public Result HiddenStore(int storeID)
         {
-            throw new NotImplementedException();
+            Result result = new Result();
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
+                if (store != null)
+                {
+                    if (store.Store_StatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "Cửa hàng hiện bị khoá";
+                        result.Data = "";
+                        return result;
+                    }
+                    store.Store_StatusID = 4;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Ẩn của hàng thành công";
+                    result.Data = store;
+                    return result;
+
+                }
+                result.Success = false;
+                result.Message = "cửa hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
         }
 
         public Result BlockStore(int storeID)
         {
-            throw new NotImplementedException();
+            Result result = new Result();
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
+                if (store != null)
+                {
+                    store.Store_StatusID = 2;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Khoá cửa hàng thành công";
+                    result.Data = store;
+                    return result;
+
+                }
+                result.Success = false;
+                result.Message = "cửa hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
         }
 
         public Result UnHiddenStore(int storeID)
         {
-            throw new NotImplementedException();
+            Result result = new Result();
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
+                if (store != null)
+                {
+                    if (store.Store_StatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "Cửa hàng hiện bị khoá";
+                        result.Data = "";
+                        return result;
+                    }
+                    store.Store_StatusID = 1;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Huỷ ẩn cửa hàng thành công";
+                    result.Data = store;
+                    return result;
+
+                }
+                result.Success = false;
+                result.Message = "cửa hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
         }
     }
 }

@@ -25,7 +25,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
             }
         }
         [HttpPost]
@@ -39,7 +39,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
             }
         }
         [HttpPost]
@@ -53,7 +53,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
             }
         }
         [HttpPost]
@@ -67,7 +67,59 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+            }
+        }
+        [HttpPut]
+        [Route("active_store")]
+        public IActionResult ActiveStore(int storeID)
+        {
+            try
+            {
+                return Ok(_sttoreReposity.ActiveStore(storeID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message="Lỗi Hệ thông", Data="" });
+            }
+        }
+        [HttpPut]
+        [Route("block_store")]
+        public IActionResult BlockStore(int storeID)
+        {
+            try
+            {
+                return Ok(_sttoreReposity.BlockStore(storeID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+            }
+        }
+        [HttpPut]
+        [Route("hidden_store")]
+        public IActionResult HiddenStore(int storeID)
+        {
+            try
+            {
+                return Ok(_sttoreReposity.HiddenStore(storeID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+            }
+        }
+        [HttpPut]
+        [Route("unhidden_store")]
+        public IActionResult UnHiddenStore(int storeID)
+        {
+            try
+            {
+                return Ok(_sttoreReposity.UnHiddenStore(storeID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
             }
         }
     }

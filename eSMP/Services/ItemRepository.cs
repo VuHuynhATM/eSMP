@@ -132,39 +132,12 @@ namespace eSMP.Services
 
         public double GetMinPriceForItem(int itemID)
         {
-            var listsubItem = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
-            if (listsubItem.Count > 0)
-            {
-                double price = 0;
-                foreach (var item in listsubItem)
-                {
-                    price = item.Price;
-                    if (item.Price < price)
-                    {
-                        price = item.Price;
-                    }
-                }
-                return price;
-            }
-            return 0;
+            return _context.Sub_Items.Where(i => i.ItemID == itemID).Min(i => i.Price);
         }
 
         public double GetMaxPriceForItem(int itemID)
         {
-            var listsubItem = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
-            if (listsubItem.Count > 0)
-            {
-                double price = 0;
-                foreach (var item in listsubItem)
-                {
-                    if (item.Price > price)
-                    {
-                        price = item.Price;
-                    }
-                }
-                return price;
-            }
-            return 0;
+            return _context.Sub_Items.Where(i => i.ItemID == itemID).Max(i => i.Price);
         }
 
         public Item_Status GetItemStatus(int statusID)
@@ -416,6 +389,9 @@ namespace eSMP.Services
                     );
                 }
 
+                //Paging
+
+
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())
                 {
@@ -476,7 +452,6 @@ namespace eSMP.Services
             }
         }
 
-
         public Result AddsubItem(int itemID, Sub_ItemRegister subItem)
         {
             Result result=new Result();
@@ -499,7 +474,7 @@ namespace eSMP.Services
                     return result;
                 }
                 result.Success = false;
-                result.Message = "subItemID không hợp lệ";
+                result.Message = "ItemID không hợp lệ";
                 result.Data = "";
                 return result;
             }
@@ -636,6 +611,21 @@ namespace eSMP.Services
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
                 if (subitem != null)
                 {
+                    var numactive = _context.Sub_Items.Where(si => si.SubItem_StatusID == 1 && si.ItemID==subitem.ItemID).Count();
+                    if(numactive == 1)
+                    {
+                        result.Success = false;
+                        result.Message = "Không thể ẩn sản phẩm cuối cùng";
+                        result.Data = "";
+                        return result;
+                    }
+                    if (subitem.SubItem_StatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "Sản phẩm hiện bị khoá";
+                        result.Data = "";
+                        return result;
+                    }
                     subitem.SubItem_StatusID = 4;
                     _context.SaveChanges();
                     result.Success = true;
@@ -665,6 +655,13 @@ namespace eSMP.Services
                 var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
                 if (item != null)
                 {
+                    if (item.Item_StatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "Sản phẩm hiện bị khoá";
+                        result.Data = "";
+                        return result;
+                    }
                     item.Item_StatusID = 4;
                     _context.SaveChanges();
                     result.Success = true;

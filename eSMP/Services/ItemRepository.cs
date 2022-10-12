@@ -226,6 +226,7 @@ namespace eSMP.Services
                         SubItem_StatusID = item.SubItem_StatusID,
                         Price = item.Price,
                         Sub_ItemName = item.Sub_ItemName,
+                        Image = GetImage(item.ImageID),
                     };
                     list.Add(model);
                 }
@@ -296,6 +297,11 @@ namespace eSMP.Services
                     var listSub = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
                     foreach (var subItem in listSub)
                     {
+                        var subimage=_context.Images.SingleOrDefault(i=>i.ImageID==subItem.ItemID);
+                        if (subimage != null)
+                        {
+                            _context.Images.Remove(subimage);
+                        }
                         _context.Sub_Items.Remove(subItem);
                     }
                     var listImageItem = GetItemImage(item.ItemID);

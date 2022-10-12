@@ -38,7 +38,7 @@ namespace eSMP.VModels
         public int Sub_ItemID { get; set; }
         public string Sub_ItemName { get; set; }
         public int Amount { get; set; }
-        public double Discount { get; set; }
+        public Image Image { get; set; }
         public double Price { get; set; }
         public int SubItem_StatusID { get; set; }
     }
@@ -46,6 +46,8 @@ namespace eSMP.VModels
     {
         public string Sub_ItemName { get; set; }
         public int Amount { get; set; }
+        public string imagepath { get; set; }
+        public string filename { get; set; }
         public double Price { get; set; }
     }
     public class ItemImageRegister

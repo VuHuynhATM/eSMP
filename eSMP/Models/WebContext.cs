@@ -75,6 +75,10 @@ namespace eSMP.Models
                 .HasOne(e => e.SubItem_Status)
                 .WithMany()
                 .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Sub_Item>()
+                .HasOne(e => e.Image)
+                .WithMany()
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

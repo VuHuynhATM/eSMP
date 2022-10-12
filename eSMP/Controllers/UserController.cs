@@ -314,7 +314,7 @@ namespace eSMP.Controllers
                 return BadRequest(ex);
             }
         }
-        [HttpPut]
+        [HttpPost]
         [Route("refeshtoken")]
         public IActionResult RefeshToken(int userID, string token)
         {

@@ -11,6 +11,9 @@ namespace eSMP.Models
         public string Sub_ItemName { get; set; }
         public int Amount { get; set; }
         public double Price { get; set; }
+        public int ImageID { get; set; }//Fk
+        [ForeignKey("ImageID")]
+        public Image Image { get; set; }
         public int ItemID { get; set; }//Fk
         [ForeignKey("ItemID")]
         public Item Item { get; set; }

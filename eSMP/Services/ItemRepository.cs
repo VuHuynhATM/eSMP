@@ -775,7 +775,7 @@ namespace eSMP.Services
             }
         }
 
-        public Result SearchItemForSupplier(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int page)
+        public Result SearchItemForSupplier(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int page)
         {
             Result result = new Result();
             try
@@ -824,10 +824,9 @@ namespace eSMP.Services
                 {
                     listItem = listItem.Where(i => i.StoreID == storeID);
                 }
-                // item active
-                listItem = listItem.Where(i => i.Item_StatusID == 1);
+                // item khong bi block
+                listItem = listItem.Where(i => i.Item_StatusID != 2);
                 //store active
-                listItem = listItem.Where(i => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID && s.Store_StatusID == 1) != null);
 
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
 

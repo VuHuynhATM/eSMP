@@ -15,6 +15,7 @@ namespace eSMP.Services
         Result GetListUser();
         Result SearchUser(string phone,int roleID);
         Result RemoveUser(int userID);
+        Result GetAddressByID(int userID);
         Result AddAddress(UserAddAddress address);
         Result UpdateAddress(Address address);
         Result RemoveAddress(int addressID);

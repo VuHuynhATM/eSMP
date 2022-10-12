@@ -4,7 +4,7 @@
 
 namespace eSMP.Migrations
 {
-    public partial class v7_1 : Migration
+    public partial class v11 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

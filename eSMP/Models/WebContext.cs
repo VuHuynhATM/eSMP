@@ -32,7 +32,7 @@ namespace eSMP.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Data Source=52.172.254.105,1433;Initial Catalog=eSMP;User ID=sa;Password =123456");
+                optionsBuilder.UseSqlServer("Data Source=20.249.97.60,1433;Initial Catalog=eSMP;User ID=sa;Password =123456");
             }
         }
         private ILoggerFactory GetLoggerFactory()
@@ -74,11 +74,11 @@ namespace eSMP.Models
             modelBuilder.Entity<Sub_Item>()
                 .HasOne(e => e.SubItem_Status)
                 .WithMany()
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Sub_Item>()
                 .HasOne(e => e.Image)
                 .WithMany()
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

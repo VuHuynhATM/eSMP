@@ -12,8 +12,8 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    [Migration("20221011054049_v10")]
-    partial class v10
+    [Migration("20221012173509_v1.3")]
+    partial class v13
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -446,6 +446,9 @@ namespace eSMP.Migrations
                     b.Property<int>("Amount")
                         .HasColumnType("int");
 
+                    b.Property<int>("ImageID")
+                        .HasColumnType("int");
+
                     b.Property<int>("ItemID")
                         .HasColumnType("int");
 
@@ -459,7 +462,13 @@ namespace eSMP.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("hhh")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Sub_ItemID");
+
+                    b.HasIndex("ImageID");
 
                     b.HasIndex("ItemID");
 
@@ -744,6 +753,12 @@ namespace eSMP.Migrations
 
             modelBuilder.Entity("eSMP.Models.Sub_Item", b =>
                 {
+                    b.HasOne("eSMP.Models.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("eSMP.Models.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemID")
@@ -753,8 +768,10 @@ namespace eSMP.Migrations
                     b.HasOne("eSMP.Models.SubItem_Status", "SubItem_Status")
                         .WithMany()
                         .HasForeignKey("SubItem_StatusID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Image");
 
                     b.Navigation("Item");
 

@@ -40,7 +40,7 @@ namespace eSMP.VModels
         public int Amount { get; set; }
         public Image Image { get; set; }
         public double Price { get; set; }
-        public int SubItem_StatusID { get; set; }
+        public SubItem_Status SubItem_Status { get; set; }
     }
     public class Sub_ItemRegister
     {

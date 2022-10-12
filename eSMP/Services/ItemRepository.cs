@@ -44,9 +44,18 @@ namespace eSMP.Services
                     Sub_Item sub = new Sub_Item();
                     sub.Sub_ItemName = itemsub.Sub_ItemName;
                     sub.Amount = itemsub.Amount;
-                    sub.Sub_ItemID = 3;
+                    sub.SubItem_StatusID = 3;
                     sub.Price = itemsub.Price;
                     sub.Item = newItem;
+
+                    Image i = new Image();
+                    i.Crete_date = DateTime.UtcNow;
+                    i.FileName=itemsub.filename;
+                    i.Path = itemsub.imagepath;
+                    i.IsActive = true;
+
+                    sub.Image = i;
+
                     _context.Sub_Items.Add(sub);
                 }
 
@@ -147,6 +156,11 @@ namespace eSMP.Services
             var result = _context.Item_Statuses.SingleOrDefault(s => s.Item_StatusID == statusID);
             return result;
         }
+        public SubItem_Status GetSubItemStatus(int statusID)
+        {
+            var result = _context.subItem_Statuses.SingleOrDefault(s => s.SubItem_StatusID == statusID);
+            return result;
+        }
 
         public Result GetAllItem(int? statusID, int page)
         {
@@ -223,7 +237,7 @@ namespace eSMP.Services
                     {
                         Sub_ItemID = item.Sub_ItemID,
                         Amount = item.Amount,
-                        SubItem_StatusID = item.SubItem_StatusID,
+                        SubItem_Status = GetSubItemStatus(item.SubItem_StatusID),
                         Price = item.Price,
                         Sub_ItemName = item.Sub_ItemName,
                         Image = GetImage(item.ImageID),
@@ -383,6 +397,8 @@ namespace eSMP.Services
                 listItem = listItem.Where(i => i.Item_StatusID == 1);
                 //store active
                 listItem = listItem.Where(i =>_context.Stores.SingleOrDefault(s=>s.StoreID==i.StoreID&&s.Store_StatusID==1)!=null);
+                //item count>0
+                listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Sum(si => si.Amount)>0);
 
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
                 
@@ -443,7 +459,7 @@ namespace eSMP.Services
             {
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
-                result.Data = "";
+                result.Data = ex;
                 return result;
             }
         }

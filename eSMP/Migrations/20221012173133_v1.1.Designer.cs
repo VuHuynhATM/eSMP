@@ -12,8 +12,8 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    [Migration("20221008031102_v9")]
-    partial class v9
+    [Migration("20221012173133_v1.1")]
+    partial class v11
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -446,8 +446,8 @@ namespace eSMP.Migrations
                     b.Property<int>("Amount")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                    b.Property<int>("ImageID")
+                        .HasColumnType("int");
 
                     b.Property<int>("ItemID")
                         .HasColumnType("int");
@@ -455,13 +455,20 @@ namespace eSMP.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
+                    b.Property<int>("SubItem_StatusID")
+                        .HasColumnType("int");
+
                     b.Property<string>("Sub_ItemName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Sub_ItemID");
 
+                    b.HasIndex("ImageID");
+
                     b.HasIndex("ItemID");
+
+                    b.HasIndex("SubItem_StatusID");
 
                     b.ToTable("Sub_Item");
                 });
@@ -490,6 +497,26 @@ namespace eSMP.Migrations
                     b.HasIndex("Sub_CategoryID");
 
                     b.ToTable("SubCate_Specification");
+                });
+
+            modelBuilder.Entity("eSMP.Models.SubItem_Status", b =>
+                {
+                    b.Property<int>("SubItem_StatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubItem_StatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubItem_StatusID");
+
+                    b.ToTable("SubItem_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.User", b =>
@@ -722,13 +749,29 @@ namespace eSMP.Migrations
 
             modelBuilder.Entity("eSMP.Models.Sub_Item", b =>
                 {
+                    b.HasOne("eSMP.Models.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("eSMP.Models.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("eSMP.Models.SubItem_Status", "SubItem_Status")
+                        .WithMany()
+                        .HasForeignKey("SubItem_StatusID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Image");
+
                     b.Navigation("Item");
+
+                    b.Navigation("SubItem_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.SubCate_Specification", b =>

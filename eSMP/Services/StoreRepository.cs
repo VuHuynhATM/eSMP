@@ -49,7 +49,7 @@ namespace eSMP.Services
                         Create_date = DateTime.UtcNow,
                         Email = store.Email,
                         Phone = store.Phone,
-                        Store_StatusID = 1,
+                        Store_StatusID = 3,
                         Pick_date = 1,
                         Address = address,
                         UserID = store.UserID,

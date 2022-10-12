@@ -460,6 +460,10 @@ namespace eSMP.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("hhh")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Sub_ItemID");
 
                     b.HasIndex("ImageID");
@@ -750,7 +754,7 @@ namespace eSMP.Migrations
                     b.HasOne("eSMP.Models.Image", "Image")
                         .WithMany()
                         .HasForeignKey("ImageID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("eSMP.Models.Item", "Item")
@@ -762,7 +766,7 @@ namespace eSMP.Migrations
                     b.HasOne("eSMP.Models.SubItem_Status", "SubItem_Status")
                         .WithMany()
                         .HasForeignKey("SubItem_StatusID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Image");

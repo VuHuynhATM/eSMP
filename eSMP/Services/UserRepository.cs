@@ -853,7 +853,32 @@ namespace eSMP.Services
                 return null;
             }
         }
-            
-        
+
+        public Result GetAddressByID(int userID)
+        {
+            Result result = new Result();
+            try
+            {
+                var listaddress = GetAddresses(userID);
+                if(listaddress != null)
+                {
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = listaddress;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "UserID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
     }
 }

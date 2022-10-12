@@ -321,8 +321,20 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.RefeshToken(userID,token);
-                if (result == null)
-                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpGet]
+        [Route("address")]
+        public IActionResult GetAddressbyID(int userID)
+        {
+            try
+            {
+                var result = _userReposity.GetAddressByID(userID);
                 return Ok(result);
             }
             catch (Exception ex)

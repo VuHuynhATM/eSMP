@@ -30,18 +30,13 @@ namespace eSMP.Services
             Result result = new Result();
             try
             {
-                var list=_context.SubCate_Specifications.ToList();
+                var list=_context.Specification.ToList();
                 List<Specification> speList=new List<Specification>();
                 if(list.Count > 0)
                 {
-                    foreach(var spec in list)
-                    {
-                        Specification specification=GetSpecification(spec.Sub_CategoryID);
-                        speList.Add(specification);
-                    }
                     result.Success = true;
                     result.Message = "Thành Công";
-                    result.Data = speList;
+                    result.Data = list;
                     return result;
                 }
                 result.Success = true;

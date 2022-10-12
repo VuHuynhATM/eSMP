@@ -18,7 +18,7 @@ namespace eSMP.Services
         {
             try
             {
-                List<Sub_Category> sub_categories = _context.SubCategories.Where(c => c.CategoryID == categoryID).ToList();
+                List<Sub_Category> sub_categories = _context.SubCategories.Where(c => c.CategoryID == categoryID && c.IsActive).ToList();
                 List<Sub_CategoryModel> list = new List<Sub_CategoryModel>();
                 if (sub_categories.Count > 0)
                 {
@@ -46,7 +46,7 @@ namespace eSMP.Services
             Result result = new Result();
             try
             {
-                var list = _context.Categorys.ToList();
+                var list = _context.Categorys.Where(c=>c.IsActive).ToList();
                 var r = new List<CategoryModel>();
                 if (list.Count > 0)
                 {
@@ -134,6 +134,6 @@ namespace eSMP.Services
                 return result;
             }
         }
-        
+
     }
 }

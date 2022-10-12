@@ -13,6 +13,8 @@ namespace eSMP.Services
         private readonly ISpecificationReposity _specificationReposity;
         private readonly IBrandReposity _brandReposity;
 
+        public static int PAGE_SIZE { get; set; } = 5;
+
         public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IBrandReposity brandReposity)
         {
             _context = context;
@@ -146,16 +148,22 @@ namespace eSMP.Services
             return result;
         }
 
-        public Result GetAllItem()
+        public Result GetAllItem(int? statusID, int page)
         {
             Result result = new Result();
             try
             {
-                var listItem = _context.Items.ToList();
+                var listItem= _context.Items.AsQueryable();
+                if (statusID.HasValue)
+                {
+                    listItem = listItem.Where(i => i.Item_StatusID == statusID);
+                }
+
+                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 if (listItem != null)
                 {
                     List<ItemViewModel> listmodel = new List<ItemViewModel>();
-                    foreach (var item in listItem)
+                    foreach (var item in listItem.ToList())
                     {
                         ItemViewModel model = new ItemViewModel
                         {
@@ -316,7 +324,7 @@ namespace eSMP.Services
             }
         }
 
-        public Result SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot)
+        public Result SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int page)
         {
             Result result = new Result();
             try
@@ -361,6 +369,14 @@ namespace eSMP.Services
                 {
                     listItem = listItem.Where(i => _context.Model_Items.SingleOrDefault(mi => mi.ItemID == i.ItemID && mi.Brand_ModelID == brandModelID) != null);
                 }
+                if (storeID.HasValue)
+                {
+                    listItem = listItem.Where(i => i.StoreID == storeID);
+                }
+                // item active
+                listItem = listItem.Where(i => i.Item_StatusID == 1);
+                //store active
+                listItem = listItem.Where(i =>_context.Stores.SingleOrDefault(s=>s.StoreID==i.StoreID&&s.Store_StatusID==1)!=null);
 
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
                 
@@ -375,6 +391,9 @@ namespace eSMP.Services
                             break;
                         case "price_asc":
                             listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            break;
+                        case "discount":
+                            listItem = listItem.OrderByDescending(i => i.Discount);
                             break;
                     }
                 }
@@ -391,6 +410,7 @@ namespace eSMP.Services
 
                 //Paging
 
+               listItem=listItem.Skip((page-1)* PAGE_SIZE).Take(PAGE_SIZE);
 
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())
@@ -747,6 +767,124 @@ namespace eSMP.Services
                 return result;
             }
             catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result SearchItemForSupplier(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int page)
+        {
+            Result result = new Result();
+            try
+            {
+                var listItem = _context.Items.AsQueryable();
+
+
+                //Fillter
+                if (!string.IsNullOrEmpty(search))
+                {
+                    listItem = listItem.Where(i => i.Name.Contains(search));
+                }
+                else
+                {
+                    listItem = listItem.Where(i => i.Name.Contains(""));
+                }
+                if (min.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price) > min);
+                }
+                if (max.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price) < max);
+                }
+                if (rate.HasValue)
+                {
+                    listItem = listItem.Where(i => i.Rate >= rate);
+                }
+                if (cateID.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == i.Sub_CategoryID).CategoryID == cateID);
+                }
+                if (subCateID.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == i.Sub_CategoryID).Sub_CategoryID == subCateID);
+                }
+                if (brandID.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Model_Items.SingleOrDefault(mi => mi.ItemID == i.ItemID && _context.Brand_Models.SingleOrDefault(bm => bm.Brand_ModelID == mi.Brand_ModelID && bm.BrandID == brandID) != null) != null);
+                }
+                if (brandModelID.HasValue)
+                {
+                    listItem = listItem.Where(i => _context.Model_Items.SingleOrDefault(mi => mi.ItemID == i.ItemID && mi.Brand_ModelID == brandModelID) != null);
+                }
+                if (storeID.HasValue)
+                {
+                    listItem = listItem.Where(i => i.StoreID == storeID);
+                }
+                // item active
+                listItem = listItem.Where(i => i.Item_StatusID == 1);
+                //store active
+                listItem = listItem.Where(i => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID && s.Store_StatusID == 1) != null);
+
+                //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
+
+                //listItem = listItem.OrderByDescending(i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID==a.AddressID).Longitude);
+
+                if (!string.IsNullOrEmpty(sortBy))
+                {
+                    switch (sortBy)
+                    {
+                        case "price_desc":
+                            listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            break;
+                        case "price_asc":
+                            listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            break;
+                        case "discount":
+                            listItem = listItem.OrderByDescending(i => i.Discount);
+                            break;
+                    }
+                }
+                if (lot.HasValue && lat.HasValue)
+                {
+                    double lo = lot.Value;
+                    double la = lat.Value;
+                    listItem = listItem.OrderBy(i =>
+                                    6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                    );
+                }
+
+                //Paging
+
+                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+
+                List<ItemViewModel> listmodel = new List<ItemViewModel>();
+                foreach (var item in listItem.ToList())
+                {
+                    ItemViewModel model = new ItemViewModel
+                    {
+                        ItemID = item.ItemID,
+                        Description = item.Description,
+                        Rate = item.Rate,
+                        Item_Image = GetItemImage(item.ItemID)[0].Path,
+                        Name = item.Name,
+                        Price = GetMinPriceForItem(item.ItemID),
+                        Discount = item.Discount,
+                        Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                    };
+                    listmodel.Add(model);
+                }
+                result.Success = true;
+                result.Message = "Thành Công";
+                result.Data = listmodel;
+                return result;
+            }
+            catch (Exception ex)
             {
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";

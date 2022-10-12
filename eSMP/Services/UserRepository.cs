@@ -755,7 +755,7 @@ namespace eSMP.Services
                     CreateTokenByUserID(userID);
                     result.Success = true;
                     result.Message = "Gia hạn thành công";
-                    result.Data = user.Token;
+                    result.Data = GetUserbyID(user.UserID);
                     return result;
                 }
                 result.Success = false;

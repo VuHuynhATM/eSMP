@@ -17,11 +17,11 @@ namespace eSMP.Controllers
             _itemReposity = itemReposity;
         }
         [HttpGet]
-        public IActionResult GetAllItem()
+        public IActionResult GetAllItem(int? statusID,int page)
         {
             try
             {
-                var result = _itemReposity.GetAllItem();
+                var result = _itemReposity.GetAllItem(statusID,page);
                 return Ok(result);
             }
             catch
@@ -85,11 +85,11 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("search")]
-        public IActionResult SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo)
+        public IActionResult SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int page)
         {
             try
             {
-                var result = _itemReposity.SearchItem(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo);
+                var result = _itemReposity.SearchItem(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo, storeID, page);
                 return Ok(result);
             }
             catch

@@ -1,7 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.UserRepo
 {
     public interface IUserReposity
     {
@@ -11,9 +11,9 @@ namespace eSMP.Services
         Result LoginByEmail(string email, string password);
         Result RigisterUser(UserRegister user);
         Result RigisterSupplier(UserRegister user);
-        Result UpdatteUserStatus(int userID, Boolean isActive);
+        Result UpdatteUserStatus(int userID, bool isActive);
         Result GetListUser();
-        Result SearchUser(string phone,int roleID);
+        Result SearchUser(string phone, int roleID);
         Result RemoveUser(int userID);
         Result GetAddressByID(int userID);
         Result AddAddress(UserAddAddress address);
@@ -24,7 +24,7 @@ namespace eSMP.Services
         Result UpdateBirth(EditBirth birth);
         Result UpdateGender(EditGender gender);
         Result UpdateImage(EditImage image);
-        Result RefeshToken(int userID,string token);
+        Result RefeshToken(int userID, string token);
         void Updaterole();
     }
 }

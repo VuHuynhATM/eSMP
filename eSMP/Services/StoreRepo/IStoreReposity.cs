@@ -1,7 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.StoreRepo
 {
     public interface IStoreReposity
     {

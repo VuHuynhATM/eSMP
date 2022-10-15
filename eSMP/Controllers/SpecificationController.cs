@@ -1,4 +1,4 @@
-﻿using eSMP.Services;
+﻿using eSMP.Services.SpecificationRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

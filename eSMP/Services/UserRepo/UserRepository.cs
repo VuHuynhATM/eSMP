@@ -1,8 +1,9 @@
 ﻿using eSMP.Models;
+using eSMP.Services.TokenRepo;
 using eSMP.VModels;
 using User = eSMP.Models.User;
 
-namespace eSMP.Services
+namespace eSMP.Services.UserRepo
 {
     public class UserRepository : IUserReposity
     {
@@ -16,7 +17,7 @@ namespace eSMP.Services
             _configuration = configuration;
             _tokenService = tokenService;
         }
-        
+
         public Result CustomerLogin(string phone)
         {
             Result result = new Result();
@@ -367,7 +368,7 @@ namespace eSMP.Services
                 return null;
             }
         }
-        public Result UpdatteUserStatus(int userID, Boolean iaActive)
+        public Result UpdatteUserStatus(int userID, bool iaActive)
         {
             Result result = new Result();
             try
@@ -494,7 +495,7 @@ namespace eSMP.Services
                     var user = _context.Users.SingleOrDefault(u => u.UserID == userID);
                     if (user != null)
                     {
-                        var image=_context.Images.SingleOrDefault(i => i.ImageID == user.ImageID);
+                        var image = _context.Images.SingleOrDefault(i => i.ImageID == user.ImageID);
                         _context.Images.Remove(image);
                         List<Address> listAddress = GetAddresses(user.UserID);
                         foreach (Address address in listAddress)
@@ -778,7 +779,7 @@ namespace eSMP.Services
             try
             {
                 var address = _context.Addresss.SingleOrDefault(a => a.AddressID == addressID);
-                if (address!= null)
+                if (address != null)
                 {
                     _context.Addresss.Remove(address);
                     _context.SaveChanges();
@@ -806,17 +807,17 @@ namespace eSMP.Services
             try
             {
                 var role = _context.Roles.SingleOrDefault(s => s.RoleID == 4);
-                if(role!= null)
+                if (role != null)
                 {
-                    var check= role.IsActive;
-                    role.IsActive=!check;
+                    var check = role.IsActive;
+                    role.IsActive = !check;
                     _context.SaveChanges();
-                }    
+                }
 
             }
             catch
             {
-                return ;
+                return;
             }
         }
 
@@ -860,7 +861,7 @@ namespace eSMP.Services
             try
             {
                 var listaddress = GetAddresses(userID);
-                if(listaddress != null)
+                if (listaddress != null)
                 {
                     result.Success = true;
                     result.Message = "Thành công";

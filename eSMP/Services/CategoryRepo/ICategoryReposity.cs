@@ -1,6 +1,6 @@
 ﻿using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.CategoryRepo
 {
     public interface ICategoryReposity
     {

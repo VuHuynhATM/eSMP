@@ -1,5 +1,5 @@
 ﻿using eSMP.Models;
-using eSMP.Services;
+using eSMP.Services.UserRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -7,9 +7,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace eSMP.Services
+namespace eSMP.Services.TokenRepo
 {
-    public class TokenService:ITokenService
+    public class TokenService : ITokenService
     {
         private const double EXP_DURATION_MINUTES = 30;
         private readonly WebContext _context;
@@ -20,8 +20,8 @@ namespace eSMP.Services
         }
         public string BuildToken(string key, string issuer, User user)
         {
-             var claims = new[]
-            {
+            var claims = new[]
+           {
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Role, getRoleName(user.RoleID)),
                 new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())

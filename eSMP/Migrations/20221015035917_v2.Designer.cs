@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221015035917_v2")]
+    partial class v2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,53 +127,6 @@ namespace eSMP.Migrations
                     b.ToTable("Category");
                 });
 
-            modelBuilder.Entity("eSMP.Models.Feedback_Image", b =>
-                {
-                    b.Property<int>("Feedback_ImageID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Feedback_ImageID"), 1L, 1);
-
-                    b.Property<int>("ImageID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("OrderDetailID")
-                        .HasColumnType("int");
-
-                    b.HasKey("Feedback_ImageID");
-
-                    b.HasIndex("OrderDetailID");
-
-                    b.HasIndex("ImageID", "OrderDetailID")
-                        .IsUnique();
-
-                    b.ToTable("Feedback_Image");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Feedback_Status", b =>
-                {
-                    b.Property<int>("Feedback_StatusID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Feedback_StatusID"), 1L, 1);
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Feedback_StatusID");
-
-                    b.ToTable("Feedback_Status");
-                });
-
             modelBuilder.Entity("eSMP.Models.Image", b =>
                 {
                     b.Property<int>("ImageID")
@@ -260,10 +215,9 @@ namespace eSMP.Migrations
 
                     b.HasKey("Item_ImageID");
 
-                    b.HasIndex("ItemID");
+                    b.HasIndex("ImageID");
 
-                    b.HasIndex("ImageID", "ItemID")
-                        .IsUnique();
+                    b.HasIndex("ItemID");
 
                     b.ToTable("Item_Image");
                 });
@@ -309,85 +263,9 @@ namespace eSMP.Migrations
 
                     b.HasIndex("Brand_ModelID");
 
-                    b.HasIndex("ItemID", "Brand_ModelID")
-                        .IsUnique();
+                    b.HasIndex("ItemID");
 
                     b.ToTable("Model_Item");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Order", b =>
-                {
-                    b.Property<int>("OrderID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderID"), 1L, 1);
-
-                    b.Property<int>("AddressID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Create_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsPay")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("OrderID");
-
-                    b.HasIndex("AddressID");
-
-                    b.HasIndex("UserID");
-
-                    b.ToTable("Order");
-                });
-
-            modelBuilder.Entity("eSMP.Models.OrderDetail", b =>
-                {
-                    b.Property<int>("OrderDetailID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderDetailID"), 1L, 1);
-
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DiscountPurchase")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FeedBack_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double?>("Feedback_Rate")
-                        .HasColumnType("float");
-
-                    b.Property<int>("Feedback_StatusID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Feedback_Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrderID")
-                        .HasColumnType("int");
-
-                    b.Property<double>("PricePurchase")
-                        .HasColumnType("float");
-
-                    b.Property<int>("Sub_ItemID")
-                        .HasColumnType("int");
-
-                    b.HasKey("OrderDetailID");
-
-                    b.HasIndex("Feedback_StatusID");
-
-                    b.HasIndex("OrderID");
-
-                    b.HasIndex("Sub_ItemID");
-
-                    b.ToTable("OrderDetail");
                 });
 
             modelBuilder.Entity("eSMP.Models.Role", b =>
@@ -455,8 +333,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("ItemID");
 
-                    b.HasIndex("SpecificationID", "ItemID")
-                        .IsUnique();
+                    b.HasIndex("SpecificationID");
 
                     b.ToTable("Specification_Value");
                 });
@@ -615,10 +492,9 @@ namespace eSMP.Migrations
 
                     b.HasKey("SubCate_SpecificationID");
 
-                    b.HasIndex("Sub_CategoryID");
+                    b.HasIndex("SpecificationID");
 
-                    b.HasIndex("SpecificationID", "Sub_CategoryID")
-                        .IsUnique();
+                    b.HasIndex("Sub_CategoryID");
 
                     b.ToTable("SubCate_Specification");
                 });
@@ -741,25 +617,6 @@ namespace eSMP.Migrations
                     b.Navigation("Brand");
                 });
 
-            modelBuilder.Entity("eSMP.Models.Feedback_Image", b =>
-                {
-                    b.HasOne("eSMP.Models.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.OrderDetail", "OrderDetail")
-                        .WithMany()
-                        .HasForeignKey("OrderDetailID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Image");
-
-                    b.Navigation("OrderDetail");
-                });
-
             modelBuilder.Entity("eSMP.Models.Item", b =>
                 {
                     b.HasOne("eSMP.Models.Item_Status", "Item_Status")
@@ -823,52 +680,6 @@ namespace eSMP.Migrations
                     b.Navigation("Brand_Model");
 
                     b.Navigation("Item");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Order", b =>
-                {
-                    b.HasOne("eSMP.Models.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Address");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("eSMP.Models.OrderDetail", b =>
-                {
-                    b.HasOne("eSMP.Models.Feedback_Status", "Feedback_Status")
-                        .WithMany()
-                        .HasForeignKey("Feedback_StatusID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.Sub_Item", "Sub_Item")
-                        .WithMany()
-                        .HasForeignKey("Sub_ItemID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Feedback_Status");
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Sub_Item");
                 });
 
             modelBuilder.Entity("eSMP.Models.Specification_Value", b =>

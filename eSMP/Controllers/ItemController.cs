@@ -1,5 +1,5 @@
 ﻿using eSMP.Models;
-using eSMP.Services;
+using eSMP.Services.ItemRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,16 +17,30 @@ namespace eSMP.Controllers
             _itemReposity = itemReposity;
         }
         [HttpGet]
-        public IActionResult GetAllItem(int? statusID,int page)
+        public IActionResult GetItemWithStatusID(int? statusID,int page)
         {
             try
             {
-                var result = _itemReposity.GetAllItem(statusID,page);
+                var result = _itemReposity.GetItemWithStatusID(statusID,page);
                 return Ok(result);
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpGet]
+        [Route("store")]
+        public IActionResult GetItemWithStatusIDS(int storeID, int? statusID, int page)
+        {
+            try
+            {
+                var result = _itemReposity.GetItemWithStatusIDS(storeID, statusID, page);
+                return Ok(result);
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
         [HttpGet]
@@ -40,7 +54,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
         [HttpDelete]
@@ -53,7 +67,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
         [HttpPost]
@@ -66,7 +80,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
         [HttpPost]
@@ -80,7 +94,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
         [HttpGet]
@@ -94,7 +108,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return BadRequest();
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
         [HttpPut]

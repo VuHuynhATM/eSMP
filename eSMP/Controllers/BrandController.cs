@@ -1,4 +1,4 @@
-﻿using eSMP.Services;
+﻿using eSMP.Services.BrandRepo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

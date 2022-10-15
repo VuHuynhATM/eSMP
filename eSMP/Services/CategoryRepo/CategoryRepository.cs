@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.Intrinsics.X86;
 
-namespace eSMP.Services
+namespace eSMP.Services.CategoryRepo
 {
     public class CategoryRepository : ICategoryReposity
     {
@@ -29,7 +29,7 @@ namespace eSMP.Services
                             CategoryID = sub_category.CategoryID,
                             Sub_CategoryID = sub_category.Sub_CategoryID,
                             Sub_categoryName = sub_category.Sub_categoryName,
-                            IsActive=sub_category.IsActive,
+                            IsActive = sub_category.IsActive,
                         };
                         list.Add(mode);
                     }
@@ -46,7 +46,7 @@ namespace eSMP.Services
             Result result = new Result();
             try
             {
-                var list = _context.Categorys.Where(c=>c.IsActive).ToList();
+                var list = _context.Categorys.Where(c => c.IsActive).ToList();
                 var r = new List<CategoryModel>();
                 if (list.Count > 0)
                 {
@@ -78,21 +78,21 @@ namespace eSMP.Services
                 return result;
             }
         }
-        public Boolean CheckCategory(string name)
+        public bool CheckCategory(string name)
         {
             var category = _context.Categorys.SingleOrDefault(c => c.Name == name);
             if (category == null)
                 return false;
             return true;
         }
-        public Boolean CheckSubCategory(string name)
+        public bool CheckSubCategory(string name)
         {
             var category = _context.SubCategories.SingleOrDefault(c => c.Sub_categoryName == name);
             if (category == null)
                 return false;
             return true;
         }
-        public Boolean CategoryisExist(int CategoryID)
+        public bool CategoryisExist(int CategoryID)
         {
             var category = _context.Categorys.SingleOrDefault(c => c.CategoryID == CategoryID);
             if (category == null)
@@ -112,9 +112,9 @@ namespace eSMP.Services
                     return result;
 
                 }
-                var sub = _context.SubCategories.FirstOrDefault(s=>s.CategoryID==categoryID);
+                var sub = _context.SubCategories.FirstOrDefault(s => s.CategoryID == categoryID);
                 var r = new List<Sub_CategoryModel>();
-                if (sub!=null)
+                if (sub != null)
                 {
                     r = GetSub_Categories(categoryID);
                     result.Success = true;

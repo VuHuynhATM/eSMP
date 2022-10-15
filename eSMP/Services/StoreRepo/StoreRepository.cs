@@ -1,7 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.StoreRepo
 {
     public class StoreRepository : IStoreReposity
     {
@@ -92,7 +92,7 @@ namespace eSMP.Services
                     Address = GetAddress(store.AddressID),
                     Image = GetImage(store.ImageID),
                     Store_Status = GetStatus(store.Store_StatusID),
-                    UserID=store.UserID,
+                    UserID = store.UserID,
                 };
                 return model;
             }
@@ -151,7 +151,7 @@ namespace eSMP.Services
             }
             return null;
         }
-        public Boolean CheckStore(int UserID)
+        public bool CheckStore(int UserID)
         {
             try
             {
@@ -187,7 +187,7 @@ namespace eSMP.Services
                         Address = GetAddress(store.AddressID),
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
-                        UserID=store.UserID,
+                        UserID = store.UserID,
                     };
                     list.Add(model);
                 }
@@ -225,7 +225,7 @@ namespace eSMP.Services
                         Address = GetAddress(store.AddressID),
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
-                        UserID= store.UserID,
+                        UserID = store.UserID,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -251,13 +251,13 @@ namespace eSMP.Services
             Result result = new Result();
             try
             {
-                var store=_context.Stores.SingleOrDefault(s => s.StoreID == info.StoreID);
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == info.StoreID);
                 if (store != null)
                 {
-                    store.StoreName=info.StoreName;
-                    store.Email=info.Email;
-                    store.Phone=info.Phone;
-                    store.Pick_date=info.Pick_date;
+                    store.StoreName = info.StoreName;
+                    store.Email = info.Email;
+                    store.Phone = info.Phone;
+                    store.Pick_date = info.Pick_date;
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Chỉnh sửa cửa hàng thành công";
@@ -288,8 +288,8 @@ namespace eSMP.Services
                     StoreViewModel model = new StoreViewModel
                     {
                         StoreID = store.StoreID,
-                        StoreName=store.StoreName,
-                        Imagepath=GetImage(store.ImageID).Path,
+                        StoreName = store.StoreName,
+                        Imagepath = GetImage(store.ImageID).Path,
                     };
                     return model;
                 }
@@ -304,9 +304,9 @@ namespace eSMP.Services
         public Result ActiveStore(int storeID)
         {
             Result result = new Result();
-            try 
-            { 
-                var store=_context.Stores.SingleOrDefault(s => s.StoreID == storeID);
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
                 if (store != null)
                 {
                     store.Store_StatusID = 1;

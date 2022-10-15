@@ -1,11 +1,12 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.ItemRepo
 {
     public interface IItemReposity
     {
-        public Result GetAllItem(int? statusID, int page);
+        public Result GetItemWithStatusID(int? statusID, int page);
+        public Result GetItemWithStatusIDS(int storeID, int? statusID, int page);
         public Result GetItemDetail(int itemID);
         public Result CreateItem(ItemRegister item);
         public Result RemoveItem(int itemID);

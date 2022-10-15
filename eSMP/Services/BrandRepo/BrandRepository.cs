@@ -2,7 +2,7 @@
 using eSMP.VModels;
 using System.Xml.Linq;
 
-namespace eSMP.Services
+namespace eSMP.Services.BrandRepo
 {
     public class BrandRepository : IBrandReposity
     {
@@ -122,7 +122,7 @@ namespace eSMP.Services
                             BrandModel model = new BrandModel();
                             model.BrandID = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).BrandID;
                             model.Name = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).Name;
-                            Boolean checkinList = false;
+                            bool checkinList = false;
                             foreach (var i in list)
                             {
                                 if (i.BrandID == model.BrandID)
@@ -175,7 +175,7 @@ namespace eSMP.Services
                 }
                 result.Success = true;
                 result.Message = "Không có dữ liệu";
-                result.Data ="";
+                result.Data = "";
                 return result;
             }
             catch

@@ -26,6 +26,10 @@ namespace eSMP.Models
         public DbSet<Brand_Model> Brand_Models { get; set; }
         public DbSet<Model_Item> Model_Items { get; set; }
         public DbSet<SubItem_Status> subItem_Statuses { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Feedback_Status> Feedback_Statuses { get; set; }
+        public DbSet<Feedback_Image> Feedback_Images { get; set; }  
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -79,6 +83,29 @@ namespace eSMP.Models
                 .HasOne(e => e.Image)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(e => e.Sub_Item)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Feedback_Image>()
+                .HasOne(e => e.OrderDetail)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Model_Item>()
+                .HasIndex(e => new { e.ItemID, e.Brand_ModelID})
+                .IsUnique();
+            modelBuilder.Entity<SubCate_Specification>()
+                .HasIndex(e => new { e.SpecificationID, e.Sub_CategoryID})
+                .IsUnique();
+            modelBuilder.Entity<Item_Image>()
+                .HasIndex(e => new { e.ImageID, e.ItemID })
+                .IsUnique();
+            modelBuilder.Entity<Specification_Value>()
+                .HasIndex(e => new { e.SpecificationID, e.ItemID })
+                .IsUnique();
+            modelBuilder.Entity<Feedback_Image>()
+                .HasIndex(e => new { e.ImageID, e.OrderDetailID })
+                .IsUnique();
         }
     }
 }

@@ -1,10 +1,13 @@
 ﻿using eSMP.Models;
+using eSMP.Services.BrandRepo;
+using eSMP.Services.SpecificationRepo;
+using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 using System.Security.Policy;
 
-namespace eSMP.Services
+namespace eSMP.Services.ItemRepo
 {
     public class ItemRepository : IItemReposity
     {
@@ -50,7 +53,7 @@ namespace eSMP.Services
 
                     Image i = new Image();
                     i.Crete_date = DateTime.UtcNow;
-                    i.FileName=itemsub.filename;
+                    i.FileName = itemsub.filename;
                     i.Path = itemsub.imagepath;
                     i.IsActive = true;
 
@@ -162,16 +165,72 @@ namespace eSMP.Services
             return result;
         }
 
-        public Result GetAllItem(int? statusID, int page)
+        public Result GetItemWithStatusID(int? statusID, int page)
         {
             Result result = new Result();
             try
             {
-                var listItem= _context.Items.AsQueryable();
+                var listItem = _context.Items.AsQueryable();
                 if (statusID.HasValue)
                 {
                     listItem = listItem.Where(i => i.Item_StatusID == statusID);
                 }
+                //sort
+
+                listItem = listItem.OrderBy(i => i.Create_date);
+
+                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                if (listItem != null)
+                {
+                    List<ItemViewModel> listmodel = new List<ItemViewModel>();
+                    foreach (var item in listItem.ToList())
+                    {
+                        ItemViewModel model = new ItemViewModel
+                        {
+                            ItemID = item.ItemID,
+                            Description = item.Description,
+                            Rate = item.Rate,
+                            Item_Image = GetItemImage(item.ItemID)[0].Path,
+                            Name = item.Name,
+                            Price = GetMinPriceForItem(item.ItemID),
+                            Discount = item.Discount,
+                            Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                        };
+                        listmodel.Add(model);
+                    }
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = listmodel;
+                    return result;
+                }
+                result.Success = true;
+                result.Message = "Chưa tồn tại item";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result GetItemWithStatusIDS(int storeID, int? statusID, int page)
+        {
+            Result result = new Result();
+            try
+            {
+                var listItem = _context.Items.AsQueryable();
+                listItem = listItem.Where(i => i.StoreID == storeID);
+                if (statusID.HasValue)
+                {
+                    listItem = listItem.Where(i => i.Item_StatusID == statusID);
+                }
+                //sort
+
+                listItem = listItem.OrderBy(i => i.Create_date);
 
                 listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 if (listItem != null)
@@ -311,7 +370,7 @@ namespace eSMP.Services
                     var listSub = _context.Sub_Items.Where(i => i.ItemID == itemID).ToList();
                     foreach (var subItem in listSub)
                     {
-                        var subimage=_context.Images.SingleOrDefault(i=>i.ImageID==subItem.ItemID);
+                        var subimage = _context.Images.SingleOrDefault(i => i.ImageID == subItem.ItemID);
                         if (subimage != null)
                         {
                             _context.Images.Remove(subimage);
@@ -396,12 +455,12 @@ namespace eSMP.Services
                 // item active
                 listItem = listItem.Where(i => i.Item_StatusID == 1);
                 //store active
-                listItem = listItem.Where(i =>_context.Stores.SingleOrDefault(s=>s.StoreID==i.StoreID&&s.Store_StatusID==1)!=null);
+                listItem = listItem.Where(i => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID && s.Store_StatusID == 1) != null);
                 //item count>0
-                listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Sum(si => si.Amount)>0);
+                listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Sum(si => si.Amount) > 0);
 
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
-                
+
                 //listItem = listItem.OrderByDescending(i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID==a.AddressID).Longitude);
 
                 if (!string.IsNullOrEmpty(sortBy))
@@ -432,7 +491,7 @@ namespace eSMP.Services
 
                 //Paging
 
-               listItem=listItem.Skip((page-1)* PAGE_SIZE).Take(PAGE_SIZE);
+                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
 
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())
@@ -463,7 +522,7 @@ namespace eSMP.Services
                 return result;
             }
         }
-        
+
         public Result UpdatesubItem(SubItemUpdate subItem)
         {
             Result result = new Result();
@@ -496,15 +555,15 @@ namespace eSMP.Services
 
         public Result AddsubItem(int itemID, Sub_ItemRegister subItem)
         {
-            Result result=new Result();
+            Result result = new Result();
             try
             {
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
                 if (item != null)
                 {
-                    Sub_Item si=new Sub_Item();
+                    Sub_Item si = new Sub_Item();
                     si.Sub_ItemName = subItem.Sub_ItemName;
-                    si.Amount=subItem.Amount;
+                    si.Amount = subItem.Amount;
                     si.Price = subItem.Price;
                     si.SubItem_StatusID = 3;
                     si.ItemID = item.ItemID;
@@ -531,11 +590,11 @@ namespace eSMP.Services
 
         public Result ActivesubItem(int subitemID)
         {
-            Result result =new Result();
+            Result result = new Result();
             try
             {
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
-                if(subitem != null)
+                if (subitem != null)
                 {
                     subitem.SubItem_StatusID = 1;
                     _context.SaveChanges();
@@ -653,8 +712,8 @@ namespace eSMP.Services
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
                 if (subitem != null)
                 {
-                    var numactive = _context.Sub_Items.Where(si => si.SubItem_StatusID == 1 && si.ItemID==subitem.ItemID).Count();
-                    if(numactive == 1)
+                    var numactive = _context.Sub_Items.Where(si => si.SubItem_StatusID == 1 && si.ItemID == subitem.ItemID).Count();
+                    if (numactive == 1)
                     {
                         result.Success = false;
                         result.Message = "Không thể ẩn sản phẩm cuối cùng";

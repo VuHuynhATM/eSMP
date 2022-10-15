@@ -1,7 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.SpecificationRepo
 {
     public interface ISpecificationReposity
     {

@@ -1,6 +1,6 @@
 ﻿using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.BrandRepo
 {
     public interface IBrandReposity
     {

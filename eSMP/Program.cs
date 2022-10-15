@@ -7,9 +7,15 @@ using Microsoft.AspNetCore.Hosting;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using eSMP.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
+using eSMP.Services.BrandRepo;
+using eSMP.Services.CategoryRepo;
+using eSMP.Services.SpecificationRepo;
+using eSMP.Services.StoreRepo;
+using eSMP.Services.ItemRepo;
+using eSMP.Services.UserRepo;
+using eSMP.Services.TokenRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 

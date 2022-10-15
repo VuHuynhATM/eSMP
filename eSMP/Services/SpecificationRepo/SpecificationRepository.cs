@@ -1,9 +1,9 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
 
-namespace eSMP.Services
+namespace eSMP.Services.SpecificationRepo
 {
-    public class SpecificationRepository:ISpecificationReposity
+    public class SpecificationRepository : ISpecificationReposity
     {
         private readonly WebContext _context;
 
@@ -11,7 +11,7 @@ namespace eSMP.Services
         {
             _context = context;
         }
-        public Boolean SpecificationIsExist(string name)
+        public bool SpecificationIsExist(string name)
         {
             var specification = _context.Specification.SingleOrDefault(s => s.SpecificationName == name);
             if (specification == null)
@@ -20,7 +20,7 @@ namespace eSMP.Services
         }
         public Specification GetSpecification(int spectificationID)
         {
-            var specification=_context.Specification.SingleOrDefault(s => s.SpecificationID == spectificationID);
+            var specification = _context.Specification.SingleOrDefault(s => s.SpecificationID == spectificationID);
             if (specification == null)
                 return null;
             return specification;
@@ -30,9 +30,9 @@ namespace eSMP.Services
             Result result = new Result();
             try
             {
-                var list=_context.Specification.ToList();
-                List<Specification> speList=new List<Specification>();
-                if(list.Count > 0)
+                var list = _context.Specification.ToList();
+                List<Specification> speList = new List<Specification>();
+                if (list.Count > 0)
                 {
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -104,11 +104,11 @@ namespace eSMP.Services
         {
             try
             {
-                var listSpe=_context.Specification_Values.Where(c => c.ItemID == itemID).ToList();
+                var listSpe = _context.Specification_Values.Where(c => c.ItemID == itemID).ToList();
                 List<SpecificationTagModel> result = new List<SpecificationTagModel>();
-                if(listSpe.Count > 0)
+                if (listSpe.Count > 0)
                 {
-                    foreach(var item in listSpe)
+                    foreach (var item in listSpe)
                     {
                         SpecificationTagModel tag = new SpecificationTagModel
                         {

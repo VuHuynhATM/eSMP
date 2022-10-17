@@ -1,4 +1,5 @@
-﻿using eSMP.Services.StoreRepo;
+﻿using eSMP.Models;
+using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -116,6 +117,19 @@ namespace eSMP.Controllers
             try
             {
                 return Ok(_sttoreReposity.UnHiddenStore(storeID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+            }
+        }
+        [HttpPut]
+        [Route("update_address")]
+        public IActionResult UpdateAddress(Address address)
+        {
+            try
+            {
+                return Ok(_sttoreReposity.UpdateAddress(address));
             }
             catch
             {

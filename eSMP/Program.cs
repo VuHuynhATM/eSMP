@@ -16,6 +16,8 @@ using eSMP.Services.StoreRepo;
 using eSMP.Services.ItemRepo;
 using eSMP.Services.UserRepo;
 using eSMP.Services.TokenRepo;
+using eSMP.Services.OrderRepo;
+using eSMP.Services.ShipRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,8 @@ builder.Services.AddScoped<ICategoryReposity, CategoryRepository>();
 builder.Services.AddScoped<ISpecificationReposity, SpecificationRepository>();
 builder.Services.AddScoped<IItemReposity, ItemRepository>();
 builder.Services.AddScoped<IBrandReposity, BrandRepository>();
+builder.Services.AddScoped<IOrderReposity, OrderRepository>();
+builder.Services.AddScoped<IShipReposity, ShipRepository>();
 
 
 var dbcontext = new WebContext();

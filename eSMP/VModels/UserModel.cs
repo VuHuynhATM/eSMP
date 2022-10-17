@@ -50,6 +50,8 @@ namespace eSMP.VModels
     public class UserAddAddress
     {
         public int UserID { get; set; }
+        public string UserName { get; set;}
+        public string Phone { set; get; }
         public string contextAddress { get; set; }
         public string Province { get; set; }
         public string District { get; set; }

@@ -219,6 +219,8 @@ namespace eSMP.Services.UserRepo
                         new_user.Image = image;
 
                         Address address = new Address();
+                        address.UserName= user.UserName;
+                        address.Phone=user.Phone;
                         address.Context = user.contextAddress;
                         address.Latitude = user.Latitude;
                         address.Longitude = user.Longitude;
@@ -304,6 +306,8 @@ namespace eSMP.Services.UserRepo
                         new_user.Image = image;
 
                         Address address = new Address();
+                        address.UserName= user.UserName;
+                        address.Phone= user.Phone;
                         address.Context = user.contextAddress;
                         address.Latitude = user.Latitude;
                         address.Longitude = user.Longitude;
@@ -351,6 +355,8 @@ namespace eSMP.Services.UserRepo
                     var listaddress = user_addresses.Select(ud => new Address
                     {
                         AddressID = ud.AddressID,
+                        UserName = ud.Address.UserName,
+                        Phone = ud.Address.Phone,
                         Context = ud.Address.Context,
                         IsActive = ud.Address.IsActive,
                         Latitude = ud.Address.Latitude,
@@ -532,6 +538,8 @@ namespace eSMP.Services.UserRepo
                 if (user != null)
                 {
                     Address newAddress = new Address();
+                    newAddress.UserName = address.UserName;
+                    newAddress.Phone = address.Phone;
                     newAddress.Context = address.contextAddress;
                     newAddress.Province = address.Province;
                     newAddress.District = address.District;
@@ -572,6 +580,8 @@ namespace eSMP.Services.UserRepo
                 var addressUpdate = _context.Addresss.SingleOrDefault(a => a.AddressID == address.AddressID);
                 if (addressUpdate != null)
                 {
+                    addressUpdate.UserName = address.UserName;
+                    addressUpdate.Phone = address.Phone;
                     addressUpdate.Context = address.Context;
                     addressUpdate.Province = address.Province;
                     addressUpdate.District = address.District;

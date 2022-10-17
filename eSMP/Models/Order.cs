@@ -10,6 +10,7 @@ namespace eSMP.Models
         public int OrderID { get; set; }
         public DateTime Create_Date { get; set; }
         public Boolean IsPay { get; set; }
+        public double FeeShip { get; set; }
         public int UserID { get; set; }//FK
         [ForeignKey("UserID")]
         public User User { get; set; }

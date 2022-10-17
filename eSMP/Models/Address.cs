@@ -8,6 +8,8 @@ namespace eSMP.Models
     {
         [Key]
         public int AddressID { get; set; }
+        public string UserName { get; set; }
+        public string Phone { get; set; }
         public string Context { get; set; }
         public string Province { get; set; }
         public string District { get; set; }

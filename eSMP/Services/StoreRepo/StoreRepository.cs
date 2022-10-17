@@ -11,7 +11,10 @@ namespace eSMP.Services.StoreRepo
         {
             _context = context;
         }
-
+        public User GetUser(int userID)
+        {
+            return _context.Users.SingleOrDefault(u => u.UserID == userID);
+        }
         public Result CteateStore(StoreRegister store)
         {
             Result result = new Result();
@@ -28,6 +31,8 @@ namespace eSMP.Services.StoreRepo
                 {
                     Address address = new Address
                     {
+                        UserName = GetUser(store.UserID).UserName,
+                        Phone = GetUser(store.UserID).Phone,
                         Context = store.contextAddress,
                         Province = store.Province,
                         District = store.District,
@@ -423,6 +428,42 @@ namespace eSMP.Services.StoreRepo
                 }
                 result.Success = false;
                 result.Message = "cửa hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result UpdateAddress(Address address)
+        {
+            Result result=new Result();
+            try
+            {
+                var addressUpdate = _context.Addresss.SingleOrDefault(a => a.AddressID == address.AddressID);
+                if (addressUpdate != null)
+                {
+                    addressUpdate.UserName = address.UserName;
+                    addressUpdate.Phone= address.Phone;
+                    addressUpdate.Context = address.Context;
+                    addressUpdate.Province=address.Province;
+                    addressUpdate.District=address.District;
+                    addressUpdate.Ward=address.Ward;
+                    addressUpdate.Latitude = address.Latitude;
+                    addressUpdate.Longitude = address.Longitude;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = addressUpdate;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Không tìm thấy địa chỉ";
                 result.Data = "";
                 return result;
             }

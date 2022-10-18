@@ -26,6 +26,12 @@ namespace eSMP.Services.OrderRepo
                     odexist.Amount= odexist.Amount+orderDetail.Amount;
                     odexist.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
                     odexist.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
+                    //ship
+                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
+                    int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID)*orderDetail.Amount;
+                    int weightOrder = GetWeightOrder(order.OrderID);
+                    order.FeeShip = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder).fee;
+
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thêm vào giỏ hàng thành công";
@@ -38,6 +44,11 @@ namespace eSMP.Services.OrderRepo
                     {
                         int storeID = GetStoreBySubItemID(orderDetail.Sub_ItemID).StoreID;
                         var order = _context.Orders.SingleOrDefault(o => !o.IsPay && o.UserID == orderDetail.UserID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID==o.OrderID);
+                        //ship
+                        int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
+                        int weightOrder=GetWeightOrder(order.OrderID);
+                        order.FeeShip = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight+weightOrder).fee;
+
                         OrderDetail newod = new OrderDetail();
                         newod.OrderID = order.OrderID;
                         newod.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
@@ -54,17 +65,29 @@ namespace eSMP.Services.OrderRepo
                     }
                     else
                     {
+                        Address storeAddress = GetStoreAddress(orderDetail.Sub_ItemID);
+                        Address userAddress = GetAddressDefault(orderDetail.UserID);
                         Order o = new Order();
-                        o.AddressID = GetAddressDefault(orderDetail.UserID).AddressID;
+                        o.Pick_Name = storeAddress.UserName;
+                        o.Pick_Province = storeAddress.Province;
+                        o.Pick_District = storeAddress.District;
+                        o.Pick_Ward = storeAddress.Ward;
+                        o.Pick_Address = storeAddress.Context;
+                        o.Pick_Tel = storeAddress.Phone;
+
+                        o.Name = userAddress.UserName;
+                        o.Province= userAddress.Province;
+                        o.District= userAddress.District;
+                        o.Ward= userAddress.Ward;
+                        o.Address= userAddress.Context;
+                        o.Tel= userAddress.Phone;
+
                         o.Create_Date = DateTime.UtcNow;
                         o.IsPay = false;
                         o.UserID = orderDetail.UserID;
                         //ship
-                        string pick_province = GetStoreAddress(orderDetail.Sub_ItemID).Province;
-                        string pick_district = GetStoreAddress(orderDetail.Sub_ItemID).District;
-                        string province = GetAddressDefault(orderDetail.UserID).Province;
-                        string district = GetAddressDefault(orderDetail.UserID).District;
-                        int weight = 100;
+                        int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
+                        o.FeeShip = _shipReposity.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight).fee;
 
                         OrderDetail od = new OrderDetail();
                         od.Order = o;
@@ -90,14 +113,25 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
+        public int GetWeightOrder(int OrderID)
+        {
+            var orderDetail=_context.OrderDetails.Where(x => x.OrderID == OrderID).ToList();
+            int weight = 0;
+            foreach (var detail in orderDetail)
+            {
+                weight=weight+GetWeightOfSubItem(detail.Sub_ItemID)*detail.Amount;
+            }
+            return weight;
+        }
         public Address GetStoreAddress (int subItemID)
         {
             var storeaddressID=GetStoreBySubItemID(subItemID).AddressID;
             return _context.Addresss.SingleOrDefault(s => s.AddressID == storeaddressID);
         }
-        public int GetWeight(int subItem)
+        public int GetWeightOfSubItem(int subItemID)
         {
-            return 1;
+            var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == subItemID && sv.SpecificationID == 2).Value;
+            return int.Parse(weight);
         }
         public bool CheckStoreOrder(int sub_ItemID, int userID)
         {
@@ -324,7 +358,18 @@ namespace eSMP.Services.OrderRepo
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
                             IsPay = order.IsPay,
-                            Address = GetAddressByID(order.AddressID),
+                            Pick_Address=order.Pick_Address,
+                            Pick_Province=order.Pick_Province,
+                            Pick_District=order.Pick_District,
+                            Pick_Ward=order.Pick_Ward,
+                            Pick_Name=order.Pick_Name,
+                            Pick_Tel=order.Pick_Tel,
+                            Address=order.Address,
+                            District=order.District,
+                            Province=order.Province,
+                            Ward=order.Ward,
+                            Name=order.Name,
+                            Tel=order.Tel,
                             Details=GetOrderDetailModels(order.OrderID,order.IsPay),
                             FeeShip=order.FeeShip,
                         };
@@ -363,7 +408,18 @@ namespace eSMP.Services.OrderRepo
                         Create_Date = order.Create_Date,
                         UserID = order.UserID,
                         IsPay = order.IsPay,
-                        Address = GetAddressByID(order.AddressID),
+                        Pick_Address = order.Pick_Address,
+                        Pick_Province = order.Pick_Province,
+                        Pick_District = order.Pick_District,
+                        Pick_Ward = order.Pick_Ward,
+                        Pick_Name = order.Pick_Name,
+                        Pick_Tel = order.Pick_Tel,
+                        Address = order.Address,
+                        District = order.District,
+                        Province = order.Province,
+                        Ward = order.Ward,
+                        Name = order.Name,
+                        Tel = order.Tel,
                         Details = GetOrderDetailModels(order.OrderID, order.IsPay),
                         FeeShip= order.FeeShip,
                     };
@@ -394,7 +450,14 @@ namespace eSMP.Services.OrderRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    order.AddressID = AddressID;
+                    Address address=GetAddressByID(AddressID);
+                    order.Address = address.Context;
+                    order.Province = address.Province;
+                    order.District = address.District;
+                    order.Ward = address.Ward;
+                    order.Name = address.UserName;
+                    order.Tel = address.Phone;
+                    order.FeeShip = _shipReposity.GetFeeAsync(order.Province, order.District, address.Province, address.District, GetWeightOrder(orderID)).fee;
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";

@@ -1,4 +1,6 @@
 ﻿using eSMP.Models;
+using eSMP.Services.OrderRepo;
+using eSMP.Services.ShipRepo;
 using eSMP.VModels;
 
 namespace eSMP.Services.StoreRepo
@@ -6,10 +8,14 @@ namespace eSMP.Services.StoreRepo
     public class StoreRepository : IStoreReposity
     {
         private readonly WebContext _context;
+        private readonly IShipReposity _shipReposity;
+        private readonly IOrderReposity _orderReposity;
 
-        public StoreRepository(WebContext context)
+        public StoreRepository(WebContext context, IShipReposity shipReposity, IOrderReposity orderReposity)
         {
             _context = context;
+            _shipReposity = shipReposity;
+            _orderReposity = orderReposity;
         }
         public User GetUser(int userID)
         {
@@ -440,7 +446,7 @@ namespace eSMP.Services.StoreRepo
             }
         }
 
-        public Result UpdateAddress(Address address)
+        public Result UpdateAddress(int storeID, Address address)
         {
             Result result=new Result();
             try
@@ -457,6 +463,7 @@ namespace eSMP.Services.StoreRepo
                     addressUpdate.Latitude = address.Latitude;
                     addressUpdate.Longitude = address.Longitude;
                     _context.SaveChanges();
+                    UpdateOrderaddress(storeID,address.Province, address.District, address.Ward, address.Context, address.UserName, address.Phone);
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = addressUpdate;
@@ -473,6 +480,32 @@ namespace eSMP.Services.StoreRepo
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
                 return result;
+            }
+        }
+
+        public void UpdateOrderaddress(int storeID,string provine, string district, string ward,string address, string name, string tel)
+        {
+            try
+            {
+                var listOrder = _context.Orders.Where(o => o.OrderID == _context.OrderDetails.FirstOrDefault(od => od.Sub_ItemID == _context.Sub_Items.FirstOrDefault(si => si.ItemID == _context.Items.FirstOrDefault(i => i.StoreID == storeID).ItemID).Sub_ItemID).OrderID && !o.IsPay).ToList();
+                if(listOrder.Count > 0)
+                {
+                    foreach (var item in listOrder)
+                    {
+                        item.Pick_Province = provine;
+                        item.Pick_District= district;
+                        item.Pick_Ward = ward;
+                        item.Pick_Address = address;
+                        item.Pick_Name = name;
+                        item.Pick_Tel= tel;
+                        item.FeeShip = _shipReposity.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.GetWeightOrder(item.OrderID)).fee;
+                    }
+                }
+                _context.SaveChanges();
+            }
+            catch
+            {
+                return;
             }
         }
     }

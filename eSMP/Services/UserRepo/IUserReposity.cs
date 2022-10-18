@@ -7,12 +7,13 @@ namespace eSMP.Services.UserRepo
     {
         Result CustomerLogin(string phone);
         Result SupplierLogin(string phone);
+        Result GetUserByID(int userID);
         Result CheckRole(string phone, int roleID);
         Result LoginByEmail(string email, string password);
         Result RigisterUser(UserRegister user);
         Result RigisterSupplier(UserRegister user);
         Result UpdatteUserStatus(int userID, bool isActive);
-        Result GetListUser();
+        Result GetListUser(int? page);
         Result SearchUser(string phone, int roleID);
         Result RemoveUser(int userID);
         Result GetAddressByID(int userID);

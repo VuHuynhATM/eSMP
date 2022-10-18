@@ -10,6 +10,7 @@ namespace eSMP.Services.OrderRepo
         public Result UpdateAmountOrderDetail(int orderDetailID, int amount);
         public Result GetAllOrder(int userID, bool? isPay);
         public Result GetOrderInfo(int orderID);
-        public Result AddOrderDetail(OrderDetailAdd orderDetail)
-;    }
+        public Result AddOrderDetail(OrderDetailAdd orderDetail);
+        public int GetWeightOrder(int OrderID);
+    }
 }

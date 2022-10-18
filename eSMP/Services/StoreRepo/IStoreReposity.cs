@@ -15,6 +15,6 @@ namespace eSMP.Services.StoreRepo
         public Result HiddenStore(int storeID);
         public Result BlockStore(int storeID);
         public Result UnHiddenStore(int storeID);
-        public Result UpdateAddress(Address address);
+        public Result UpdateAddress(int storeID, Address address);
     }
 }

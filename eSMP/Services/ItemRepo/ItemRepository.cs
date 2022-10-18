@@ -5,6 +5,7 @@ using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
+using System.Linq;
 using System.Security.Policy;
 
 namespace eSMP.Services.ItemRepo
@@ -16,7 +17,7 @@ namespace eSMP.Services.ItemRepo
         private readonly ISpecificationReposity _specificationReposity;
         private readonly IBrandReposity _brandReposity;
 
-        public static int PAGE_SIZE { get; set; } = 5;
+        public static int PAGE_SIZE { get; set; } = 15;
 
         public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IBrandReposity brandReposity)
         {
@@ -165,7 +166,7 @@ namespace eSMP.Services.ItemRepo
             return result;
         }
 
-        public Result GetItemWithStatusID(int? statusID, int page)
+        public Result GetItemWithStatusID(int? statusID, int? page)
         {
             Result result = new Result();
             try
@@ -179,7 +180,10 @@ namespace eSMP.Services.ItemRepo
 
                 listItem = listItem.OrderBy(i => i.Create_date);
 
-                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                if (page.HasValue)
+                {
+                    listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
                 if (listItem != null)
                 {
                     List<ItemViewModel> listmodel = new List<ItemViewModel>();
@@ -217,7 +221,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result GetItemWithStatusIDS(int storeID, int? statusID, int page)
+        public Result GetItemWithStatusIDS(int storeID, int? statusID, int? page)
         {
             Result result = new Result();
             try
@@ -232,7 +236,10 @@ namespace eSMP.Services.ItemRepo
 
                 listItem = listItem.OrderBy(i => i.Create_date);
 
-                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                if (page.HasValue)
+                {
+                    listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
                 if (listItem != null)
                 {
                     List<ItemViewModel> listmodel = new List<ItemViewModel>();
@@ -403,7 +410,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int page)
+        public Result SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page)
         {
             Result result = new Result();
             try
@@ -490,8 +497,11 @@ namespace eSMP.Services.ItemRepo
                 }
 
                 //Paging
+                if (page.HasValue)
+                {
+                    listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
 
-                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
 
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())
@@ -856,7 +866,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result SearchItemForSupplier(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int page)
+        public Result SearchItemForSupplier(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page)
         {
             Result result = new Result();
             try
@@ -941,7 +951,10 @@ namespace eSMP.Services.ItemRepo
 
                 //Paging
 
-                listItem = listItem.Skip((page - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                if (page.HasValue)
+                {
+                    listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
 
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())

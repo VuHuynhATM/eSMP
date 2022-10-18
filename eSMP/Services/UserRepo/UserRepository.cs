@@ -11,6 +11,8 @@ namespace eSMP.Services.UserRepo
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
 
+        private int PAGE_SIZE = 15;
+
         public UserRepository(WebContext context, IConfiguration configuration, ITokenService tokenService)
         {
             _context = context;
@@ -219,8 +221,8 @@ namespace eSMP.Services.UserRepo
                         new_user.Image = image;
 
                         Address address = new Address();
-                        address.UserName= user.UserName;
-                        address.Phone=user.Phone;
+                        address.UserName = user.UserName;
+                        address.Phone = user.Phone;
                         address.Context = user.contextAddress;
                         address.Latitude = user.Latitude;
                         address.Longitude = user.Longitude;
@@ -306,8 +308,8 @@ namespace eSMP.Services.UserRepo
                         new_user.Image = image;
 
                         Address address = new Address();
-                        address.UserName= user.UserName;
-                        address.Phone= user.Phone;
+                        address.UserName = user.UserName;
+                        address.Phone = user.Phone;
                         address.Context = user.contextAddress;
                         address.Latitude = user.Latitude;
                         address.Longitude = user.Longitude;
@@ -403,15 +405,19 @@ namespace eSMP.Services.UserRepo
                 return result;
             }
         }
-        public Result GetListUser()
+        public Result GetListUser(int? page)
         {
             Result result = new Result();
             try
             {
-                var listuser = _context.Users.ToList();
+                var listuser = _context.Users.AsQueryable();
+                if (page.HasValue)
+                {
+                    listuser=listuser.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
                 var r = new List<UserModel>();
-                if (listuser.Count > 0)
-                    foreach (var user in listuser)
+                if (listuser.Count() > 0)
+                    foreach (var user in listuser.ToList())
                     {
                         UserModel model = new UserModel
                         {
@@ -676,7 +682,7 @@ namespace eSMP.Services.UserRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = GetUserbyID(user.UserID); ;
+                    result.Data = user; ;
                     return result;
                 }
                 result.Success = false;
@@ -704,7 +710,7 @@ namespace eSMP.Services.UserRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = GetUserbyID(user.UserID); ;
+                    result.Data = user; ;
                     return result;
                 }
                 result.Success = false;
@@ -737,7 +743,7 @@ namespace eSMP.Services.UserRepo
                         _context.SaveChanges();
                         result.Success = true;
                         result.Message = "Thay đổi thành công";
-                        result.Data = GetUserbyID(user.UserID);
+                        result.Data = img;
                         return result;
                     }
                 }
@@ -876,6 +882,49 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = listaddress;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "UserID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result GetUserByID(int userID)
+        {
+            Result result = new Result();
+            try
+            {
+                var u = _context.Users.SingleOrDefault(user => user.UserID==userID);
+                if (u != null)
+                {
+                    UserModel model = new UserModel
+                    {
+                        UserID = u.UserID,
+                        Email = u.Email,
+                        Phone = u.Phone,
+                        IsActive = u.isActive,
+                        Password = u.Password,
+                        UserName = u.UserName,
+                        Crete_date = u.Crete_date,
+                        DateOfBirth = u.DateOfBirth,
+                        Gender = u.Gender,
+                        Token = u.Token,
+                        Role = GetUserRole(u.RoleID),
+                        Image = GetUserImage(u.ImageID),
+                        addresses = GetAddresses(u.UserID),
+                    };
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = model;
                     return result;
                 }
                 result.Success = false;

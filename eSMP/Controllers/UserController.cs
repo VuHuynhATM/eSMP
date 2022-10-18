@@ -30,7 +30,7 @@ namespace eSMP.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -46,7 +46,7 @@ namespace eSMP.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -62,7 +62,7 @@ namespace eSMP.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -78,7 +78,7 @@ namespace eSMP.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -94,7 +94,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
 
@@ -109,24 +109,22 @@ namespace eSMP.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
 
         [HttpGet]
         [Route("get_users")]
-        public IActionResult GetAllUser()
+        public IActionResult GetAllUser(int? page)
         {
             try
             {
-                var result = _userReposity.GetListUser();
-                if (result == null)
-                    return NotFound();
+                var result = _userReposity.GetListUser(page);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
 
@@ -138,28 +136,26 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.SearchUser(phone,roleID);
-                if(result==null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
         [Authorize]
         [Route("Update_user_status")]
-        public IActionResult UpdateUserStatus(int UserID, Boolean iaActive)
+        public IActionResult UpdateUserStatus(int UserID, Boolean isActive)
         {
             try
             {
-                var result = _userReposity.UpdatteUserStatus(UserID, iaActive);
+                var result = _userReposity.UpdatteUserStatus(UserID, isActive);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpDelete]
@@ -169,13 +165,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.RemoveUser(UserID);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -186,13 +180,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.AddAddress(address);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpDelete]
@@ -203,13 +195,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.RemoveAddress(addressID);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -220,13 +210,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.UpdateAddress(address);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -237,13 +225,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.UpdateName(name);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -254,13 +240,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.UpdateEmail(email);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -271,13 +255,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.UpdateGender(gender);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -288,13 +270,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.UpdateBirth(birth);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -305,13 +285,11 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.UpdateImage(image);
-                if (result == null)
-                    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -325,7 +303,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpGet]
@@ -339,7 +317,21 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+            }
+        }
+        [HttpGet]
+        [Route("detail")]
+        public IActionResult GetUserbyID(int userID)
+        {
+            try
+            {
+                var result = _userReposity.GetUserByID(userID);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
     }

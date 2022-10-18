@@ -24,9 +24,9 @@ namespace eSMP.Controllers
                 var result = _sttoreReposity.GetAllStore();
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -38,9 +38,9 @@ namespace eSMP.Controllers
                 var result = _sttoreReposity.CteateStore(store);
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -52,9 +52,9 @@ namespace eSMP.Controllers
                 var result = _sttoreReposity.StoreDetail(storeID);
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
@@ -66,9 +66,9 @@ namespace eSMP.Controllers
                 var result = _sttoreReposity.StoreUpdateInfo(info);
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -79,9 +79,9 @@ namespace eSMP.Controllers
             {
                 return Ok(_sttoreReposity.ActiveStore(storeID));
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message="Lỗi Hệ thông", Data="" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -92,9 +92,9 @@ namespace eSMP.Controllers
             {
                 return Ok(_sttoreReposity.BlockStore(storeID));
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -105,9 +105,9 @@ namespace eSMP.Controllers
             {
                 return Ok(_sttoreReposity.HiddenStore(storeID));
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
@@ -118,22 +118,22 @@ namespace eSMP.Controllers
             {
                 return Ok(_sttoreReposity.UnHiddenStore(storeID));
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPut]
         [Route("update_address")]
-        public IActionResult UpdateAddress(Address address)
+        public IActionResult UpdateAddress(int storeID, Address address)
         {
             try
             {
-                return Ok(_sttoreReposity.UpdateAddress(address));
+                return Ok(_sttoreReposity.UpdateAddress(storeID, address));
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = "" });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
     }

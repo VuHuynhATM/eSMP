@@ -43,7 +43,7 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
-        [HttpPost]
+        [HttpGet]
         [Route("store_detail")]
         public IActionResult GetStore(int storeID)
         {
@@ -57,7 +57,7 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
-        [HttpGet]
+        [HttpPost]
         [Route("store_edit")]
         public IActionResult EditStore(StoreUpdateInfo info)
         {

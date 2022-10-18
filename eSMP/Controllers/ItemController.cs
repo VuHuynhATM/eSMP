@@ -17,7 +17,7 @@ namespace eSMP.Controllers
             _itemReposity = itemReposity;
         }
         [HttpGet]
-        public IActionResult GetItemWithStatusID(int? statusID,int page)
+        public IActionResult GetItemWithStatusID(int? statusID,int? page)
         {
             try
             {

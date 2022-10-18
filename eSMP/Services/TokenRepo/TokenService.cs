@@ -43,7 +43,7 @@ namespace eSMP.Services.TokenRepo
                 }
                 return role.RoleName;
             }
-            catch (Exception ex)
+            catch
             {
                 return null;
             }

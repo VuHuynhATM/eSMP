@@ -57,7 +57,7 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
-        [HttpPost]
+        [HttpGet]
         [Route("store_edit")]
         public IActionResult EditStore(StoreUpdateInfo info)
         {

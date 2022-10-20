@@ -227,12 +227,11 @@ namespace eSMP.Services.MomoRepo
             try
             {
                 ConfirmReponse confirmReponse = confirm(payINP).Result;
-                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-                role.RoleName= confirmReponse.message;
                 _context.SaveChanges();
                 if (confirmReponse.resultCode == 0)
                 {
-                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(confirmReponse.orderId));
+                    var orderid = confirmReponse.orderId.Split('-')[0];
+                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
                     if (order != null)
                     {
                         order.IsPay = true;
@@ -276,10 +275,12 @@ namespace eSMP.Services.MomoRepo
             request.lang = "vi";
             request.amount = inp.amount;
             request.description = "";
+            request.requestType = "capture";
 
-            var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId + "&partnerCode=" + request.orderId + "&orderInfo=" + request.orderId + "&partnerCode=" + request.partnerCode + "&requestId=" + request.requestId + "&requestType=captureWallet";
+            var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId + "&partnerCode=" + request.partnerCode  + "&requestId=" + request.requestId + "&requestType="+request.requestType;
             request.signature = getSignature(rawSignature, secretKey);
-
+            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+            role.RoleName = request.orderId+ request.requestId + request.partnerCode+ request.lang+ request.amount+ request.description+ request.requestType+ rawSignature;
             var client = new HttpClient();
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
             var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/confirm", httpContent);

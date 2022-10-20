@@ -58,6 +58,7 @@
         public long amount { get; set; }
         public string lang { get; set; }
         public string description { get; set; }
+        public string requestType { get; set; }
         public string signature { get; set; }
     }
     public class ConfirmReponse

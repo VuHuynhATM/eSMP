@@ -102,17 +102,20 @@ namespace eSMP.Services.BrandRepo
                 {
                     foreach (var item in listModelitem)
                     {
+                        var brandmodel = GetBrandModelByID(item.Brand_ModelID);
+                        var brand = GetBrandByID(brandmodel.BrandID);
                         if (list.Count == 0)
                         {
                             BrandModel model = new BrandModel();
-                            model.BrandID = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).BrandID;
-                            model.Name = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).Name;
+                            model.BrandID = brand.BrandID;
+                            model.Name = brand.Name;
+                            model.IsActive = brandmodel.IsActive;
                             model.listModel = new List<BrandItemModel>();
                             List<BrandItemModel> listmodel = new List<BrandItemModel>();
                             BrandItemModel brand_Model = new BrandItemModel();
                             brand_Model.Brand_ModelID = item.Brand_ModelID;
-                            brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
-                            brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
+                            brand_Model.Name = brandmodel.Name;
+                            brand_Model.IsActive = brandmodel.IsActive;
                             listmodel.Add(brand_Model);
                             model.listModel = listmodel;
                             list.Add(model);
@@ -120,8 +123,8 @@ namespace eSMP.Services.BrandRepo
                         else
                         {
                             BrandModel model = new BrandModel();
-                            model.BrandID = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).BrandID;
-                            model.Name = GetBrandByID(GetBrandModelByID(item.Brand_ModelID).BrandID).Name;
+                            model.BrandID = brand.BrandID;
+                            model.Name = brand.Name;
                             bool checkinList = false;
                             foreach (var i in list)
                             {
@@ -131,8 +134,8 @@ namespace eSMP.Services.BrandRepo
                                     List<BrandItemModel> listmodel = i.listModel;
                                     BrandItemModel brand_Model = new BrandItemModel();
                                     brand_Model.Brand_ModelID = item.Brand_ModelID;
-                                    brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
-                                    brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
+                                    brand_Model.Name = brandmodel.Name;
+                                    brand_Model.IsActive = brandmodel.IsActive;
                                     listmodel.Add(brand_Model);
                                     model.listModel = listmodel;
                                 }
@@ -142,8 +145,8 @@ namespace eSMP.Services.BrandRepo
                                 List<BrandItemModel> listmodel = new List<BrandItemModel>();
                                 BrandItemModel brand_Model = new BrandItemModel();
                                 brand_Model.Brand_ModelID = item.Brand_ModelID;
-                                brand_Model.Name = GetBrandModelByID(item.Brand_ModelID).Name;
-                                brand_Model.IsActive = GetBrandModelByID(item.Brand_ModelID).IsActive;
+                                brand_Model.Name = brandmodel.Name;
+                                brand_Model.IsActive = brandmodel.IsActive;
                                 listmodel.Add(brand_Model);
                                 model.listModel = listmodel;
                                 list.Add(model);

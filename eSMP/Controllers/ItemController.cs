@@ -17,12 +17,25 @@ namespace eSMP.Controllers
             _itemReposity = itemReposity;
         }
         [HttpGet]
-        public IActionResult GetItemWithStatusID(int? statusID,int? page)
+        public IActionResult GetItemWithStatusID(int? statusID, int? page)
         {
             try
             {
-                var result = _itemReposity.GetItemWithStatusID(statusID,page);
+                var result = _itemReposity.GetItemWithStatusID(statusID, page);
                 return Ok(result);
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("update_subitem")]
+        public IActionResult UpdatesubItem(SubItemUpdate subItem)
+        {
+            try
+            {
+                return Ok(_itemReposity.UpdatesubItem(subItem));
             }
             catch
             {
@@ -57,6 +70,7 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        
         [HttpDelete]
         public IActionResult RemoveItem(int itemID)
         {
@@ -215,5 +229,6 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        
     }
 }

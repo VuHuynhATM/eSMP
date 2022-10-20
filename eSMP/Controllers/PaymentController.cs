@@ -27,13 +27,7 @@ namespace eSMP.Controllers
         [HttpPost]
         public IActionResult ipnUrl(MomoPayINP payINP)
         {
-            string orderId = payINP.orderId.Split('-')[0];
-            long transId = payINP.transId;
             int resultCode = payINP.resultCode;
-            long responseTime = payINP.responseTime;
-            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-            role.RoleName = orderId + "-" + transId + "-" + resultCode + "-" + responseTime;
-            _context.SaveChanges();
             if (resultCode == 9000)
                 _momoReposity.PayOrderINP(payINP);
             return Ok();

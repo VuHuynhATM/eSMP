@@ -30,7 +30,7 @@ namespace eSMP.Models
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Feedback_Status> Feedback_Statuses { get; set; }
         public DbSet<Feedback_Image> Feedback_Images { get; set; }  
-
+        public DbSet<OrderBuy_Transacsion> orderBuy_Transacsions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -12,5 +12,6 @@ namespace eSMP.Services.OrderRepo
         public Result GetOrderInfo(int orderID);
         public Result AddOrderDetail(OrderDetailAdd orderDetail);
         public int GetWeightOrder(int OrderID);
+        public double GetPriceItemOrder(int OrderID);
     }
 }

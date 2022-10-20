@@ -5,7 +5,7 @@ using Firebase.Auth;
 
 namespace eSMP.Services.OrderRepo
 {
-    public class OrderRepository:IOrderReposity
+    public class OrderRepository : IOrderReposity
     {
         private readonly WebContext _context;
         private readonly IShipReposity _shipReposity;
@@ -15,53 +15,102 @@ namespace eSMP.Services.OrderRepo
             _context = context;
             _shipReposity = shipReposity;
         }
-
+        public bool CheckAmount(int subItemID, int amount)
+        {
+            try
+            {
+                var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subItemID && si.Amount >= amount);
+                if(subItem != null)
+                    return true;
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
         public Result AddOrderDetail(OrderDetailAdd orderDetail)
         {
             Result result = new Result();
             try
             {
-                if (CheckSubItemInOrder(orderDetail.Sub_ItemID, orderDetail.UserID)) {
-                    var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && !_context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID==orderDetail.UserID).IsPay);
-                    odexist.Amount= odexist.Amount+orderDetail.Amount;
-                    odexist.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
-                    odexist.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
-                    //ship
-                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
-                    int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID)*orderDetail.Amount;
-                    int weightOrder = GetWeightOrder(order.OrderID);
-                    order.FeeShip = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder).fee;
-
-                    _context.SaveChanges();
-                    result.Success = true;
-                    result.Message = "Thêm vào giỏ hàng thành công";
-                    result.Data = odexist;
-                    return result;
+                if (CheckSubItemInOrder(orderDetail.Sub_ItemID, orderDetail.UserID))
+                {
+                    var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && !_context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == orderDetail.UserID).IsPay);
+                    if(CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount + odexist.Amount))
+                    {
+                        odexist.Amount = odexist.Amount + orderDetail.Amount;
+                        odexist.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
+                        odexist.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
+                        //ship
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
+                        int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
+                        int weightOrder = GetWeightOrder(order.OrderID);
+                        var ship = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
+                        if (ship.success)
+                        {
+                            order.FeeShip = ship.fee.fee;
+                        }
+                        else
+                        {
+                            order.FeeShip = 0;
+                        }
+                        _context.SaveChanges();
+                        result.Success = true;
+                        result.Message = "Thêm vào giỏ hàng thành công";
+                        result.Data = odexist;
+                        return result;
+                    }
+                    else
+                    {
+                        result.Success = false;
+                        result.Message = "Số lượng sản phẩm không đủ";
+                        result.Data = "";
+                        return result;
+                    }
+                    
                 }
                 else
                 {
                     if (CheckStoreOrder(orderDetail.Sub_ItemID, orderDetail.UserID))
                     {
                         int storeID = GetStoreBySubItemID(orderDetail.Sub_ItemID).StoreID;
-                        var order = _context.Orders.SingleOrDefault(o => !o.IsPay && o.UserID == orderDetail.UserID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID==o.OrderID);
+                        var order = _context.Orders.SingleOrDefault(o => !o.IsPay && o.UserID == orderDetail.UserID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID == o.OrderID);
                         //ship
                         int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
-                        int weightOrder=GetWeightOrder(order.OrderID);
-                        order.FeeShip = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight+weightOrder).fee;
+                        int weightOrder = GetWeightOrder(order.OrderID);
+                        var ship = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
+                        if (ship.success)
+                        {
+                            order.FeeShip = ship.fee.fee;
+                        }
+                        else
+                        {
+                            order.FeeShip = 0;
+                        }
+                        if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount))
+                        {
+                            OrderDetail newod = new OrderDetail();
+                            newod.OrderID = order.OrderID;
+                            newod.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
+                            newod.Amount = orderDetail.Amount;
+                            newod.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
+                            newod.Sub_ItemID = orderDetail.Sub_ItemID;
 
-                        OrderDetail newod = new OrderDetail();
-                        newod.OrderID = order.OrderID;
-                        newod.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
-                        newod.Amount = orderDetail.Amount;
-                        newod.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
-                        newod.Sub_ItemID = orderDetail.Sub_ItemID;
-
-                        _context.OrderDetails.Add(newod);
-                        _context.SaveChanges();
-                        result.Success = true;
-                        result.Message = "Thêm vào giỏ hàng thành công";
-                        result.Data = newod;
-                        return result;
+                            _context.OrderDetails.Add(newod);
+                            _context.SaveChanges();
+                            result.Success = true;
+                            result.Message = "Thêm vào giỏ hàng thành công";
+                            result.Data = newod;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Success = false;
+                            result.Message = "Số lượng sản phẩm không đủ";
+                            result.Data = "";
+                            return result;
+                        }
                     }
                     else
                     {
@@ -76,32 +125,49 @@ namespace eSMP.Services.OrderRepo
                         o.Pick_Tel = storeAddress.Phone;
 
                         o.Name = userAddress.UserName;
-                        o.Province= userAddress.Province;
-                        o.District= userAddress.District;
-                        o.Ward= userAddress.Ward;
-                        o.Address= userAddress.Context;
-                        o.Tel= userAddress.Phone;
+                        o.Province = userAddress.Province;
+                        o.District = userAddress.District;
+                        o.Ward = userAddress.Ward;
+                        o.Address = userAddress.Context;
+                        o.Tel = userAddress.Phone;
 
                         o.Create_Date = DateTime.UtcNow;
                         o.IsPay = false;
                         o.UserID = orderDetail.UserID;
                         //ship
                         int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
-                        o.FeeShip = _shipReposity.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight).fee;
+                        var ship = _shipReposity.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight);
+                        if (ship.success)
+                        {
+                            o.FeeShip = ship.fee.fee;
+                        }
+                        else
+                        {
+                            o.FeeShip = 0;
+                        }
+                        if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount))
+                        {
+                            OrderDetail od = new OrderDetail();
+                            od.Order = o;
+                            od.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
+                            od.Amount = orderDetail.Amount;
+                            od.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
+                            od.Sub_ItemID = orderDetail.Sub_ItemID;
 
-                        OrderDetail od = new OrderDetail();
-                        od.Order = o;
-                        od.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
-                        od.Amount = orderDetail.Amount;
-                        od.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
-                        od.Sub_ItemID = orderDetail.Sub_ItemID;
-
-                        _context.OrderDetails.Add(od);
-                        _context.SaveChanges();
-                        result.Success = true;
-                        result.Message = "Thêm vào giỏ hàng thành công";
-                        result.Data = od;
-                        return result;
+                            _context.OrderDetails.Add(od);
+                            _context.SaveChanges();
+                            result.Success = true;
+                            result.Message = "Thêm vào giỏ hàng thành công";
+                            result.Data = od;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Success = false;
+                            result.Message = "Số lượng sản phẩm không đủ";
+                            result.Data = "";
+                            return result;
+                        }
                     }
                 }
             }
@@ -115,17 +181,17 @@ namespace eSMP.Services.OrderRepo
         }
         public int GetWeightOrder(int OrderID)
         {
-            var orderDetail=_context.OrderDetails.Where(x => x.OrderID == OrderID).ToList();
+            var orderDetail = _context.OrderDetails.Where(x => x.OrderID == OrderID).ToList();
             int weight = 0;
             foreach (var detail in orderDetail)
             {
-                weight=weight+GetWeightOfSubItem(detail.Sub_ItemID)*detail.Amount;
+                weight = weight + GetWeightOfSubItem(detail.Sub_ItemID) * detail.Amount;
             }
             return weight;
         }
-        public Address GetStoreAddress (int subItemID)
+        public Address GetStoreAddress(int subItemID)
         {
-            var storeaddressID=GetStoreBySubItemID(subItemID).AddressID;
+            var storeaddressID = GetStoreBySubItemID(subItemID).AddressID;
             return _context.Addresss.SingleOrDefault(s => s.AddressID == storeaddressID);
         }
         public int GetWeightOfSubItem(int subItemID)
@@ -138,7 +204,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 int storeID = GetStoreBySubItemID(sub_ItemID).StoreID;
-                var order = _context.Orders.SingleOrDefault(o => !o.IsPay && o.UserID==userID && _context.OrderDetails.SingleOrDefault(od=> _context.Items.SingleOrDefault(i=> _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID==i.ItemID).StoreID==storeID).OrderID==o.OrderID);
+                var order = _context.Orders.SingleOrDefault(o => !o.IsPay && o.UserID == userID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID == o.OrderID);
                 if (order == null)
                     return false;
                 return true;
@@ -163,7 +229,7 @@ namespace eSMP.Services.OrderRepo
         {
             try
             {
-                return _context.Items.SingleOrDefault(i=>i.ItemID==_context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==sub_ItemID).ItemID).Discount;
+                return _context.Items.SingleOrDefault(i => i.ItemID == _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == sub_ItemID).ItemID).Discount;
             }
             catch
             {
@@ -174,7 +240,7 @@ namespace eSMP.Services.OrderRepo
         {
             try
             {
-                return _context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==sub_ItemID);
+                return _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == sub_ItemID);
             }
             catch
             {
@@ -196,8 +262,8 @@ namespace eSMP.Services.OrderRepo
         {
             try
             {
-                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == sub_ItemID && !_context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID==userID).IsPay);
-                if(orderDetail == null)
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == sub_ItemID && !_context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == userID).IsPay);
+                if (orderDetail == null)
                     return false;
                 return true;
             }
@@ -221,7 +287,7 @@ namespace eSMP.Services.OrderRepo
                     }
                 }
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && !o.IsPay);
-                if(order == null)
+                if (order == null)
                 {
                     result.Success = false;
                     result.Message = "Xoá không thành công";
@@ -250,7 +316,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && !_context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID).IsPay);
-                if( orderDetail == null)
+                if (orderDetail == null)
                 {
                     result.Success = false;
                     result.Message = "Xoá không thành công";
@@ -266,7 +332,7 @@ namespace eSMP.Services.OrderRepo
             }
             catch
             {
-                result.Success=false;
+                result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
                 return result;
@@ -283,7 +349,7 @@ namespace eSMP.Services.OrderRepo
         }
         public Item GetItem(int subItemID)
         {
-            return _context.Items.SingleOrDefault(i => i.ItemID == _context.Sub_Items.FirstOrDefault(si=>si.Sub_ItemID==subItemID).ItemID);
+            return _context.Items.SingleOrDefault(i => i.ItemID == _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == subItemID).ItemID);
         }
         public Image GetImage(int imageID)
         {
@@ -291,12 +357,13 @@ namespace eSMP.Services.OrderRepo
         }
         public List<OrderDetailModel> GetOrderDetailModels(int orderID, bool isPay)
         {
-            List<OrderDetailModel> list=new List<OrderDetailModel>();
-            var listOrderDetails=_context.OrderDetails.Where(o => o.OrderID == orderID);
-            if(listOrderDetails.Count() > 0)
+            List<OrderDetailModel> list = new List<OrderDetailModel>();
+            var listOrderDetails = _context.OrderDetails.Where(o => o.OrderID == orderID);
+            if (listOrderDetails.Count() > 0)
             {
-                foreach(var orderDetail in listOrderDetails.ToList())
+                foreach (var orderDetail in listOrderDetails.ToList())
                 {
+                    var subitem = GetSub_Item(orderDetail.Sub_ItemID);
                     if (isPay)
                     {
                         OrderDetailModel model = new OrderDetailModel
@@ -309,10 +376,10 @@ namespace eSMP.Services.OrderRepo
                             Feedback_Rate = orderDetail.Feedback_Rate,
                             Feedback_Title = orderDetail.Feedback_Title,
                             Feedback_Status = GetFeedback_Status(orderDetail.Feedback_StatusID),
-                            Sub_ItemID = GetSub_Item(orderDetail.Sub_ItemID).Sub_ItemID,
-                            Sub_ItemName = GetSub_Item(orderDetail.Sub_ItemID).Sub_ItemName,
-                            sub_ItemImage = GetImage(GetSub_Item(orderDetail.Sub_ItemID).ImageID).Path,
-                            ItemID= GetSub_Item(orderDetail.Sub_ItemID).ItemID,
+                            Sub_ItemID = subitem.Sub_ItemID,
+                            Sub_ItemName = subitem.Sub_ItemName,
+                            sub_ItemImage = GetImage(subitem.ImageID).Path,
+                            ItemID = subitem.ItemID,
                         };
                         list.Add(model);
                     }
@@ -323,15 +390,15 @@ namespace eSMP.Services.OrderRepo
                             Amount = orderDetail.Amount,
                             DiscountPurchase = GetItem(orderDetail.Sub_ItemID).Discount,
                             OrderDetailID = orderDetail.OrderDetailID,
-                            PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price,
-                            Sub_ItemID = GetSub_Item(orderDetail.Sub_ItemID).Sub_ItemID,
-                            Sub_ItemName = GetSub_Item(orderDetail.Sub_ItemID).Sub_ItemName,
-                            sub_ItemImage = GetImage(GetSub_Item(orderDetail.Sub_ItemID).ImageID).Path,
-                            ItemID = GetSub_Item(orderDetail.Sub_ItemID).ItemID,
+                            PricePurchase = subitem.Price,
+                            Sub_ItemID = subitem.Sub_ItemID,
+                            Sub_ItemName = subitem.Sub_ItemName,
+                            sub_ItemImage = GetImage(subitem.ImageID).Path,
+                            ItemID = subitem.ItemID,
                         };
                         list.Add(model);
                     }
-                    
+
                 }
             }
             return list;
@@ -343,7 +410,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 List<OrderModel> list = new List<OrderModel>();
-                var listOrder=_context.Orders.Where(o=>o.UserID ==userID).AsQueryable();
+                var listOrder = _context.Orders.Where(o => o.UserID == userID).AsQueryable();
                 if (isPay.HasValue)
                 {
                     listOrder = listOrder.Where(o => o.IsPay == isPay);
@@ -357,21 +424,22 @@ namespace eSMP.Services.OrderRepo
                             OrderID = order.OrderID,
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
+                            PriceItem = GetPriceItemOrder(order.OrderID),
                             IsPay = order.IsPay,
-                            Pick_Address=order.Pick_Address,
-                            Pick_Province=order.Pick_Province,
-                            Pick_District=order.Pick_District,
-                            Pick_Ward=order.Pick_Ward,
-                            Pick_Name=order.Pick_Name,
-                            Pick_Tel=order.Pick_Tel,
-                            Address=order.Address,
-                            District=order.District,
-                            Province=order.Province,
-                            Ward=order.Ward,
-                            Name=order.Name,
-                            Tel=order.Tel,
-                            Details=GetOrderDetailModels(order.OrderID,order.IsPay),
-                            FeeShip=order.FeeShip,
+                            Pick_Address = order.Pick_Address,
+                            Pick_Province = order.Pick_Province,
+                            Pick_District = order.Pick_District,
+                            Pick_Ward = order.Pick_Ward,
+                            Pick_Name = order.Pick_Name,
+                            Pick_Tel = order.Pick_Tel,
+                            Address = order.Address,
+                            District = order.District,
+                            Province = order.Province,
+                            Ward = order.Ward,
+                            Name = order.Name,
+                            Tel = order.Tel,
+                            Details = GetOrderDetailModels(order.OrderID, order.IsPay),
+                            FeeShip = order.FeeShip,
                         };
                         list.Add(model);
                     }
@@ -402,12 +470,23 @@ namespace eSMP.Services.OrderRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
+                    if (!order.IsPay)
+                    {
+                        var ship = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, GetWeightOrder(order.OrderID));
+                        if (ship.success)
+                            order.FeeShip = ship.fee.fee;
+                        else
+                            order.FeeShip = 0;
+                        order.FeeShip = order.FeeShip;
+                        _context.SaveChanges();
+                    }
                     OrderModel model = new OrderModel
                     {
                         OrderID = order.OrderID,
                         Create_Date = order.Create_Date,
                         UserID = order.UserID,
                         IsPay = order.IsPay,
+                        PriceItem = GetPriceItemOrder(orderID),
                         Pick_Address = order.Pick_Address,
                         Pick_Province = order.Pick_Province,
                         Pick_District = order.Pick_District,
@@ -421,8 +500,9 @@ namespace eSMP.Services.OrderRepo
                         Name = order.Name,
                         Tel = order.Tel,
                         Details = GetOrderDetailModels(order.OrderID, order.IsPay),
-                        FeeShip= order.FeeShip,
+                        FeeShip = order.FeeShip,
                     };
+                    
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = model;
@@ -450,19 +530,41 @@ namespace eSMP.Services.OrderRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    Address address=GetAddressByID(AddressID);
+                    Address address = GetAddressByID(AddressID);
                     order.Address = address.Context;
                     order.Province = address.Province;
                     order.District = address.District;
                     order.Ward = address.Ward;
                     order.Name = address.UserName;
                     order.Tel = address.Phone;
-                    order.FeeShip = _shipReposity.GetFeeAsync(order.Province, order.District, address.Province, address.District, GetWeightOrder(orderID)).fee;
-                    _context.SaveChanges();
-                    result.Success = true;
-                    result.Message = "Thành công";
-                    result.Data = order;
-                    return result;
+                    FeeReponse shipModel = _shipReposity.GetFeeAsync(order.Province, order.District, address.Province, address.District, GetWeightOrder(orderID));
+                    if (shipModel.success)
+                    {
+                        if (shipModel.fee.delivery)
+                        {
+                            order.FeeShip = shipModel.fee.fee;
+                            _context.SaveChanges();
+                            result.Success = true;
+                            result.Message = "Thành công";
+                            result.Data = order;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Success = false;
+                            result.Message = "Địa chỉ nằm ngoài vùng hoạt động giao hàng";
+                            result.Data = "";
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        result.Success = false;
+                        result.Message = "Địa chỉ không Hợp lệ";
+                        result.Data = "";
+                        return result;
+                    }
+                    
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
@@ -504,6 +606,42 @@ namespace eSMP.Services.OrderRepo
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
                 return result;
+            }
+        }
+
+        public double GetPriceItemOrder(int orderID)
+        {
+            try
+            {
+                double total = 0;
+                var listorderdetail = _context.OrderDetails.Where(od => od.OrderID == orderID);
+                
+                if (_context.Orders.SingleOrDefault(o => o.OrderID == orderID).IsPay)
+                {
+                    if (listorderdetail.Count() > 0)
+                    {
+                        foreach (var item in listorderdetail.ToList())
+                        {
+                            total = total + item.PricePurchase * item.Amount * (1 - item.DiscountPurchase);
+                        }
+                    }
+                }
+                else
+                {
+                    if (listorderdetail.Count() > 0)
+                    {
+                        foreach (var item in listorderdetail.ToList())
+                        {
+                            total = total + GetSub_Item(item.Sub_ItemID).Price * item.Amount * (1 - GetDiscount(item.Sub_ItemID));
+                        }
+                    }
+                }
+                
+                return total;
+            }
+            catch
+            {
+                return 0;
             }
         }
     }

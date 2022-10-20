@@ -10,6 +10,7 @@ namespace eSMP.VModels
         public DateTime Create_Date { get; set; }
         public Boolean IsPay { get; set; }
         public int UserID { get; set; }
+        public double PriceItem { get; set; }
         public double FeeShip { get; set; }
         public string Pick_Province { get; set; }
         public string Pick_District { get; set; }

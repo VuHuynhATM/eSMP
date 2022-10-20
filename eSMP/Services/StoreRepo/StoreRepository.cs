@@ -498,7 +498,7 @@ namespace eSMP.Services.StoreRepo
                         item.Pick_Address = address;
                         item.Pick_Name = name;
                         item.Pick_Tel= tel;
-                        item.FeeShip = _shipReposity.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.GetWeightOrder(item.OrderID)).fee;
+                        item.FeeShip = _shipReposity.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.GetWeightOrder(item.OrderID)).fee.fee;
                     }
                 }
                 _context.SaveChanges();

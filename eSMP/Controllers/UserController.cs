@@ -17,7 +17,6 @@ namespace eSMP.Controllers
             _userReposity = userReposity;
         }
         [HttpPost]
-        [Authorize]
         [Route("customersign_in")]
         public IActionResult CustomerLogin(UserLogin user)
         {
@@ -144,7 +143,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize]
         [Route("Update_user_status")]
         public IActionResult UpdateUserStatus(int UserID, Boolean isActive)
         {
@@ -173,7 +171,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        [Authorize]
         [Route("add_address")]
         public IActionResult AddAddress(UserAddAddress address)
         {
@@ -188,7 +185,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpDelete]
-        [Authorize]
         [Route("remove_address")]
         public IActionResult RemoveAddress(int addressID)
         {
@@ -203,7 +199,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize]
         [Route("edt_address")]
         public IActionResult EditAddress(Address address)
         {
@@ -218,7 +213,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize]
         [Route("edit_name")]
         public IActionResult EditName(EditName name)
         {
@@ -248,7 +242,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize]
         [Route("edit_gender")]
         public IActionResult EditGender(EditGender gender)
         {
@@ -263,7 +256,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize]
         [Route("edit_birth")]
         public IActionResult EditBirth(EditBirth birth)
         {
@@ -278,7 +270,6 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize]
         [Route("edit_image")]
         public IActionResult EditImage(EditImage image)
         {

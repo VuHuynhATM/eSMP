@@ -637,6 +637,16 @@ namespace eSMP.Services.ItemRepo
                 {
                     item.Item_StatusID = 1;
                     _context.SaveChanges();
+                    var listsub=_context.Sub_Items.Where(si => si.ItemID == item.ItemID).ToList();
+                    foreach (var subitem in listsub)
+                    {
+                        var s = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitem.Sub_ItemID);
+                        if (s != null)
+                        {
+                            s.SubItem_StatusID = 1;
+                            _context.SaveChanges();
+                        }
+                        }
                     result.Success = true;
                     result.Message = "Active thành công";
                     result.Data = item;

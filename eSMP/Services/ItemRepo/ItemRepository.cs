@@ -637,7 +637,7 @@ namespace eSMP.Services.ItemRepo
                 {
                     item.Item_StatusID = 1;
                     _context.SaveChanges();
-                    var listsub=_context.Sub_Items.Where(si => si.ItemID == item.ItemID).ToList();
+                    var listsub = _context.Sub_Items.Where(si => si.ItemID == item.ItemID).ToList();
                     foreach (var subitem in listsub)
                     {
                         var s = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitem.Sub_ItemID);
@@ -646,7 +646,7 @@ namespace eSMP.Services.ItemRepo
                             s.SubItem_StatusID = 1;
                             _context.SaveChanges();
                         }
-                        }
+                    }
                     result.Success = true;
                     result.Message = "Active thành công";
                     result.Data = item;
@@ -988,6 +988,76 @@ namespace eSMP.Services.ItemRepo
                 return result;
             }
             catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result UpdateBrandModel(int itemID, int[] brandmodelIDs)
+        {
+            Result result = new Result();
+            try
+            {
+                foreach (var branmodelid in brandmodelIDs)
+                {
+                    var itemmodel = _context.Model_Items.SingleOrDefault(mi => mi.ItemID == itemID && mi.Brand_ModelID == branmodelid);
+                    if (itemmodel != null)
+                    {
+                        itemmodel.IsActive = true;
+                        _context.SaveChanges();
+                    }
+                    else
+                    {
+                        var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
+                        var model = _context.Brand_Models.SingleOrDefault(bm => bm.Brand_ModelID == branmodelid);
+                        if(item!=null&& model != null)
+                        {
+                            Model_Item model_Item = new Model_Item();
+                            model_Item.Brand_ModelID = branmodelid;
+                            model_Item.ItemID = itemID;
+                            model_Item.IsActive = true;
+                            _context.Model_Items.Add(model_Item);
+                            _context.SaveChanges();
+                        }
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result RemoveBrandModel(int itemID, int[] brandmodelIDs)
+        {
+            Result result = new Result();
+            try
+            {
+                foreach(var branmodelid in brandmodelIDs)
+                {
+                    var itemmodel = _context.Model_Items.SingleOrDefault(mi => mi.ItemID == itemID && mi.Brand_ModelID == branmodelid);
+                    if (itemmodel != null)
+                    {
+                        itemmodel.IsActive = false;
+                        _context.SaveChanges();
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = "";
+                return result;
+            }
+            catch
             {
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";

@@ -229,6 +229,32 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
-        
+        [HttpPut]
+        [Route("update_model")]
+        public IActionResult UpdateModel(int ItemID, int[] brandModelIDs)
+        {
+            try
+            {
+                return Ok(_itemReposity.UpdateBrandModel(ItemID,brandModelIDs));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("remove_model")]
+        public IActionResult RemoveModel(int ItemID, int[] brandModelIDs)
+        {
+            try
+            {
+                return Ok(_itemReposity.RemoveBrandModel(ItemID,brandModelIDs));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+
     }
 }

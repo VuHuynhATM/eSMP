@@ -199,6 +199,7 @@ namespace eSMP.Services.ItemRepo
                             Price = GetMinPriceForItem(item.ItemID),
                             Discount = item.Discount,
                             Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                            Num_Sold = GetNumSold(item.ItemID),
                         };
                         listmodel.Add(model);
                     }
@@ -255,6 +256,7 @@ namespace eSMP.Services.ItemRepo
                             Price = GetMinPriceForItem(item.ItemID),
                             Discount = item.Discount,
                             Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                            Num_Sold = GetNumSold(item.ItemID),
                         };
                         listmodel.Add(model);
                     }
@@ -340,6 +342,7 @@ namespace eSMP.Services.ItemRepo
                         Item_Status = GetItemStatus(item.Item_StatusID),
                         ListSubItem = GetListSubItem(item.ItemID),
                         ListModel = _brandReposity.GetModelForItem(item.ItemID),
+                        Num_Sold =GetNumSold(item.ItemID),
                     };
 
                     result.Success = true;
@@ -516,6 +519,7 @@ namespace eSMP.Services.ItemRepo
                         Price = GetMinPriceForItem(item.ItemID),
                         Discount = item.Discount,
                         Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                        Num_Sold = GetNumSold(item.ItemID),
                     };
                     listmodel.Add(model);
                 }
@@ -979,6 +983,7 @@ namespace eSMP.Services.ItemRepo
                         Price = GetMinPriceForItem(item.ItemID),
                         Discount = item.Discount,
                         Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                        Num_Sold=GetNumSold(item.ItemID),
                     };
                     listmodel.Add(model);
                 }
@@ -1062,6 +1067,26 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                return result;
+            }
+        }
+        public int GetNumSold(int itemID)
+        {
+            int result = 0;
+            try
+            {
+                var orderDetails = _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.Single(si => si.ItemID == itemID).Sub_ItemID && od.OrderID==_context.Orders.SingleOrDefault(o=>o.IsPay && o.OrderID==_context.orderBuy_Transacsions.SingleOrDefault(ot=>ot.ResultCode==0).OrderID).OrderID);
+                if (orderDetails.Count() > 0)
+                {
+                    foreach (var order in orderDetails.ToList())
+                    {
+                        result=result+order.Amount;
+                    }
+                }
+                return result;
+            }
+            catch
+            {
                 return result;
             }
         }

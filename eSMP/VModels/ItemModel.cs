@@ -13,6 +13,7 @@ namespace eSMP.VModels
         public double Price { get; set; }
         public string Item_Image { get; set; }
         public string Province { get; set; }
+        public int Num_Sold { get; set; }
     }
     public class ItemModel
     {
@@ -23,6 +24,7 @@ namespace eSMP.VModels
         public double MaxPrice { get; set; }
         public double MinPrice { get; set; }
         public double Discount { get; set; }
+        public int Num_Sold { get; set; }
         public DateTime Create_date { get; set; }
         public int Sub_CategoryID { get; set; }
         public Item_Status Item_Status { get; set; }
@@ -31,7 +33,6 @@ namespace eSMP.VModels
         public StoreViewModel Store { get; set; }
         public List<SubItemModel> ListSubItem { get; set; }
         public List<BrandModel> ListModel { get; set; }
-        public double? Fax { get; set; }
     }
     public class SubItemModel
     {

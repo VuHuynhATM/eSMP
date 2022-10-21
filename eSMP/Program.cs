@@ -19,6 +19,7 @@ using eSMP.Services.TokenRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.Services.ShipRepo;
 using eSMP.Services.MomoRepo;
+using eSMP.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<WebContext, WebContext>();
+
+builder.Services.AddLazyResolution();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserReposity, UserRepository>();
 builder.Services.AddScoped<IStoreReposity, StoreRepository>();

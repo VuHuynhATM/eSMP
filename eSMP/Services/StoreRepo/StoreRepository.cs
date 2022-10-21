@@ -8,10 +8,10 @@ namespace eSMP.Services.StoreRepo
     public class StoreRepository : IStoreReposity
     {
         private readonly WebContext _context;
-        private readonly IShipReposity _shipReposity;
-        private readonly IOrderReposity _orderReposity;
+        private readonly Lazy<IShipReposity> _shipReposity;
+        private readonly Lazy<IOrderReposity> _orderReposity;
 
-        public StoreRepository(WebContext context, IShipReposity shipReposity, IOrderReposity orderReposity)
+        public StoreRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
@@ -498,7 +498,7 @@ namespace eSMP.Services.StoreRepo
                         item.Pick_Address = address;
                         item.Pick_Name = name;
                         item.Pick_Tel= tel;
-                        item.FeeShip = _shipReposity.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.GetWeightOrder(item.OrderID)).fee.fee;
+                        item.FeeShip = _shipReposity.Value.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.Value.GetWeightOrder(item.OrderID)).fee.fee;
                     }
                 }
                 _context.SaveChanges();

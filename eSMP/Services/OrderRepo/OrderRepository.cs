@@ -8,9 +8,9 @@ namespace eSMP.Services.OrderRepo
     public class OrderRepository : IOrderReposity
     {
         private readonly WebContext _context;
-        private readonly IShipReposity _shipReposity;
+        private readonly Lazy<IShipReposity> _shipReposity;
 
-        public OrderRepository(WebContext context, IShipReposity shipReposity)
+        public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
@@ -46,7 +46,7 @@ namespace eSMP.Services.OrderRepo
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
                         int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
-                        var ship = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
+                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
                         if (ship.success)
                         {
                             order.FeeShip = ship.fee.fee;
@@ -79,7 +79,7 @@ namespace eSMP.Services.OrderRepo
                         //ship
                         int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
-                        var ship = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
+                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
                         if (ship.success)
                         {
                             order.FeeShip = ship.fee.fee;
@@ -136,7 +136,7 @@ namespace eSMP.Services.OrderRepo
                         o.UserID = orderDetail.UserID;
                         //ship
                         int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
-                        var ship = _shipReposity.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight);
+                        var ship = _shipReposity.Value.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight);
                         if (ship.success)
                         {
                             o.FeeShip = ship.fee.fee;
@@ -468,7 +468,7 @@ namespace eSMP.Services.OrderRepo
                 {
                     if (!order.IsPay)
                     {
-                        var ship = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, GetWeightOrder(order.OrderID));
+                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, GetWeightOrder(order.OrderID));
                         if (ship.success)
                             order.FeeShip = ship.fee.fee;
                         else
@@ -533,7 +533,7 @@ namespace eSMP.Services.OrderRepo
                     order.Ward = address.Ward;
                     order.Name = address.UserName;
                     order.Tel = address.Phone;
-                    FeeReponse shipModel = _shipReposity.GetFeeAsync(order.Province, order.District, address.Province, address.District, GetWeightOrder(orderID));
+                    FeeReponse shipModel = _shipReposity.Value.GetFeeAsync(order.Province, order.District, address.Province, address.District, GetWeightOrder(orderID));
                     if (shipModel.success)
                     {
                         if (shipModel.fee.delivery)

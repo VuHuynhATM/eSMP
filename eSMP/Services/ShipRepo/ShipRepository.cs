@@ -10,10 +10,11 @@ namespace eSMP.Services.ShipRepo
     {
         public static string TOKEN = "D1f7d11dFA5D417D35F136A02e0C812EEC613Fcb";
         public static string deliver_option = "none";
-        private readonly WebContext _context;
-        private readonly IOrderReposity _orderReposity;
 
-        public ShipRepository(WebContext context, IOrderReposity orderReposity)
+        private readonly WebContext _context;
+        private readonly Lazy<IOrderReposity> _orderReposity;
+
+        public ShipRepository(WebContext context, Lazy<IOrderReposity> orderReposity)
         {
             _context = context;
             _orderReposity = orderReposity;
@@ -27,7 +28,7 @@ namespace eSMP.Services.ShipRepo
             return jsonreponse;
         }
 
-        FeeReponse IShipReposity.GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight)
+        public FeeReponse GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight)
         {
             return GetFeeAsync(province, district, pick_province, pick_district, weight, deliver_option).Result;
         }
@@ -69,12 +70,12 @@ namespace eSMP.Services.ShipRepo
             var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == subItemID && sv.SpecificationID == 2).Value;
             return int.Parse(weight);
         }
-        void IShipReposity.CreateOrder(int orderID)
+        public void CreateOrder(int orderID)
         {
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
-                var listoderdetai= _orderReposity.GetOrderDetailModels(orderID, true);
+                var listoderdetai= _orderReposity.Value.GetOrderDetailModels(orderID, true);
                 var listproduct = new List<productsShip>();
                 foreach (var item in listoderdetai)
                 {
@@ -88,7 +89,7 @@ namespace eSMP.Services.ShipRepo
                     };
                     listproduct.Add(pro);
                 }
-                var priceOrder= _orderReposity.GetPriceItemOrder(orderID);
+                var priceOrder= _orderReposity.Value.GetPriceItemOrder(orderID);
                 orderrequest shiporder = new orderrequest
                 {
                     id=orderID+"",

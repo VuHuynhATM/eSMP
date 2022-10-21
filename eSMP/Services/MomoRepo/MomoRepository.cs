@@ -13,13 +13,13 @@ namespace eSMP.Services.MomoRepo
     public class MomoRepository : IMomoReposity
     {
         private readonly WebContext _context;
-        private readonly IShipReposity _shipReposity;
-        private readonly IOrderReposity _orderReposity;
+        private readonly Lazy<IShipReposity> _shipReposity;
+        private readonly Lazy<IOrderReposity> _orderReposity;
         string accessKey = "iPXneGmrJH0G8FOP";
         string secretKey = "sFcbSGRSJjwGxwhhcEktCHWYUuTuPNDB";
         string partnerCode = "MOMOOJOI20210710";
 
-        public MomoRepository(WebContext context, IShipReposity shipReposity, IOrderReposity orderReposity)
+        public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
@@ -78,8 +78,8 @@ namespace eSMP.Services.MomoRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if(order != null)
                 {
-                    var feeShip = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.GetWeightOrder(orderID)).fee.fee;
-                    var priceitem = _orderReposity.GetPriceItemOrder(orderID);
+                    var feeShip = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(orderID)).fee.fee;
+                    var priceitem = _orderReposity.Value.GetPriceItemOrder(orderID);
                     if(feeShip!=0 && priceitem != 0)
                     {
                         return (long)(feeShip + priceitem);
@@ -111,7 +111,7 @@ namespace eSMP.Services.MomoRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    var ship = _shipReposity.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.GetWeightOrder(order.OrderID));
+                    var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(order.OrderID));
                     if(ship != null)
                     {
                         if(ship.success && ship.fee.delivery)
@@ -338,7 +338,7 @@ namespace eSMP.Services.MomoRepo
             request.partnerCode = partnerCode;
             request.orderId = ordertransaction.OrderID+"-"+ myuuidAsString;
             request.requestId = myuuidAsString;
-            request.amount =(long)(GetFeeship(orderID)+_orderReposity.GetPriceItemOrder(orderID));
+            request.amount =(long)(GetFeeship(orderID)+_orderReposity.Value.GetPriceItemOrder(orderID));
             request.description = "";
             request.transId = ordertransaction.MomoTransactionID;
             request.lang = "vi";

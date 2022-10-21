@@ -73,4 +73,26 @@
         public string requestType { get; set; }
         public long responseTime { get; set; }
     }
+    public class RefundReponse
+    {
+        public string partnerCode { get; set; }
+        public string orderId { get; set; }
+        public string requestId { get; set; }
+        public long amount { get; set; }
+        public long transId { get; set; }
+        public int resultCode { get; set; }
+        public string message { get; set; }
+        public long responseTime { get; set; }
+    }
+    public class RefundRequest
+    {
+        public string partnerCode { get; set; }
+        public string orderId { get; set; }
+        public string requestId { get; set; }
+        public long amount { get; set; }
+        public long transId { get; set; }
+        public string lang { get; set; }
+        public string description { get; set; }
+        public string signature { get; set; }
+    }
 }

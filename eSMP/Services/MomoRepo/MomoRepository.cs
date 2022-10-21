@@ -35,7 +35,7 @@ namespace eSMP.Services.MomoRepo
             //https://esmp.page.link/view
             request.orderInfo = "Thanh Toan";
             request.partnerCode = "MOMOOJOI20210710";
-            request.redirectUrl = "http://20.235.113.50/api/Role";
+            request.redirectUrl = "https://esmp.page.link/view";
             request.ipnUrl = "http://20.235.113.50/api/Payment";
             request.amount = Gettotalprice(orderID);
             request.orderId = orderID+"-"+ myuuidAsString;
@@ -219,7 +219,6 @@ namespace eSMP.Services.MomoRepo
                 result.Data = "";
                 return result;
             }
-            throw new NotImplementedException();
         }
 
         public void PayOrderINP(MomoPayINP payINP)
@@ -288,5 +287,77 @@ namespace eSMP.Services.MomoRepo
             return contents.Result;
         }
 
+        public Result RefundOrder(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
+                if(order != null)
+                {
+                    RefundReponse rp = RefundOrderAsync(orderID).Result;
+                    if(rp != null)
+                    {
+                        if (rp.resultCode == 0)
+                        {
+                            OrderRefund_Transaction orderRefund_Transaction = new OrderRefund_Transaction();
+                            orderRefund_Transaction.OrderID = orderID;
+                            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+                            dateTime = dateTime.AddMilliseconds(rp.responseTime).ToLocalTime();
+                            orderRefund_Transaction.Create_Date = dateTime;
+                            orderRefund_Transaction.ResultCode = rp.resultCode ;
+                            orderRefund_Transaction.MomoTransactionID = rp.transId;
+                            _context.orderRefund_Transactions.Add(orderRefund_Transaction);
+                            _context.SaveChanges();
+                            result.Success = true;
+                            result.Message = "Thành công";
+                            result.Data = "";
+                            return result;
+                        }
+                    }
+                }
+                result.Success = false;
+                result.Message = "Không thể hoàn tiền cho hoá đơn này";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public async Task<RefundReponse> RefundOrderAsync(int orderID)
+        {
+            Guid myuuid = Guid.NewGuid();
+            string myuuidAsString = myuuid.ToString();
+            var ordertransaction=_context.orderBuy_Transacsions.SingleOrDefault(r => r.OrderID == orderID);
+            RefundRequest request = new RefundRequest();
+            request.partnerCode = partnerCode;
+            request.orderId = ordertransaction.OrderID+"-"+ myuuidAsString;
+            request.requestId = myuuidAsString;
+            request.amount =(long)(GetFeeship(orderID)+_orderReposity.GetPriceItemOrder(orderID));
+            request.description = "";
+            request.transId = ordertransaction.MomoTransactionID;
+            request.lang = "vi";
+
+            var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId+ "&partnerCode=" + request.partnerCode  + "&requestId=" + request.requestId + "&transId=" + request.transId;
+            request.signature = getSignature(rawSignature, secretKey);
+            var client = new HttpClient();
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+
+            var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent);
+            var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>();
+            var content = quickPayResponse.Content.ReadAsStringAsync().Result;
+            return contents.Result;
+        }
+        public double GetFeeship(int orderID)
+        {
+            var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
+            return order.FeeShip;
+        }
+       
     }
 }

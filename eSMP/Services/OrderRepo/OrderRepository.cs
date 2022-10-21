@@ -272,7 +272,6 @@ namespace eSMP.Services.OrderRepo
                 return false;
             }
         }
-
         public Result DeleteOrder(int orderID)
         {
             Result result = new Result();
@@ -309,7 +308,6 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
-
         public Result DeleteOrderDetail(int orderDetailID)
         {
             Result result = new Result();
@@ -338,7 +336,6 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
-
         public Address GetAddressByID(int addressID)
         {
             return _context.Addresss.SingleOrDefault(a => a.AddressID == addressID);
@@ -403,7 +400,6 @@ namespace eSMP.Services.OrderRepo
             }
             return list;
         }
-
         public Result GetAllOrder(int userID, bool? isPay)
         {
             Result result = new Result();

@@ -45,5 +45,18 @@ namespace eSMP.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet]
+        [Route("momorefund")]
+        public IActionResult RèundOrder(int orderID)
+        {
+            try
+            {
+                return Ok(_momoReposity.RefundOrder(orderID));
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
     }
 }

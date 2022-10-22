@@ -7,6 +7,7 @@ namespace eSMP.VModels
     public class OrderModel
     {
         public int OrderID { get; set; }
+        public StoreViewModel StoreView { get; set; }
         public DateTime Create_Date { get; set; }
         public Boolean IsPay { get; set; }
         public int UserID { get; set; }

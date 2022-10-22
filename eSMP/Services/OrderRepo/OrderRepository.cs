@@ -1,5 +1,6 @@
 ﻿using eSMP.Models;
 using eSMP.Services.ShipRepo;
+using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using Firebase.Auth;
 
@@ -9,11 +10,13 @@ namespace eSMP.Services.OrderRepo
     {
         private readonly WebContext _context;
         private readonly Lazy<IShipReposity> _shipReposity;
+        private readonly Lazy<IStoreReposity> _storeReposity;
 
-        public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity)
+        public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IStoreReposity> storeReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
+            _storeReposity = storeReposity;
         }
         public bool CheckAmount(int subItemID, int amount)
         {
@@ -352,6 +355,20 @@ namespace eSMP.Services.OrderRepo
         {
             return _context.Images.SingleOrDefault(i => i.ImageID == imageID);
         }
+        public StoreViewModel GetStoreViewModel(int orderID)
+        {
+            try
+            {
+                var orderdetail = _context.OrderDetails.FirstOrDefault(od => od.OrderID == orderID);
+                var store = GetStoreBySubItemID(orderdetail.Sub_ItemID);
+                StoreViewModel model = _storeReposity.Value.GetStoreModel(store.StoreID);
+                return model;
+            }
+            catch
+            {
+                return null;
+            }
+        }
         public List<OrderDetailModel> GetOrderDetailModels(int orderID, bool isPay)
         {
             List<OrderDetailModel> list = new List<OrderDetailModel>();
@@ -418,6 +435,7 @@ namespace eSMP.Services.OrderRepo
                         OrderModel model = new OrderModel
                         {
                             OrderID = order.OrderID,
+                            StoreView = GetStoreViewModel(order.OrderID),
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
                             PriceItem = GetPriceItemOrder(order.OrderID),
@@ -479,6 +497,7 @@ namespace eSMP.Services.OrderRepo
                     OrderModel model = new OrderModel
                     {
                         OrderID = order.OrderID,
+                        StoreView = GetStoreViewModel(order.OrderID),
                         Create_Date = order.Create_Date,
                         UserID = order.UserID,
                         IsPay = order.IsPay,

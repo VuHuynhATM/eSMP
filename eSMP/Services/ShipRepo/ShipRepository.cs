@@ -85,7 +85,7 @@ namespace eSMP.Services.ShipRepo
                         price = (int)item.PricePurchase,
                         product_code = item.Sub_ItemID,
                         quantity = item.Amount,
-                        weight = GetWeightOfSubItem(item.Sub_ItemID),
+                        weight = GetWeightOfSubItem(item.Sub_ItemID)/(double)1000,
                     };
                     listproduct.Add(pro);
                 }
@@ -109,7 +109,6 @@ namespace eSMP.Services.ShipRepo
                     hamlet="Khác",
                     street="",
                     ward=order.Ward,
-                    tags =new int[1],
                     tel=order.Tel,
                     value=(int)priceOrder,
                 };
@@ -121,9 +120,7 @@ namespace eSMP.Services.ShipRepo
                         products=listproduct,
                     };
                     var Shipreponse = CreateOrderAsync(request).Result;
-                   
                 }
-
             }
             catch
             {

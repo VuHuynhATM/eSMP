@@ -667,6 +667,11 @@ namespace eSMP.Services.OrderRepo
             }
         }
 
+        public int NumFeedBackRateItem(int itemID)
+        {
+            var orderdetai = _context.OrderDetails.Where(od => od.Feedback_Rate != null && od.Sub_ItemID == _context.Sub_Items.FirstOrDefault(si => si.ItemID == itemID).Sub_ItemID);
+            return orderdetai.Count();
+        }
         public Result FeedBaclOrderDetail(FeedBackOrderDetail feedBack)
         {
             Result result = new Result();
@@ -678,9 +683,33 @@ namespace eSMP.Services.OrderRepo
                     orderdetail.FeedBack_Date = DateTime.Now;
                     orderdetail.Feedback_Rate = (double)feedBack.Rate;
                     orderdetail.Feedback_Title = feedBack.Text;
+                    orderdetail.Feedback_StatusID = 1;
                     var listImage = feedBack.feedbackImages;
+                    var item = _context.Items.SingleOrDefault(i => i.ItemID == _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == orderdetail.Sub_ItemID).ItemID);
+                    if (item != null)
+                    {
+                        int numRate = NumFeedBackRateItem(item.ItemID);
+                        item.Rate = (item.Rate + feedBack.Rate) / (numRate + 1);
+                        _context.SaveChanges();
+                    }
                     if (listImage != null)
                     {
+                        foreach (var image in listImage)
+                        {
+                            Image i = new Image();
+                            i.Crete_date = DateTime.Now;
+                            i.FileName = image.Name;
+                            i.Path=image.Path;
+                            i.IsActive = true;
+
+                            Feedback_Image fi = new Feedback_Image();
+                            fi.IsActive = true;
+                            fi.OrderDetailID = orderdetail.OrderDetailID;
+                            fi.Image = i;
+
+                            _context.Feedback_Images.Add(fi);
+                            _context.SaveChanges();
+                        }
 
                     }
                     _context.SaveChanges();

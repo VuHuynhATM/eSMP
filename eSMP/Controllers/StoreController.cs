@@ -136,5 +136,18 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
+        [HttpGet]
+        [Route("login_store")]
+        public IActionResult GetStoreByUserID(int userID)
+        {
+            try
+            {
+                return Ok(_sttoreReposity.GetStorebyuserID(userID));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+            }
+        }
     }
 }

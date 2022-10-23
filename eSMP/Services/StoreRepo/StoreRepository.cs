@@ -508,5 +508,45 @@ namespace eSMP.Services.StoreRepo
                 return;
             }
         }
+
+        public Result GetStorebyuserID(int userID)
+        {
+            Result result = new Result();
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.UserID == userID);
+                if (store != null)
+                {
+                    StoreModel model = new StoreModel
+                    {
+                        StoreID = store.StoreID,
+                        StoreName = store.StoreName,
+                        Create_date = store.Create_date,
+                        Email = store.Email,
+                        Phone = store.Phone,
+                        Pick_date = store.Pick_date,
+                        Address = GetAddress(store.AddressID),
+                        Image = GetImage(store.ImageID),
+                        Store_Status = GetStatus(store.Store_StatusID),
+                        UserID = store.UserID,
+                    };
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = model;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Cửa hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
     }
 }

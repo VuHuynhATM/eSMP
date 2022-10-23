@@ -1,4 +1,5 @@
-﻿using eSMP.Services.OrderRepo;
+﻿using eSMP.Models;
+using eSMP.Services.OrderRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -98,6 +99,19 @@ namespace eSMP.Controllers
             try
             {
                 return Ok(_orderReposity.GetOrderInfo(orderID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPost]
+        [Route("feedback")]
+        public IActionResult FeedBack (FeedBackOrderDetail feedBack)
+        {
+            try
+            {
+                return Ok(_orderReposity.FeedBaclOrderDetail(feedBack));
             }
             catch
             {

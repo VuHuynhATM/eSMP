@@ -8,6 +8,7 @@ namespace eSMP.Services.StoreRepo
         public Result GetAllStore();
         public Result CteateStore(StoreRegister store);
         public Result StoreDetail(int storeID);
+        public Result GetStorebyuserID(int userID);
         public Result StoreUpdateInfo(StoreUpdateInfo info);
         public StoreViewModel GetStoreModel(int storeID);
         public Address GetAddressByStoreID(int StoreID);

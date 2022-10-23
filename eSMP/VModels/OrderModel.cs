@@ -53,7 +53,7 @@ namespace eSMP.VModels
         public int OrderDetaiID { get; set; }
         public int Rate { get; set; }
         public string Text { get; set; }
-        public List<feedbackImage> feedbackImages { get; set; }
+        public List<feedbackImage>? feedbackImages { get; set; }
     }
     public class feedbackImage
     {

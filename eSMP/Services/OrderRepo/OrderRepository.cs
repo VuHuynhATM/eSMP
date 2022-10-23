@@ -23,7 +23,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subItemID && si.Amount >= amount);
-                if(subItem != null)
+                if (subItem != null)
                     return true;
                 return false;
             }
@@ -40,7 +40,7 @@ namespace eSMP.Services.OrderRepo
                 if (CheckSubItemInOrder(orderDetail.Sub_ItemID, orderDetail.UserID))
                 {
                     var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && !_context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == orderDetail.UserID).IsPay);
-                    if(CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount + odexist.Amount))
+                    if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount + odexist.Amount))
                     {
                         odexist.Amount = odexist.Amount + orderDetail.Amount;
                         odexist.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
@@ -71,7 +71,7 @@ namespace eSMP.Services.OrderRepo
                         result.Data = "";
                         return result;
                     }
-                    
+
                 }
                 else
                 {
@@ -517,7 +517,7 @@ namespace eSMP.Services.OrderRepo
                         Details = GetOrderDetailModels(order.OrderID, order.IsPay),
                         FeeShip = order.FeeShip,
                     };
-                    
+
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = model;
@@ -579,7 +579,7 @@ namespace eSMP.Services.OrderRepo
                         result.Data = "";
                         return result;
                     }
-                    
+
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
@@ -603,10 +603,9 @@ namespace eSMP.Services.OrderRepo
                 var orderdetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID);
                 if (orderdetail != null)
                 {
-                    
-                    orderdetail.Amount = orderdetail.Amount + amount;
-                    if (GetSub_Item(orderdetail.Sub_ItemID).Amount>= orderdetail.Amount)
+                    if (GetSub_Item(orderdetail.Sub_ItemID).Amount >= amount)
                     {
+                        orderdetail.Amount = amount;
                         _context.SaveChanges();
                         result.Success = true;
                         result.Message = "Thành công";
@@ -638,7 +637,7 @@ namespace eSMP.Services.OrderRepo
             {
                 double total = 0;
                 var listorderdetail = _context.OrderDetails.Where(od => od.OrderID == orderID);
-                
+
                 if (_context.Orders.SingleOrDefault(o => o.OrderID == orderID).IsPay)
                 {
                     if (listorderdetail.Count() > 0)
@@ -659,7 +658,7 @@ namespace eSMP.Services.OrderRepo
                         }
                     }
                 }
-                
+
                 return total;
             }
             catch
@@ -670,15 +669,20 @@ namespace eSMP.Services.OrderRepo
 
         public Result FeedBaclOrderDetail(FeedBackOrderDetail feedBack)
         {
-            Result result=new Result();
+            Result result = new Result();
             try
             {
                 var orderdetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == feedBack.OrderDetaiID);
                 if (orderdetail != null)
                 {
                     orderdetail.FeedBack_Date = DateTime.Now;
-                    orderdetail.Feedback_Rate =(double)feedBack.Rate;
+                    orderdetail.Feedback_Rate = (double)feedBack.Rate;
                     orderdetail.Feedback_Title = feedBack.Text;
+                    var listImage = feedBack.feedbackImages;
+                    if (listImage != null)
+                    {
+
+                    }
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";

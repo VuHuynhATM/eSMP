@@ -603,11 +603,19 @@ namespace eSMP.Services.OrderRepo
                 var orderdetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID);
                 if (orderdetail != null)
                 {
+                    
                     orderdetail.Amount = orderdetail.Amount + amount;
-                    _context.SaveChanges();
-                    result.Success = true;
-                    result.Message = "Thành công";
-                    result.Data = orderdetail;
+                    if (GetSub_Item(orderdetail.Sub_ItemID).Amount>= orderdetail.Amount)
+                    {
+                        _context.SaveChanges();
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = orderdetail;
+                        return result;
+                    }
+                    result.Success = false;
+                    result.Message = "Sản phẩm không đủ số lượng";
+                    result.Data = "";
                     return result;
                 }
                 result.Success = false;
@@ -657,6 +665,37 @@ namespace eSMP.Services.OrderRepo
             catch
             {
                 return 0;
+            }
+        }
+
+        public Result FeedBaclOrderDetail(FeedBackOrderDetail feedBack)
+        {
+            Result result=new Result();
+            try
+            {
+                var orderdetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == feedBack.OrderDetaiID);
+                if (orderdetail != null)
+                {
+                    orderdetail.FeedBack_Date = DateTime.Now;
+                    orderdetail.Feedback_Rate =(double)feedBack.Rate;
+                    orderdetail.Feedback_Title = feedBack.Text;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = orderdetail;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "đơn hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
             }
         }
     }

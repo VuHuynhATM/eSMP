@@ -47,7 +47,7 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("momorefund")]
-        public IActionResult RèundOrder(int orderID)
+        public IActionResult RefundOrder(int orderID)
         {
             try
             {

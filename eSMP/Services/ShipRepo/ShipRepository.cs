@@ -1,6 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.Services.OrderRepo;
 using eSMP.VModels;
+using Newtonsoft.Json.Linq;
 using System.Text.Json;
 
 namespace eSMP.Services.ShipRepo
@@ -61,20 +62,20 @@ namespace eSMP.Services.ShipRepo
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
-            var ghtkreponde = await client.PostAsync("https://khachhang-staging.ghtklab.com/services/shipment/order/?ver=1.5", httpContent);
-            var contents = ghtkreponde.Content.ReadFromJsonAsync<ShipReponse>();
-            return contents.Result;
+            var ghtkreponde = await client.PostAsync("https://services-staging.ghtklab.com/services/shipment/order/?ver=1.5", httpContent);
+            var contents = ghtkreponde.Content.ReadFromJsonAsync<ShipReponse>().Result;
+            return contents;
         }
         public int GetWeightOfSubItem(int subItemID)
         {
             var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == subItemID && sv.SpecificationID == 2).Value;
             return int.Parse(weight);
         }
-        public void CreateOrder(int orderID)
+        public ShipReponse CreateOrder(int orderID)
         {
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && !o.IsPay);
                 var listoderdetai= _orderReposity.Value.GetOrderDetailModels(orderID, true);
                 var listproduct = new List<productsShip>();
                 foreach (var item in listoderdetai)
@@ -120,11 +121,69 @@ namespace eSMP.Services.ShipRepo
                         products=listproduct,
                     };
                     var Shipreponse = CreateOrderAsync(request).Result;
+                    return Shipreponse;
                 }
+                return null;
             }
             catch
             {
-                return;
+                return null;
+            }
+        }
+        public ShipStatus GetShipStatus(string statusID)
+        {
+            return _context.ShipStatuses.SingleOrDefault(ss => ss.Status_ID.Equals(statusID));
+        }
+
+        public Result GetShipstatus(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
+                if(order != null)
+                {
+                    var liststatus = _context.ShipOrders.AsQueryable();
+                    liststatus = liststatus.Where(so => so.OrderID == orderID);
+                    liststatus=liststatus.OrderByDescending(so => so.Create_Date);
+                    ShipModel model = new ShipModel();
+                    List<ShipStatusModel> list = new List<ShipStatusModel>();
+                    if (liststatus.Count() > 0)
+                    {
+                        foreach(var item in liststatus)
+                        {
+                            if(list.Count() == 0)
+                            {
+                                model.orderID = item.OrderID;
+                                model.LabelID = item.LabelID;
+                            }
+                            ShipStatusModel statusModel = new ShipStatusModel
+                            {
+                                status=GetShipStatus(item.Status_ID).Status_Name,
+                                Create_Date = item.Create_Date,
+                                Reason=item.Reason,
+                                Reason_code = item.Reason_code
+                            };
+                            list.Add(statusModel);
+                        }
+                        model.shipStatusModels = list;
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data=model;
+                        return result;
+                    }
+                }
+                result.Success = false;
+                result.Message = "Đơn hàng không tồn tại, hoặc đơn hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "lỗi hệ thống";
+                result.Data = "";
+                return result;
             }
         }
     }

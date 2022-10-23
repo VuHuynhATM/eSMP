@@ -2,6 +2,16 @@
 {
     public class ShipModel
     {
+        public int orderID { get; set; }
+        public string LabelID { get; set; }
+        public List<ShipStatusModel> shipStatusModels { get; set; }
+    }
+    public class ShipStatusModel
+    {
+        public string Reason_code { get; set; }
+        public string Reason { get; set; }
+        public string status { get; set; }
+        public DateTime Create_Date { get; set; }
     }
     public class FeeShipModel
     {
@@ -72,23 +82,12 @@
     public class ShipOrderReponse
     {
         public string partner_id { get; set; }
-        public string label_id { get; set; }
-        public int status { get; set; }
-        public string status_text { get; set; }
-        public string created { get; set; }
-        public string modified { get; set; }
-        public string message { get; set; }
-        public string pick_date { get; set; }
-        public string deliver_date { get; set; }
-        public string customer_fullname { get; set; }
-        public string customer_tel { get; set; }
-        public string address { get; set; }
-        public int storage_day { get; set; }
-        public int ship_money { get; set; }
-        public int insurance { get; set; }
-        public int value { get; set; }
-        public int weight { get; set; }
-        public int pick_money { get; set; }
-        public int is_freeship { get; set; }
+        public string label { get; set; }
+        public int area { get; set; }
+        public int fee { get; set; }
+        public int insurance_fee { get; set; }
+        public string estimated_pick_time { get; set; }
+        public string estimated_deliver_time { get; set; }
+        public int status_id { get; set; }
     }
 }

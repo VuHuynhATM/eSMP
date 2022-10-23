@@ -48,4 +48,16 @@ namespace eSMP.VModels
         public int Amount { get; set; }
         public int Sub_ItemID { get; set; }
     }
+    public class FeedBackOrderDetail
+    {
+        public int OrderDetaiID { get; set; }
+        public int Rate { get; set; }
+        public string Text { get; set; }
+        public List<feedbackImage> feedbackImages { get; set; }
+    }
+    public class feedbackImage
+    {
+        public string Name { get; set; }
+        public string Path { get; set; }
+    }
 }

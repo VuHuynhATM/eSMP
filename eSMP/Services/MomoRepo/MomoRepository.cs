@@ -226,7 +226,6 @@ namespace eSMP.Services.MomoRepo
             try
             {
                 ConfirmReponse confirmReponse = confirm(payINP).Result;
-                _context.SaveChanges();
                 if (confirmReponse.resultCode == 0)
                 {
                     var orderid = confirmReponse.orderId.Split('-')[0];
@@ -274,7 +273,7 @@ namespace eSMP.Services.MomoRepo
             request.lang = "vi";
             request.amount = inp.amount;
             request.description = "";
-            request.requestType = "capture";
+            request.requestType = "cancel";
 
             var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId + "&partnerCode=" + request.partnerCode  + "&requestId=" + request.requestId + "&requestType="+request.requestType;
             request.signature = getSignature(rawSignature, secretKey);

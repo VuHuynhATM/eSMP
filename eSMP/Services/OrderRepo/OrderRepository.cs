@@ -37,6 +37,7 @@ namespace eSMP.Services.OrderRepo
             Result result = new Result();
             try
             {
+                var item = GetItem(orderDetail.Sub_ItemID);
                 if (CheckSubItemInOrder(orderDetail.Sub_ItemID, orderDetail.UserID))
                 {
                     var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == orderDetail.UserID).OrderStatusID==2);
@@ -47,7 +48,7 @@ namespace eSMP.Services.OrderRepo
                         odexist.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
                         //ship
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
-                        int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
+                        int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
                         var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
                         if (ship.success)
@@ -80,7 +81,7 @@ namespace eSMP.Services.OrderRepo
                         int storeID = GetStoreBySubItemID(orderDetail.Sub_ItemID).StoreID;
                         var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID==2 && o.UserID == orderDetail.UserID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID == o.OrderID);
                         //ship
-                        int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
+                        int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
                         var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
                         if (ship.success)
@@ -138,7 +139,7 @@ namespace eSMP.Services.OrderRepo
                         o.OrderStatusID = 2;
                         o.UserID = orderDetail.UserID;
                         //ship
-                        int weight = GetWeightOfSubItem(orderDetail.Sub_ItemID) * orderDetail.Amount;
+                        int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
                         var ship = _shipReposity.Value.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight);
                         if (ship.success)
                         {
@@ -188,7 +189,8 @@ namespace eSMP.Services.OrderRepo
             int weight = 0;
             foreach (var detail in orderDetail)
             {
-                weight = weight + GetWeightOfSubItem(detail.Sub_ItemID) * detail.Amount;
+                var item=GetItem(detail.Sub_ItemID);
+                weight = weight + GetWeightOfSubItem(item.ItemID) * detail.Amount;
             }
             return weight;
         }
@@ -197,9 +199,9 @@ namespace eSMP.Services.OrderRepo
             var storeaddressID = GetStoreBySubItemID(subItemID).AddressID;
             return _context.Addresss.SingleOrDefault(s => s.AddressID == storeaddressID);
         }
-        public int GetWeightOfSubItem(int subItemID)
+        public int GetWeightOfSubItem(int itemID)
         {
-            var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == subItemID && sv.SpecificationID == 2).Value;
+            var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
             return int.Parse(weight);
         }
         public bool CheckStoreOrder(int sub_ItemID, int userID)

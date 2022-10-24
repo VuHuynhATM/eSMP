@@ -487,7 +487,7 @@ namespace eSMP.Services.StoreRepo
         {
             try
             {
-                var listOrder = _context.Orders.Where(o => o.OrderID == _context.OrderDetails.FirstOrDefault(od => od.Sub_ItemID == _context.Sub_Items.FirstOrDefault(si => si.ItemID == _context.Items.FirstOrDefault(i => i.StoreID == storeID).ItemID).Sub_ItemID).OrderID && !o.IsPay).ToList();
+                var listOrder = _context.Orders.Where(o => o.OrderID == _context.OrderDetails.FirstOrDefault(od => od.Sub_ItemID == _context.Sub_Items.FirstOrDefault(si => si.ItemID == _context.Items.FirstOrDefault(i => i.StoreID == storeID).ItemID).Sub_ItemID).OrderID && o.OrderStatusID==2).ToList();
                 if(listOrder.Count > 0)
                 {
                     foreach (var item in listOrder)

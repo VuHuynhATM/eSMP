@@ -135,7 +135,7 @@ namespace eSMP.Services.MomoRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    if (order.IsPay)
+                    if (order.OrderStatusID==1)
                     {
                         result.Success = false;
                         result.Message = "Đơn hàng đã thành toán";
@@ -232,7 +232,7 @@ namespace eSMP.Services.MomoRepo
                     var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
                     if (order != null)
                     {
-                        order.IsPay = true;
+                        order.OrderStatusID = 1;
                         _context.SaveChanges();
 
                         OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
@@ -313,7 +313,7 @@ namespace eSMP.Services.MomoRepo
             Result result = new Result();
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID==1);
                 if(order != null)
                 {
                     RefundReponse rp = RefundOrderAsync(orderID).Result;
@@ -376,7 +376,7 @@ namespace eSMP.Services.MomoRepo
         }
         public double GetFeeship(int orderID)
         {
-            var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
+            var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID==1);
             return order.FeeShip;
         }
        

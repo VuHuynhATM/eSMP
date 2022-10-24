@@ -75,8 +75,8 @@ namespace eSMP.Services.ShipRepo
         {
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && !o.IsPay);
-                var listoderdetai= _orderReposity.Value.GetOrderDetailModels(orderID, true);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID==2);
+                var listoderdetai= _orderReposity.Value.GetOrderDetailModels(orderID, 2);
                 var listproduct = new List<productsShip>();
                 foreach (var item in listoderdetai)
                 {
@@ -140,7 +140,7 @@ namespace eSMP.Services.ShipRepo
             Result result = new Result();
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.IsPay);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID==1);
                 if(order != null)
                 {
                     var liststatus = _context.ShipOrders.AsQueryable();

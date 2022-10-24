@@ -18,11 +18,11 @@ namespace eSMP.Controllers
             _orderReposity = orderReposity;
         }
         [HttpGet]
-        public IActionResult GetOrder(int userID, bool? isPay)
+        public IActionResult GetOrder(int userID, int? orderStatusID)
         {
             try
             {
-                return Ok(_orderReposity.GetAllOrder(userID, isPay));
+                return Ok(_orderReposity.GetAllOrder(userID, orderStatusID));
             }
             catch
             {

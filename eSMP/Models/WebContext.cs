@@ -34,6 +34,7 @@ namespace eSMP.Models
         public DbSet<OrderRefund_Transaction> orderRefund_Transactions { get; set; }
         public DbSet<ShipStatus> ShipStatuses { get; set; }
         public DbSet<ShipOrder> ShipOrders { get; set; }
+        public DbSet<OrderStatus> OrderStatuses { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

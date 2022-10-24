@@ -9,5 +9,6 @@ namespace eSMP.Models
         [Key]
         public int OrderStatusID { get; set; }
         public string StausName { get; set; }
+        public Boolean IsActive { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace eSMP.Services.UserRepo
         Result CustomerLogin(string phone);
         Result SupplierLogin(string phone);
         Result GetUserByID(int userID);
-        Result CheckRole(string phone, int roleID);
+        Result CheckRole(string phone);
         Result LoginByEmail(string email, string password);
         Result RigisterUser(UserRegister user);
         Result RigisterSupplier(UserRegister user);

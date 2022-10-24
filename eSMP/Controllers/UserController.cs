@@ -99,11 +99,11 @@ namespace eSMP.Controllers
 
         [HttpPost]
         [Route("check_user")]
-        public IActionResult CheckUser(string phone,int roleID)
+        public IActionResult CheckUser(string phone)
         {
             try
             {
-                var result=_userReposity.CheckRole(phone,roleID);
+                var result=_userReposity.CheckRole(phone);
                 return Ok(result);
             }
             catch(Exception ex)

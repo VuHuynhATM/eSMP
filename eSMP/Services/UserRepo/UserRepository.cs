@@ -25,7 +25,7 @@ namespace eSMP.Services.UserRepo
             Result result = new Result();
             try
             {
-                if (CheckRole(phone, 2).Success)
+                if (CheckRole(phone).Success)
                 {
                     var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.RoleID == 2);
                     if (u != null)
@@ -78,7 +78,7 @@ namespace eSMP.Services.UserRepo
             Result result = new Result();
             try
             {
-                if (CheckRole(phone, 3).Success)
+                if (CheckRole(phone).Success)
                 {
                     var u = _context.Users.SingleOrDefault(user => user.Phone == phone && user.RoleID == 3);
                     if (u != null)
@@ -196,7 +196,7 @@ namespace eSMP.Services.UserRepo
         public Result RigisterUser(UserRegister user)
         {
             Result result = new Result();
-            if (!CheckRole(user.Phone, 2).Success)
+            if (!CheckRole(user.Phone).Success)
             {
                 if (user != null)
                 {
@@ -260,12 +260,12 @@ namespace eSMP.Services.UserRepo
             result.Data = "";
             return result;
         }
-        public Result CheckRole(string phone, int roleID)
+        public Result CheckRole(string phone)
         {
             Result result = new Result();
             if (!string.IsNullOrEmpty(phone))
             {
-                var user = _context.Users.SingleOrDefault(u => u.Phone == phone && u.RoleID == roleID);
+                var user = _context.Users.SingleOrDefault(u => u.Phone == phone);
                 if (user != null)
                 {
                     result.Success = true;
@@ -283,7 +283,7 @@ namespace eSMP.Services.UserRepo
         public Result RigisterSupplier(UserRegister user)
         {
             Result result = new Result();
-            if (!CheckRole(user.Phone, 3).Success)
+            if (!CheckRole(user.Phone).Success)
             {
                 if (user != null)
                 {

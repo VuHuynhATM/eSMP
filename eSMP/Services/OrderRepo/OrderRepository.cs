@@ -372,7 +372,7 @@ namespace eSMP.Services.OrderRepo
         public List<OrderDetailModel> GetOrderDetailModels(int orderID, int orderStatusID)
         {
             List<OrderDetailModel> list = new List<OrderDetailModel>();
-            var listOrderDetails = _context.OrderDetails.Where(od => od.OrderID == orderID && _context.Orders.SingleOrDefault(o=>o.OrderStatusID==orderStatusID).OrderID==od.OrderID);
+            var listOrderDetails = _context.OrderDetails.Where(od => od.OrderID ==_context.Orders.SingleOrDefault(o=>o.OrderStatusID==orderStatusID && o.OrderID==orderID).OrderID);
             if (listOrderDetails.Count() > 0)
             {
                 foreach (var orderDetail in listOrderDetails.ToList())

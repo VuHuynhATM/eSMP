@@ -1,6 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.Services.ShipRepo;
 using eSMP.Services.UserRepo;
+using eSMP.VModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,18 +21,23 @@ namespace eSMP.Controllers
             _userReposity = userReposity;
             _context = context;
         }
-        //string label_id, string partner_id, int status_id, string action_time, string reason_code, string reason, float weight, int fee, int return_part_package
         [HttpPost]
-        public IActionResult CallBackGHTK()
+        public IActionResult CallBackGHTK(ShipINP inp)
         {
+            var label_id=inp.label_id;
+            var partner_id=inp.partner_id;
+            var status_id =inp.status_id;
+            var action_time=inp.action_time;
+            var reason_code=inp.reason_code;
+            var reason =inp.reason;
             _userReposity.Updaterole();
-            /*var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-            role.RoleName= label_id;
-            _context.SaveChanges();*/
-            /*if (_shipReposity.CallBackAsync(label_id, partner_id, status_id, action_time, reason_code, reason))
+            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+            role.RoleName = label_id+"-"+partner_id + "-" +status_id + "-" +action_time + "-" +reason_code + "-" +reason;
+            _context.SaveChanges();
+            if (_shipReposity.CallBackAsync(label_id, partner_id, status_id, action_time, reason_code, reason))
             {
                 return Ok();
-            }*/
+            }
             return Ok();
         }
         [HttpGet]
@@ -45,6 +51,13 @@ namespace eSMP.Controllers
         public IActionResult GetShipstatus(int orderID)
         {
             return Ok(_shipReposity.GetShipstatus(orderID));
+        }
+
+        [HttpPut]
+        [Route("ship_Cancel")]
+        public IActionResult Cancel(int orderID)
+        {
+            return Ok(_shipReposity.CancelOrder(orderID));
         }
     }
 }

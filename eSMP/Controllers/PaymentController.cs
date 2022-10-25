@@ -46,12 +46,12 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
-        [Route("momorefund")]
-        public IActionResult RefundOrder(int orderID)
+        [Route("cance_order")]
+        public IActionResult CancelOrder(int orderID)
         {
             try
             {
-                return Ok(_momoReposity.RefundOrder(orderID));
+                return Ok(_momoReposity.CancelOrder(orderID));
             }
             catch
             {

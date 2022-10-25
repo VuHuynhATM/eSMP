@@ -90,4 +90,21 @@
         public string estimated_deliver_time { get; set; }
         public int status_id { get; set; }
     }
+    public class ShipINP
+    {
+        public string label_id { get; set; }
+        public string partner_id { get; set; }
+        public int status_id { get; set; }
+        public string action_time { get; set; }
+        public string reason_code { get; set; }
+        public string reason { get; set; }
+        public float weight { get; set; }
+        public int fee { get; set; }
+        public int return_part_package { get; set; }
+    }
+
+    public class ShipCancel
+    {
+        public string partner_id { get; set; }
+    }
 }

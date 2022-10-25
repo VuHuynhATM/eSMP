@@ -9,5 +9,6 @@ namespace eSMP.Services.ShipRepo
         public bool CallBackAsync(string label_id, string partner_id, int status_id, string action_time, string reason_code, string reason);
         public ShipReponse CreateOrder(int orderID);
         public Result GetShipstatus(int orderID);
+        public Result CancelOrder(int orderID);
     }
 }

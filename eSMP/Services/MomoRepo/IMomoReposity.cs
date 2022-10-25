@@ -6,6 +6,6 @@ namespace eSMP.Services.MomoRepo
     {
         public Result GetPayUrl(int orderID);   
         public void PayOrderINP(MomoPayINP payINP);
-        public Result RefundOrder(int orderID);
+        public Result CancelOrder(int orderID);
     }
 }

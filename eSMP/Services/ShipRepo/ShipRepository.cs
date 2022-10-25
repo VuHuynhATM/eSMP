@@ -66,9 +66,9 @@ namespace eSMP.Services.ShipRepo
             var contents = ghtkreponde.Content.ReadFromJsonAsync<ShipReponse>().Result;
             return contents;
         }
-        public int GetWeightOfSubItem(int subItemID)
+        public int GetWeightOfSubItem(int itemID)
         {
-            var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == subItemID && sv.SpecificationID == 2).Value;
+            var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
             return int.Parse(weight);
         }
         public ShipReponse CreateOrder(int orderID)
@@ -86,7 +86,7 @@ namespace eSMP.Services.ShipRepo
                         price = (int)item.PricePurchase,
                         product_code = item.Sub_ItemID,
                         quantity = item.Amount,
-                        weight = GetWeightOfSubItem(item.Sub_ItemID)/(double)1000,
+                        weight = GetWeightOfSubItem(item.ItemID)/(double)1000,
                     };
                     listproduct.Add(pro);
                 }
@@ -121,6 +121,19 @@ namespace eSMP.Services.ShipRepo
                         products=listproduct,
                     };
                     var Shipreponse = CreateOrderAsync(request).Result;
+
+                    ShipOrder shipOrder = new ShipOrder();
+                    shipOrder.Status_ID = "-2";
+                    DateTime datetime = DateTime.UtcNow;
+                    shipOrder.Create_Date = datetime;
+                    shipOrder.LabelID = Shipreponse.order.label;
+                    shipOrder.Reason = "";
+                    shipOrder.OrderID = int.Parse(Shipreponse.order.partner_id);
+                    shipOrder.Reason_code = "";
+
+                    _context.ShipOrders.Add(shipOrder);
+                    _context.SaveChanges();
+
                     return Shipreponse;
                 }
                 return null;
@@ -185,6 +198,46 @@ namespace eSMP.Services.ShipRepo
                 result.Data = "";
                 return result;
             }
+        }
+        public async Task<ShipReponse> CancelOrderAsync(int orderID)
+        {
+            ShipCancel request = new ShipCancel();
+            request.partner_id = orderID + "";
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Token", TOKEN);
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+            var ghtkreponde = await client.PostAsync("https://services-staging.ghtklab.com/services/shipment/cancel/partner_id:"+orderID, httpContent);
+            var contents = ghtkreponde.Content.ReadFromJsonAsync<ShipReponse>().Result;
+            return contents;
+        }
+
+        public Result CancelOrder(int orderID)
+        {
+            Result result=new Result();
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                if (order != null)
+                {
+                    var reponse = CancelOrderAsync(orderID).Result;
+                    result.Success = reponse.success;
+                    result.Message = reponse.message;
+                    result.Data = "";
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Mã Đơn hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+            
         }
     }
 }

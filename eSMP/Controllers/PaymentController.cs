@@ -46,7 +46,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
-        [Route("cance_order")]
+        [Route("cancel_order")]
         public IActionResult CancelOrder(int orderID)
         {
             try

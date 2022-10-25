@@ -163,7 +163,7 @@ namespace eSMP.Services.ShipRepo
                     List<ShipStatusModel> list = new List<ShipStatusModel>();
                     if (liststatus.Count() > 0)
                     {
-                        foreach(var item in liststatus)
+                        foreach(var item in liststatus.ToList())
                         {
                             if(list.Count() == 0)
                             {
@@ -238,6 +238,37 @@ namespace eSMP.Services.ShipRepo
                 return result;
             }
             
+        }
+        public async Task<Object> GetTicketAsync(string labelID)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Token", TOKEN);
+            HttpResponseMessage shipResponse = await client.GetAsync("https://services.giaohangtietkiem.vn/services/label/"+labelID);
+            var jsonreponse = await shipResponse.Content.ReadFromJsonAsync<Object>();
+            return jsonreponse;
+        }
+        public object GetTicket(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                var orderStatus = _context.ShipOrders.FirstOrDefault(os => os.OrderID == orderID);
+                if (orderStatus != null)
+                {
+                    return GetTicketAsync(orderStatus.LabelID).Result;
+                }
+                result.Success = false;
+                result.Message = "đơn hàng không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
         }
     }
 }

@@ -18,10 +18,22 @@ namespace eSMP.Services.BrandRepo
             Result result = new Result();
             try
             {
+                List<BrandModel> list = new List<BrandModel>();
                 var listBrand = _context.Brands.ToList();
+                foreach (var brand in listBrand)
+                {
+                    BrandModel brandModel = new BrandModel
+                    {
+                        BrandID = brand.BrandID,
+                        Name = brand.Name,
+                        IsActive = brand.IsActive,
+                        listModel = GetBrandModelList(brand.BrandID),
+                    };
+                    list.Add(brandModel);
+                }
                 result.Success = true;
                 result.Message = "Thành công";
-                result.Data = listBrand;
+                result.Data = list;
                 return result;
 
             }
@@ -31,6 +43,34 @@ namespace eSMP.Services.BrandRepo
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
                 return result;
+            }
+        }
+        public List<BrandItemModel> GetBrandModelList(int BrandID)
+        {
+            try
+            {
+                var listBrandModel = _context.Brand_Models.Where(b => b.BrandID == BrandID).ToList();
+                List<BrandItemModel> list = new List<BrandItemModel>();
+                if (listBrandModel.Count > 0)
+                {
+                    foreach (var item in listBrandModel)
+                    {
+                        BrandItemModel itemBrand = new BrandItemModel
+                        {
+                            Brand_ModelID = item.Brand_ModelID,
+                            Name = item.Name,
+                            IsActive = item.IsActive,
+                        };
+                        list.Add(itemBrand);
+                    }
+                    return list;
+                }
+                return null;
+
+            }
+            catch
+            {
+                return null;
             }
         }
 

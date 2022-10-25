@@ -59,5 +59,11 @@ namespace eSMP.Controllers
         {
             return Ok(_shipReposity.CancelOrder(orderID));
         }
+        [HttpGet]
+        [Route("get_ticket")]
+        public IActionResult GetTicket(int orderID)
+        {
+            return Ok(_shipReposity.GetTicket(orderID));
+        }
     }
 }

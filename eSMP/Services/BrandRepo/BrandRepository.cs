@@ -71,7 +71,7 @@ namespace eSMP.Services.BrandRepo
             }
             catch
             {
-                return list;
+                return new List<BrandItemModel>();
             }
         }
 

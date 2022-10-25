@@ -1,5 +1,6 @@
 ﻿using eSMP.Models;
 using eSMP.VModels;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace eSMP.Services.BrandRepo
@@ -65,12 +66,12 @@ namespace eSMP.Services.BrandRepo
                     }
                     return list;
                 }
-                return null;
+                return list;
 
             }
             catch
             {
-                return null;
+                return list;
             }
         }
 

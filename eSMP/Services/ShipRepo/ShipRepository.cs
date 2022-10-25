@@ -1,7 +1,9 @@
 ﻿using eSMP.Models;
 using eSMP.Services.OrderRepo;
 using eSMP.VModels;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using System.IO;
 using System.Text.Json;
 
 namespace eSMP.Services.ShipRepo
@@ -38,6 +40,11 @@ namespace eSMP.Services.ShipRepo
         {
             try
             {
+                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == int.Parse(partner_id) && so.Status_ID.Equals(status_id));
+                if (shipdb != null)
+                {
+                    return true;
+                }
                 ShipOrder shipOrder = new ShipOrder();
                 shipOrder.Status_ID = status_id + "";
                 DateTime datetime = DateTime.Parse(action_time, null, System.Globalization.DateTimeStyles.RoundtripKind);
@@ -243,9 +250,10 @@ namespace eSMP.Services.ShipRepo
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
-            HttpResponseMessage shipResponse = await client.GetAsync("https://services.giaohangtietkiem.vn/services/label/"+labelID);
-            var jsonreponse = await shipResponse.Content.ReadFromJsonAsync<Object>();
-            return jsonreponse;
+            HttpResponseMessage shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/label/"+labelID);
+            var jsonreponse = await shipResponse.Content.ReadAsStreamAsync();
+            FileStreamResult fileStream = new FileStreamResult(jsonreponse, "application/pdf");
+            return fileStream;
         }
         public object GetTicket(int orderID)
         {

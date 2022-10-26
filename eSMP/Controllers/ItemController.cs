@@ -125,6 +125,20 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        [HttpGet]
+        [Route("search_admin")]
+        public IActionResult SearchItemAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int? page, bool? isSupplier)
+        {
+            try
+            {
+                var result = _itemReposity.SearchItemForAdmin(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo, storeID, page, isSupplier);
+                return Ok(result);
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
         [HttpPut]
         [Route("active_item")]
         public IActionResult ActiveItem(int itemID)

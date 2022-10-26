@@ -342,7 +342,7 @@ namespace eSMP.Services.ItemRepo
                         Item_Status = GetItemStatus(item.Item_StatusID),
                         ListSubItem = GetListSubItem(item.ItemID),
                         ListModel = _brandReposity.GetModelForItem(item.ItemID),
-                        Num_Sold =GetNumSold(item.ItemID),
+                        Num_Sold = GetNumSold(item.ItemID),
                     };
 
                     result.Success = true;
@@ -880,7 +880,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result SearchItemForSupplier(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page)
+        public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, bool? isSupplier)
         {
             Result result = new Result();
             try
@@ -930,7 +930,11 @@ namespace eSMP.Services.ItemRepo
                     listItem = listItem.Where(i => i.StoreID == storeID);
                 }
                 // item khong bi block
-                listItem = listItem.Where(i => i.Item_StatusID != 2);
+                if (isSupplier.HasValue)
+                {
+                    if (isSupplier.Value)
+                        listItem = listItem.Where(i => i.Item_StatusID != 2);
+                }
                 //store active
 
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
@@ -983,7 +987,7 @@ namespace eSMP.Services.ItemRepo
                         Price = GetMinPriceForItem(item.ItemID),
                         Discount = item.Discount,
                         Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
-                        Num_Sold=GetNumSold(item.ItemID),
+                        Num_Sold = GetNumSold(item.ItemID),
                     };
                     listmodel.Add(model);
                 }
@@ -1018,7 +1022,7 @@ namespace eSMP.Services.ItemRepo
                     {
                         var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
                         var model = _context.Brand_Models.SingleOrDefault(bm => bm.Brand_ModelID == branmodelid);
-                        if(item!=null&& model != null)
+                        if (item != null && model != null)
                         {
                             Model_Item model_Item = new Model_Item();
                             model_Item.Brand_ModelID = branmodelid;
@@ -1048,7 +1052,7 @@ namespace eSMP.Services.ItemRepo
             Result result = new Result();
             try
             {
-                foreach(var branmodelid in brandmodelIDs)
+                foreach (var branmodelid in brandmodelIDs)
                 {
                     var itemmodel = _context.Model_Items.SingleOrDefault(mi => mi.ItemID == itemID && mi.Brand_ModelID == branmodelid);
                     if (itemmodel != null)
@@ -1075,12 +1079,12 @@ namespace eSMP.Services.ItemRepo
             int result = 0;
             try
             {
-                var orderDetails = _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.Single(si => si.ItemID == itemID).Sub_ItemID && od.OrderID==_context.Orders.SingleOrDefault(o=>o.OrderStatusID==1).OrderID);
+                var orderDetails = _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.Single(si => si.ItemID == itemID).Sub_ItemID && od.OrderID == _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1).OrderID);
                 if (orderDetails.Count() > 0)
                 {
                     foreach (var order in orderDetails.ToList())
                     {
-                        result=result+order.Amount;
+                        result = result + order.Amount;
                     }
                 }
                 return result;

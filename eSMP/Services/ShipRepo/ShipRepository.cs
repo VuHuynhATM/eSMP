@@ -252,8 +252,7 @@ namespace eSMP.Services.ShipRepo
             client.DefaultRequestHeaders.Add("Token", TOKEN);
             HttpResponseMessage shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/label/"+labelID);
             var jsonreponse = await shipResponse.Content.ReadAsStreamAsync();
-            FileStreamResult fileStream = new FileStreamResult(jsonreponse, "application/pdf");
-            return fileStream;
+            return jsonreponse;
         }
         public object GetTicket(int orderID)
         {

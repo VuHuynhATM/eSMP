@@ -3,6 +3,7 @@ using eSMP.Services.ShipRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using Firebase.Auth;
+using System.Collections;
 
 namespace eSMP.Services.OrderRepo
 {
@@ -11,6 +12,8 @@ namespace eSMP.Services.OrderRepo
         private readonly WebContext _context;
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IStoreReposity> _storeReposity;
+
+        public static int PAGE_SIZE { get; set; } = 25;
 
         public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IStoreReposity> storeReposity)
         {
@@ -40,7 +43,7 @@ namespace eSMP.Services.OrderRepo
                 var item = GetItem(orderDetail.Sub_ItemID);
                 if (CheckSubItemInOrder(orderDetail.Sub_ItemID, orderDetail.UserID))
                 {
-                    var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == orderDetail.UserID).OrderStatusID==2);
+                    var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == orderDetail.UserID).OrderStatusID == 2);
                     if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount + odexist.Amount))
                     {
                         odexist.Amount = odexist.Amount + orderDetail.Amount;
@@ -79,7 +82,7 @@ namespace eSMP.Services.OrderRepo
                     if (CheckStoreOrder(orderDetail.Sub_ItemID, orderDetail.UserID))
                     {
                         int storeID = GetStoreBySubItemID(orderDetail.Sub_ItemID).StoreID;
-                        var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID==2 && o.UserID == orderDetail.UserID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID == o.OrderID);
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID == 2 && o.UserID == orderDetail.UserID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID == o.OrderID);
                         //ship
                         int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
@@ -189,7 +192,7 @@ namespace eSMP.Services.OrderRepo
             int weight = 0;
             foreach (var detail in orderDetail)
             {
-                var item=GetItem(detail.Sub_ItemID);
+                var item = GetItem(detail.Sub_ItemID);
                 weight = weight + GetWeightOfSubItem(item.ItemID) * detail.Amount;
             }
             return weight;
@@ -267,7 +270,7 @@ namespace eSMP.Services.OrderRepo
         {
             try
             {
-                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == userID).OrderStatusID==2);
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == userID).OrderStatusID == 2);
                 if (orderDetail == null)
                     return false;
                 return true;
@@ -282,7 +285,7 @@ namespace eSMP.Services.OrderRepo
             Result result = new Result();
             try
             {
-                var listOrderDetail = _context.OrderDetails.Where(od => od.OrderID == orderID && _context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID==2).ToList();
+                var listOrderDetail = _context.OrderDetails.Where(od => od.OrderID == orderID && _context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID == 2).ToList();
                 if (listOrderDetail.Count() > 0)
                 {
                     foreach (var item in listOrderDetail)
@@ -318,7 +321,7 @@ namespace eSMP.Services.OrderRepo
             Result result = new Result();
             try
             {
-                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID).OrderStatusID==2);
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID).OrderStatusID == 2);
                 if (orderDetail == null)
                 {
                     result.Success = false;
@@ -374,13 +377,13 @@ namespace eSMP.Services.OrderRepo
         public List<OrderDetailModel> GetOrderDetailModels(int orderID, int orderStatusID)
         {
             List<OrderDetailModel> list = new List<OrderDetailModel>();
-            var listOrderDetails = _context.OrderDetails.Where(od => od.OrderID ==_context.Orders.SingleOrDefault(o=>o.OrderStatusID==orderStatusID && o.OrderID==orderID).OrderID);
+            var listOrderDetails = _context.OrderDetails.Where(od => od.OrderID == _context.Orders.SingleOrDefault(o => o.OrderStatusID == orderStatusID && o.OrderID == orderID).OrderID);
             if (listOrderDetails.Count() > 0)
             {
                 foreach (var orderDetail in listOrderDetails.ToList())
                 {
                     var subitem = GetSub_Item(orderDetail.Sub_ItemID);
-                    if (orderStatusID!=2)
+                    if (orderStatusID != 2)
                     {
                         OrderDetailModel model = new OrderDetailModel
                         {
@@ -490,7 +493,7 @@ namespace eSMP.Services.OrderRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    if (order.OrderStatusID==2)
+                    if (order.OrderStatusID == 2)
                     {
                         var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, GetWeightOrder(order.OrderID));
                         if (ship.success)
@@ -644,7 +647,7 @@ namespace eSMP.Services.OrderRepo
                 double total = 0;
                 var listorderdetail = _context.OrderDetails.Where(od => od.OrderID == orderID);
 
-                if (_context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID==1)
+                if (_context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID == 1)
                 {
                     if (listorderdetail.Count() > 0)
                     {
@@ -705,7 +708,7 @@ namespace eSMP.Services.OrderRepo
                             Image i = new Image();
                             i.Crete_date = DateTime.Now;
                             i.FileName = image.Name;
-                            i.Path=image.Path;
+                            i.Path = image.Path;
                             i.IsActive = true;
 
                             Feedback_Image fi = new Feedback_Image();
@@ -727,6 +730,87 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
                 result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page)
+        {
+            Result result = new Result();
+            try
+            {
+                var orders = _context.Orders.AsQueryable();
+                orders = orders.Where(o => o.OrderStatusID != 2);
+                
+                if (userID.HasValue)
+                {
+                    orders = orders.Where(o => o.UserID == userID);
+                }
+                if (storeID.HasValue)
+                {
+                    orders = orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == storeID) != null) != null);
+                }
+                if (shipOrderStatus.HasValue)
+                {
+                    orders = orders.Where(o => _context.ShipOrders.OrderByDescending(so=>so.Create_Date).LastOrDefault(so => so.Status_ID.Equals(shipOrderStatus + "")).OrderID == o.OrderID);
+                    if (dateFrom.HasValue)
+                    {
+                        orders = orders.Where(o => _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.Create_Date >= dateFrom).OrderID == o.OrderID);
+                    }
+                    if (dateTo.HasValue)
+                    {
+                        orders = orders.Where(o => _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.Create_Date <= dateTo).OrderID == o.OrderID);
+                    }
+                }
+                orders = orders.OrderByDescending(o => _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date);
+                if (page.HasValue)
+                {
+                    orders = orders.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
+                if (orders.Count() > 0)
+                {
+                    List<OrderModel> list = new List<OrderModel>();
+                    foreach (var order in orders.ToList())
+                    {
+                        OrderModel model = new OrderModel
+                        {
+                            OrderID = order.OrderID,
+                            StoreView = GetStoreViewModel(order.OrderID),
+                            Create_Date = order.Create_Date,
+                            UserID = order.UserID,
+                            PriceItem = GetPriceItemOrder(order.OrderID),
+                            OrderStatus = GetOrderStatus(order.OrderStatusID),
+                            Pick_Address = order.Pick_Address,
+                            Pick_Province = order.Pick_Province,
+                            Pick_District = order.Pick_District,
+                            Pick_Ward = order.Pick_Ward,
+                            Pick_Name = order.Pick_Name,
+                            Pick_Tel = order.Pick_Tel,
+                            Address = order.Address,
+                            District = order.District,
+                            Province = order.Province,
+                            Ward = order.Ward,
+                            Name = order.Name,
+                            Tel = order.Tel,
+                            Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
+                            FeeShip = order.FeeShip,
+                        };
+                        list.Add(model);
+                    }
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = list;
+                    return result;
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = new ArrayList();
                 return result;
             }
             catch

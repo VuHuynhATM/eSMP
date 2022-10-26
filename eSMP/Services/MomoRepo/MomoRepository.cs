@@ -323,7 +323,6 @@ namespace eSMP.Services.MomoRepo
             return contents.Result;
         }
 
-
         public Result CancelOrder(int orderID)
         {
             Result result = new Result();
@@ -337,8 +336,11 @@ namespace eSMP.Services.MomoRepo
                     {
                         if (shipReponse.Success)
                         {
-                            order.OrderStatusID = 3;
-                            _context.SaveChanges();
+                            if (_orderReposity.Value.CancelOrder(orderID))
+                            {
+                                order.OrderStatusID = 3;
+                                _context.SaveChanges();
+                            }
                         }
                         result.Success = shipReponse.Success;
                         result.Message = shipReponse.Message;

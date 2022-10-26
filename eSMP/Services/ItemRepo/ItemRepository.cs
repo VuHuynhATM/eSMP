@@ -1075,7 +1075,7 @@ namespace eSMP.Services.ItemRepo
             int result = 0;
             try
             {
-                var orderDetails = _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.Single(si => si.ItemID == itemID).Sub_ItemID && od.OrderID==_context.Orders.SingleOrDefault(o=>o.OrderStatusID==1 && o.OrderID==_context.orderBuy_Transacsions.SingleOrDefault(ot=>ot.ResultCode==0).OrderID).OrderID);
+                var orderDetails = _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.Single(si => si.ItemID == itemID).Sub_ItemID && od.OrderID==_context.Orders.SingleOrDefault(o=>o.OrderStatusID==1).OrderID);
                 if (orderDetails.Count() > 0)
                 {
                     foreach (var order in orderDetails.ToList())

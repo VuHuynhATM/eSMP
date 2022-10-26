@@ -16,5 +16,6 @@ namespace eSMP.Services.OrderRepo
         public List<OrderDetailModel> GetOrderDetailModels(int orderID, int orderStatusID);
         public Result FeedBaclOrderDetail(FeedBackOrderDetail feedBack);
         public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page);
+        public bool CancelOrder(int orderID);
     }
 }

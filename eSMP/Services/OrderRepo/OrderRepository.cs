@@ -821,5 +821,24 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
+
+        public bool CancelOrder(int orderID)
+        {
+            try
+            {
+                var lisrdetail = _context.OrderDetails.Where(od => od.OrderID == orderID).ToList();
+                foreach (var item in lisrdetail)
+                {
+                    var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID);
+                    subItem.Amount = subItem.Amount + item.Amount;
+                    _context.SaveChanges();
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221026163359_v16")]
+    partial class v16
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,6 +151,10 @@ namespace eSMP.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<string>("SystemName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SystemID");
 
@@ -916,42 +922,6 @@ namespace eSMP.Migrations
                     b.ToTable("SubItem_Status");
                 });
 
-            modelBuilder.Entity("eSMP.Models.System_Withdrawal", b =>
-                {
-                    b.Property<int>("System_WithdrawalID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("System_WithdrawalID"), 1L, 1);
-
-                    b.Property<string>("Context")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Create_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ImageID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
-                    b.Property<int>("SystemID")
-                        .HasColumnType("int");
-
-                    b.HasKey("System_WithdrawalID");
-
-                    b.HasIndex("ImageID");
-
-                    b.HasIndex("SystemID");
-
-                    b.ToTable("System_Withdrawal");
-                });
-
             modelBuilder.Entity("eSMP.Models.User", b =>
                 {
                     b.Property<int>("UserID")
@@ -1366,25 +1336,6 @@ namespace eSMP.Migrations
                     b.Navigation("Specification");
 
                     b.Navigation("Sub_Category");
-                });
-
-            modelBuilder.Entity("eSMP.Models.System_Withdrawal", b =>
-                {
-                    b.HasOne("eSMP.Models.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.eSMP_System", "eSMP_System")
-                        .WithMany()
-                        .HasForeignKey("SystemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Image");
-
-                    b.Navigation("eSMP_System");
                 });
 
             modelBuilder.Entity("eSMP.Models.User", b =>

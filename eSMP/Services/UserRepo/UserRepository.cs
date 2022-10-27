@@ -940,5 +940,37 @@ namespace eSMP.Services.UserRepo
                 return result;
             }
         }
+        public UserModel GetUserIFByID(int userID)
+        {
+            try
+            {
+                var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
+                if (u != null)
+                {
+                    UserModel model = new UserModel
+                    {
+                        UserID = u.UserID,
+                        Email = u.Email,
+                        Phone = u.Phone,
+                        IsActive = u.isActive,
+                        Password = u.Password,
+                        UserName = u.UserName,
+                        Crete_date = u.Crete_date,
+                        DateOfBirth = u.DateOfBirth,
+                        Gender = u.Gender,
+                        Token = u.Token,
+                        Role = GetUserRole(u.RoleID),
+                        Image = GetUserImage(u.ImageID),
+                        addresses = GetAddresses(u.UserID),
+                    };
+                    return model;
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

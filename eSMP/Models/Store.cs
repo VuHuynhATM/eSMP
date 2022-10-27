@@ -25,5 +25,6 @@ namespace eSMP.Models
         public int ImageID { get; set; }//FK
         [ForeignKey("ImageID")]
         public Image Image { get; set; }
+        public double Asset { get; set; }
     }
 }

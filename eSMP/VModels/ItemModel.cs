@@ -33,6 +33,7 @@ namespace eSMP.VModels
         public StoreViewModel Store { get; set; }
         public List<SubItemModel> ListSubItem { get; set; }
         public List<BrandModel> ListModel { get; set; }
+        public List<FeedBackModel> ListFeedBack { get; set; }
     }
     public class SubItemModel
     {

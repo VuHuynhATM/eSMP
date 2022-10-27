@@ -2,6 +2,7 @@
 using eSMP.Services.BrandRepo;
 using eSMP.Services.SpecificationRepo;
 using eSMP.Services.StoreRepo;
+using eSMP.Services.UserRepo;
 using eSMP.VModels;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
@@ -16,15 +17,17 @@ namespace eSMP.Services.ItemRepo
         private readonly IStoreReposity _storeReposity;
         private readonly ISpecificationReposity _specificationReposity;
         private readonly IBrandReposity _brandReposity;
+        private readonly IUserReposity _userReposity;
 
         public static int PAGE_SIZE { get; set; } = 15;
 
-        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IBrandReposity brandReposity)
+        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IBrandReposity brandReposity, IUserReposity userReposity)
         {
             _context = context;
             _storeReposity = storeReposity;
             _specificationReposity = specificationReposity;
             _brandReposity = brandReposity;
+            _userReposity = userReposity;
         }
 
         public Result CreateItem(ItemRegister item)
@@ -317,6 +320,47 @@ namespace eSMP.Services.ItemRepo
             return null;
         }
 
+        public List<Image> GetListImageFB(int orderdetailID)
+        {
+            var listIF = _context.Feedback_Images.Where(fi => fi.OrderDetailID == orderdetailID).ToList();
+            var list = new List<Image>();
+            if (listIF.Count > 0)
+            {
+                foreach(var image in listIF)
+                {
+                    var i = GetImage(image.ImageID);
+                    list.Add(i);    
+                }
+                return list;
+            }
+            return null;
+        }
+        public List<FeedBackModel> GetListFeedBack(int itemID)
+        {
+            var listorderdetail = _context.OrderDetails.Where(od =>_context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID).ItemID==itemID && _context.ShipOrders.OrderByDescending(so=>so.Create_Date).LastOrDefault(so=>so.OrderID==od.OrderID).Status_ID=="5").ToList();
+            var list = new List<FeedBackModel>();
+            if (listorderdetail.Count > 0)
+            {
+                foreach (var item in listorderdetail)
+                {
+                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == item.OrderID);
+                    var user = _userReposity.GetUserIFByID(order.UserID);
+                    FeedBackModel model = new FeedBackModel();
+                    model.UserName = user.UserName;
+                    model.UserAvatar = user.Image.Path;
+                    model.Sub_itemName = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID).Sub_ItemName;
+                    if (item.FeedBack_Date.HasValue)
+                    {
+                        model.Rate = item.Feedback_Rate;
+                        model.Comment =item.Feedback_Title;
+                        model.ImagesFB = GetListImageFB(item.OrderDetailID);
+                        list.Add(model);
+                    }
+                }
+            }
+            return list;
+        }
+
         public Result GetItemDetail(int itemID)
         {
             Result result = new Result();
@@ -343,6 +387,7 @@ namespace eSMP.Services.ItemRepo
                         ListSubItem = GetListSubItem(item.ItemID),
                         ListModel = _brandReposity.GetModelForItem(item.ItemID),
                         Num_Sold = GetNumSold(item.ItemID),
+                        ListFeedBack = GetListFeedBack(itemID),
                     };
 
                     result.Success = true;

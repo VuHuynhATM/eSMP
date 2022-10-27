@@ -35,6 +35,10 @@ namespace eSMP.Models
         public DbSet<ShipStatus> ShipStatuses { get; set; }
         public DbSet<ShipOrder> ShipOrders { get; set; }
         public DbSet<OrderStatus> OrderStatuses { get; set; }
+        public DbSet<OrderStore_Transaction> OrderStore_Transactions { get; set; }
+        public DbSet<OrderSystem_Transaction> OrderSystem_Transactions { get; set; }
+        public DbSet<eSMP_System> eSMP_Systems { get; set; }
+        public DbSet<System_Withdrawal> System_Withdrawals { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -95,6 +99,10 @@ namespace eSMP.Models
                 .HasOne(e => e.OrderDetail)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderStore_Transaction>()
+                .HasOne(e => e.Store)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Model_Item>()
                 .HasIndex(e => new { e.ItemID, e.Brand_ModelID})
                 .IsUnique();
@@ -109,6 +117,9 @@ namespace eSMP.Models
                 .IsUnique();
             modelBuilder.Entity<Feedback_Image>()
                 .HasIndex(e => new { e.ImageID, e.OrderDetailID })
+                .IsUnique();
+            modelBuilder.Entity<OrderStore_Transaction>()
+                .HasIndex(e => new { e.StoreID, e.OrderID })
                 .IsUnique();
         }
     }

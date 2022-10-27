@@ -5,27 +5,28 @@ namespace eSMP.Services.UserRepo
 {
     public interface IUserReposity
     {
-        Result CustomerLogin(string phone);
-        Result SupplierLogin(string phone);
-        Result GetUserByID(int userID);
-        Result CheckRole(string phone);
-        Result LoginByEmail(string email, string password);
-        Result RigisterUser(UserRegister user);
-        Result RigisterSupplier(UserRegister user);
-        Result UpdatteUserStatus(int userID, bool isActive);
-        Result GetListUser(int? page);
-        Result SearchUser(string phone, int roleID);
-        Result RemoveUser(int userID);
-        Result GetAddressByID(int userID);
-        Result AddAddress(UserAddAddress address);
-        Result UpdateAddress(Address address);
-        Result RemoveAddress(int addressID);
-        Result UpdateName(EditName name);
-        Result UpdateEmail(EditEmail email);
-        Result UpdateBirth(EditBirth birth);
-        Result UpdateGender(EditGender gender);
-        Result UpdateImage(EditImage image);
-        Result RefeshToken(int userID, string token);
-        void Updaterole();
+        public Result CustomerLogin(string phone);
+        public Result SupplierLogin(string phone);
+        public Result GetUserByID(int userID);
+        public Result CheckRole(string phone);
+        public Result LoginByEmail(string email, string password);
+        public Result RigisterUser(UserRegister user);
+        public Result RigisterSupplier(UserRegister user);
+        public Result UpdatteUserStatus(int userID, bool isActive);
+        public Result GetListUser(int? page);
+        public Result SearchUser(string phone, int roleID);
+        public Result RemoveUser(int userID);
+        public Result GetAddressByID(int userID);
+        public Result AddAddress(UserAddAddress address);
+        public Result UpdateAddress(Address address);
+        public Result RemoveAddress(int addressID);
+        public Result UpdateName(EditName name);
+        public Result UpdateEmail(EditEmail email);
+        public Result UpdateBirth(EditBirth birth);
+        public Result UpdateGender(EditGender gender);
+        public Result UpdateImage(EditImage image);
+        public Result RefeshToken(int userID, string token);
+        public void Updaterole();
+        public UserModel GetUserIFByID(int userID);
     }
 }

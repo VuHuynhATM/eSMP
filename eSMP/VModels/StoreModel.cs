@@ -16,6 +16,7 @@ namespace eSMP.VModels
         public Address Address { get; set; }
         public Store_Status Store_Status { get; set; }
         public Image Image { get; set; }
+        public double Asset { get; set; }
     }
     public class StoreViewModel
     {

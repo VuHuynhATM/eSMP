@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221026163007_v15")]
+    partial class v15
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,28 +133,6 @@ namespace eSMP.Migrations
                     b.HasKey("CategoryID");
 
                     b.ToTable("Category");
-                });
-
-            modelBuilder.Entity("eSMP.Models.eSMP_System", b =>
-                {
-                    b.Property<int>("SystemID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SystemID"), 1L, 1);
-
-                    b.Property<double>("Asset")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Commission_Precent")
-                        .HasColumnType("float");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.HasKey("SystemID");
-
-                    b.ToTable("eSMP_System");
                 });
 
             modelBuilder.Entity("eSMP.Models.Feedback_Image", b =>
@@ -575,38 +555,6 @@ namespace eSMP.Migrations
                     b.ToTable("OrderStore_Transaction");
                 });
 
-            modelBuilder.Entity("eSMP.Models.OrderSystem_Transaction", b =>
-                {
-                    b.Property<int>("OrderSystem_TransactionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderSystem_TransactionID"), 1L, 1);
-
-                    b.Property<DateTime>("Create_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("OrderStore_TransactionID")
-                        .HasColumnType("int");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
-                    b.Property<int>("SystemID")
-                        .HasColumnType("int");
-
-                    b.HasKey("OrderSystem_TransactionID");
-
-                    b.HasIndex("OrderStore_TransactionID");
-
-                    b.HasIndex("SystemID");
-
-                    b.ToTable("OrderSystem_Transaction");
-                });
-
             modelBuilder.Entity("eSMP.Models.Role", b =>
                 {
                     b.Property<int>("RoleID")
@@ -916,42 +864,6 @@ namespace eSMP.Migrations
                     b.ToTable("SubItem_Status");
                 });
 
-            modelBuilder.Entity("eSMP.Models.System_Withdrawal", b =>
-                {
-                    b.Property<int>("System_WithdrawalID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("System_WithdrawalID"), 1L, 1);
-
-                    b.Property<string>("Context")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Create_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ImageID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
-                    b.Property<int>("SystemID")
-                        .HasColumnType("int");
-
-                    b.HasKey("System_WithdrawalID");
-
-                    b.HasIndex("ImageID");
-
-                    b.HasIndex("SystemID");
-
-                    b.ToTable("System_Withdrawal");
-                });
-
             modelBuilder.Entity("eSMP.Models.User", b =>
                 {
                     b.Property<int>("UserID")
@@ -1219,25 +1131,6 @@ namespace eSMP.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("eSMP.Models.OrderSystem_Transaction", b =>
-                {
-                    b.HasOne("eSMP.Models.OrderStore_Transaction", "OrderStore_Transaction")
-                        .WithMany()
-                        .HasForeignKey("OrderStore_TransactionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.eSMP_System", "eSMP_System")
-                        .WithMany()
-                        .HasForeignKey("SystemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("OrderStore_Transaction");
-
-                    b.Navigation("eSMP_System");
-                });
-
             modelBuilder.Entity("eSMP.Models.ShipOrder", b =>
                 {
                     b.HasOne("eSMP.Models.Order", "Order")
@@ -1366,25 +1259,6 @@ namespace eSMP.Migrations
                     b.Navigation("Specification");
 
                     b.Navigation("Sub_Category");
-                });
-
-            modelBuilder.Entity("eSMP.Models.System_Withdrawal", b =>
-                {
-                    b.HasOne("eSMP.Models.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("eSMP.Models.eSMP_System", "eSMP_System")
-                        .WithMany()
-                        .HasForeignKey("SystemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Image");
-
-                    b.Navigation("eSMP_System");
                 });
 
             modelBuilder.Entity("eSMP.Models.User", b =>

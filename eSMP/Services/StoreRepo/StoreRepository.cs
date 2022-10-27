@@ -104,6 +104,7 @@ namespace eSMP.Services.StoreRepo
                     Image = GetImage(store.ImageID),
                     Store_Status = GetStatus(store.Store_StatusID),
                     UserID = store.UserID,
+                    Asset=store.Asset,
                 };
                 return model;
             }
@@ -199,6 +200,7 @@ namespace eSMP.Services.StoreRepo
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
+                        Asset=store.Asset,
                     };
                     list.Add(model);
                 }
@@ -237,6 +239,7 @@ namespace eSMP.Services.StoreRepo
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
+                        Asset= store.Asset,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -529,6 +532,7 @@ namespace eSMP.Services.StoreRepo
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
+                        Asset=store.Asset,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";

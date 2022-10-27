@@ -20,6 +20,7 @@ using eSMP.Services.OrderRepo;
 using eSMP.Services.ShipRepo;
 using eSMP.Services.MomoRepo;
 using eSMP.Services;
+using eSMP.Services.StoreAssetRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +41,7 @@ builder.Services.AddScoped<IBrandReposity, BrandRepository>();
 builder.Services.AddScoped<IOrderReposity, OrderRepository>();
 builder.Services.AddScoped<IShipReposity, ShipRepository>();
 builder.Services.AddScoped<IMomoReposity, MomoRepository>();
+builder.Services.AddScoped<IAssetReposity, AssetRepository>();
 
 
 var dbcontext = new WebContext();

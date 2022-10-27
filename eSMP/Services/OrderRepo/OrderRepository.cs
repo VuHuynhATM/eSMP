@@ -79,11 +79,10 @@ namespace eSMP.Services.OrderRepo
                 }
                 else
                 {
-                    if (CheckStoreOrder(orderDetail.Sub_ItemID, orderDetail.UserID))
+                    int storeID = GetStoreBySubItemID(orderDetail.Sub_ItemID).StoreID;
+                    var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID == 2 && o.UserID == orderDetail.UserID && _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == storeID) != null) != null);
+                    if (order!=null)
                     {
-                        int storeID = GetStoreBySubItemID(orderDetail.Sub_ItemID).StoreID;
-                        var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID == 2 && o.UserID == orderDetail.UserID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID == o.OrderID);
-                        //ship
                         int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
                         var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
@@ -207,21 +206,7 @@ namespace eSMP.Services.OrderRepo
             var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
             return int.Parse(weight);
         }
-        public bool CheckStoreOrder(int sub_ItemID, int userID)
-        {
-            try
-            {
-                int storeID = GetStoreBySubItemID(sub_ItemID).StoreID;
-                var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID == 2 && o.UserID == userID && _context.OrderDetails.SingleOrDefault(od => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == i.ItemID).StoreID == storeID).OrderID == o.OrderID);
-                if (order == null)
-                    return false;
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+        
         public Store GetStoreBySubItemID(int sub_itemID)
         {
             try

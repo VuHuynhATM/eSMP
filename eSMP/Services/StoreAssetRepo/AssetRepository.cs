@@ -288,8 +288,16 @@ namespace eSMP.Services.StoreAssetRepo
             Result result = new Result();
             try
             {
-                if (_context.Stores.SingleOrDefault(s => s.StoreID == request.StoreID) != null)
+                var store = _context.Stores.SingleOrDefault(s => s.StoreID == request.StoreID);
+                if ( store!= null)
                 {
+                    if (store.Asset < request.Price)
+                    {
+                        result.Success = false;
+                        result.Message = "Số dư tài khoản hiện không đủ";
+                        result.Data = "";
+                        return result;
+                    }
                     Store_Withdrawal withdrawal = new Store_Withdrawal();
                     withdrawal.Withdrawal_StatusID = 1;
                     withdrawal.Price = request.Price;

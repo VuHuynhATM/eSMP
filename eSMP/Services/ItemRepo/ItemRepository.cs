@@ -337,7 +337,7 @@ namespace eSMP.Services.ItemRepo
         }
         public List<FeedBackModel> GetListFeedBack(int itemID)
         {
-            var listorderdetail = _context.OrderDetails.Where(od =>_context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID).ItemID==itemID && _context.ShipOrders.OrderByDescending(so=>so.Create_Date).LastOrDefault(so=>so.OrderID==od.OrderID).Status_ID=="5").ToList();
+            var listorderdetail = _context.OrderDetails.Where(od =>_context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID).ItemID==itemID).ToList();
             var list = new List<FeedBackModel>();
             if (listorderdetail.Count > 0)
             {

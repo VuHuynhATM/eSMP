@@ -105,6 +105,20 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [HttpPut]
+        [Route("cancel_store_withdrawal")]
+        public IActionResult CancelRequestStoreWithdrawal(int storeWithdrawalID, string reason)
+        {
+            try
+            {
+                return Ok(_assetReposity.CancelStoreWithdrawal(storeWithdrawalID,reason));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
         [Route("success_store_withdrawal")]
         public IActionResult SuccessRequestStoreWithdrawal(StoreWithdrawalSuccessRequest request)
         {

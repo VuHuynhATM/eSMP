@@ -1,4 +1,5 @@
 ﻿using eSMP.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace eSMP.VModels
@@ -31,4 +32,37 @@ namespace eSMP.VModels
         public Boolean IsActive { get; set; }
     }
 
+    public class OrderStore_TransactionModel
+    {
+        public int OrderStore_TransactionID { get; set; }
+        public int OrderID { get; set; }
+        public DateTime Create_Date { get; set; }
+        public double Price { get; set; }
+        public Boolean IsActive { get; set; }
+    }
+    public class StoreWithdrawalRequest
+    {
+        public int StoreID { get; set; }
+        public double Price { get; set; }
+        public string context { get; set; }
+
+    }
+    public class StoreWithdrawalSuccessRequest
+    {
+        public int Store_WithdrawalID { get; set; }
+        public string Filename { get; set; }
+        public string Path { get; set; }
+
+    }
+    public class Store_WithdrawalModel
+    {
+        public int Store_WithdrawalID { get; set; }
+        public int StoreID { get; set; }
+        public Image? Image { get; set; }
+        public string Context { get; set; }
+        public DateTime Create_Date { get; set; }
+        public string Reason { get; set; }
+        public double Price { get; set; }
+        public Withdrawal_Status Withdrawal_Status { get; set; }
+    }
 }

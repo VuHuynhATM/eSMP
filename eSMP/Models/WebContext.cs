@@ -39,6 +39,8 @@ namespace eSMP.Models
         public DbSet<OrderSystem_Transaction> OrderSystem_Transactions { get; set; }
         public DbSet<eSMP_System> eSMP_Systems { get; set; }
         public DbSet<System_Withdrawal> System_Withdrawals { get; set; }
+        public DbSet<Withdrawal_Status> Withdrawal_Statuses { get; set; }
+        public DbSet<Store_Withdrawal> Store_Withdrawals { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

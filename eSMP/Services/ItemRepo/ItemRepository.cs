@@ -1,4 +1,5 @@
 ﻿using eSMP.Models;
+using eSMP.Services.BrandRepo;
 using eSMP.Services.SpecificationRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.Services.UserRepo;
@@ -12,15 +13,17 @@ namespace eSMP.Services.ItemRepo
         private readonly IStoreReposity _storeReposity;
         private readonly ISpecificationReposity _specificationReposity;
         private readonly IUserReposity _userReposity;
+        private readonly IBrandReposity _brandReposity;
 
         public static int PAGE_SIZE { get; set; } = 15;
 
-        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity)
+        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity)
         {
             _context = context;
             _storeReposity = storeReposity;
             _specificationReposity = specificationReposity;
             _userReposity = userReposity;
+            _brandReposity = brandReposity;
         }
 
         public Result CreateItem(ItemRegister item)

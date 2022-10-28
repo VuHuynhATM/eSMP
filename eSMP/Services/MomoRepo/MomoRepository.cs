@@ -186,32 +186,32 @@ namespace eSMP.Services.MomoRepo
                                     result.Data = shipReponse.order;
                                     return result;
                                 }*/
-                                /* MomoPayReponse momoPayReponse = GetPayAsync(orderID).Result;
-                                 if (momoPayReponse != null)
-                                 {
-                                     if (momoPayReponse.resultCode == 0)
-                                     {
-                                         result.Success = true;
-                                         result.Message = "Thành công";
-                                         result.Data = momoPayReponse.payUrl;
-                                         return result;
-                                     }
-                                     else
-                                     {
-                                         result.Success = false;
-                                         result.Message = "Hệ thống thanh toán lỗi";
-                                         result.Data = momoPayReponse;
-                                         return result;
-                                     }
- */
-                            }
+                               /* MomoPayReponse momoPayReponse = GetPayAsync(orderID).Result;
+                                if (momoPayReponse != null)
+                                {
+                                    if (momoPayReponse.resultCode == 0)
+                                    {
+                                        result.Success = true;
+                                        result.Message = "Thành công";
+                                        result.Data = momoPayReponse.payUrl;
+                                        return result;
+                                    }
+                                    else
+                                    {
+                                        result.Success = false;
+                                        result.Message = "Hệ thống thanh toán lỗi";
+                                        result.Data = momoPayReponse;
+                                        return result;
+                                    }
+
+                                }
                                 else
                                 {
                                     result.Success = false;
                                     result.Message = "Hệ thống thanh toán đang bảo trì";
                                     result.Data = "";
                                     return result;
-                                }
+                                }*/
                             }
                             else
                             {

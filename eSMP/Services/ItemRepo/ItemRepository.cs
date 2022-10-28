@@ -362,7 +362,7 @@ namespace eSMP.Services.ItemRepo
                         List_Image = GetItemImage(item.ItemID),
                         Item_Status = GetItemStatus(item.Item_StatusID),
                         ListSubItem = GetListSubItem(item.ItemID),
-                        //ListModel = _brandReposity.GetModelForItem(item.ItemID),
+                        ListModel = _brandReposity.GetModelForItem(item.ItemID),
                         Num_Sold = GetNumSold(item.ItemID),
                         ListFeedBack = GetListFeedBack(itemID),
                     };

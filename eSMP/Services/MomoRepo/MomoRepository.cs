@@ -15,8 +15,8 @@ namespace eSMP.Services.MomoRepo
         private readonly WebContext _context;
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IOrderReposity> _orderReposity;
-        string accessKey = "klm05TvNBzhg7h7j";
-        string secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
+        string accessKey = "iPXneGmrJH0G8FOP";
+        string secretKey = "sFcbSGRSJjwGxwhhcEktCHWYUuTuPNDB";
         string partnerCode = "MOMOOJOI20210710";
 
         public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity)
@@ -163,6 +163,12 @@ namespace eSMP.Services.MomoRepo
                         {
                             if (CheckShip(orderID))
                             {
+                                order.OrderStatusID = 1;
+                                _context.SaveChanges();
+                                result.Success = true;
+                                result.Message = "Thành Công";
+                                result.Data = "";
+                                return result;
                                 /*var shipReponse = _shipReposity.Value.CreateOrder(orderID);
                                 if (shipReponse != null)
                                 {
@@ -180,25 +186,25 @@ namespace eSMP.Services.MomoRepo
                                     result.Data = shipReponse.order;
                                     return result;
                                 }*/
-                                MomoPayReponse momoPayReponse = GetPayAsync(orderID).Result;
-                                if (momoPayReponse != null)
-                                {
-                                    if (momoPayReponse.resultCode == 0)
-                                    {
-                                        result.Success = true;
-                                        result.Message = "Thành công";
-                                        result.Data = momoPayReponse.payUrl;
-                                        return result;
-                                    }
-                                    else
-                                    {
-                                        result.Success = false;
-                                        result.Message = "Hệ thống thanh toán lỗi";
-                                        result.Data = momoPayReponse;
-                                        return result;
-                                    }
-
-                                }
+                                /* MomoPayReponse momoPayReponse = GetPayAsync(orderID).Result;
+                                 if (momoPayReponse != null)
+                                 {
+                                     if (momoPayReponse.resultCode == 0)
+                                     {
+                                         result.Success = true;
+                                         result.Message = "Thành công";
+                                         result.Data = momoPayReponse.payUrl;
+                                         return result;
+                                     }
+                                     else
+                                     {
+                                         result.Success = false;
+                                         result.Message = "Hệ thống thanh toán lỗi";
+                                         result.Data = momoPayReponse;
+                                         return result;
+                                     }
+ */
+                            }
                                 else
                                 {
                                     result.Success = false;

@@ -399,10 +399,6 @@ namespace eSMP.Services.OrderRepo
             }
             return list;
         }
-        public OrderStatus GetOrderStatus(int orderStatusID)
-        {
-            return _context.OrderStatuses.SingleOrDefault(os => os.OrderStatusID == orderStatusID);
-        }
         public Result GetAllOrder(int userID, int? orderStatusID)
         {
             Result result = new Result();
@@ -425,7 +421,7 @@ namespace eSMP.Services.OrderRepo
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
                             PriceItem = GetPriceItemOrder(order.OrderID),
-                            OrderStatus = GetOrderStatus(order.OrderStatusID),
+                            OrderStatus = order.OrderStatus,
                             Pick_Address = order.Pick_Address,
                             Pick_Province = order.Pick_Province,
                             Pick_District = order.Pick_District,
@@ -486,7 +482,7 @@ namespace eSMP.Services.OrderRepo
                         StoreView = GetStoreViewModel(order.OrderID),
                         Create_Date = order.Create_Date,
                         UserID = order.UserID,
-                        OrderStatus = GetOrderStatus(order.OrderStatusID),
+                        OrderStatus = order.OrderStatus,
                         PriceItem = GetPriceItemOrder(orderID),
                         Pick_Address = order.Pick_Address,
                         Pick_Province = order.Pick_Province,
@@ -762,7 +758,7 @@ namespace eSMP.Services.OrderRepo
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
                             PriceItem = GetPriceItemOrder(order.OrderID),
-                            OrderStatus = GetOrderStatus(order.OrderStatusID),
+                            OrderStatus = order.OrderStatus,
                             Pick_Address = order.Pick_Address,
                             Pick_Province = order.Pick_Province,
                             Pick_District = order.Pick_District,

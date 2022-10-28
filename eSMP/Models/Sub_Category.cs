@@ -12,6 +12,6 @@ namespace eSMP.Models
         public Boolean IsActive { get; set; }
         public int CategoryID { get; set; }//FK
         [ForeignKey("CategoryID")]
-        public Category Category { get; set; }
+        public virtual Category Category { get; set; }
     }
 }

@@ -10,10 +10,10 @@ namespace eSMP.Models
         public int User_AddressID { get; set; }
         public int UserID { get; set; }//FK
         [ForeignKey("UserID")]
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public int AddressID { get; set; }//FK
         [ForeignKey("AddressID")]
-        public Address Address { get; set; }
+        public virtual Address Address { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

@@ -333,17 +333,9 @@ namespace eSMP.Services.OrderRepo
         {
             return _context.Addresss.SingleOrDefault(a => a.AddressID == addressID);
         }
-        public Feedback_Status GetFeedback_Status(int? feedback_StatusID)
-        {
-            return _context.Feedback_Statuses.SingleOrDefault(fb => fb.Feedback_StatusID == feedback_StatusID);
-        }
         public Item GetItem(int subItemID)
         {
             return _context.Items.SingleOrDefault(i => i.ItemID == _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == subItemID).ItemID);
-        }
-        public Image GetImage(int imageID)
-        {
-            return _context.Images.SingleOrDefault(i => i.ImageID == imageID);
         }
         public StoreViewModel GetStoreViewModel(int orderID)
         {
@@ -379,10 +371,10 @@ namespace eSMP.Services.OrderRepo
                             FeedBack_Date = orderDetail.FeedBack_Date,
                             Feedback_Rate = orderDetail.Feedback_Rate,
                             Feedback_Title = orderDetail.Feedback_Title,
-                            Feedback_Status = GetFeedback_Status(orderDetail.Feedback_StatusID),
+                            Feedback_Status = orderDetail.Feedback_Status,
                             Sub_ItemID = subitem.Sub_ItemID,
                             Sub_ItemName = subitem.Sub_ItemName,
-                            sub_ItemImage = GetImage(subitem.ImageID).Path,
+                            sub_ItemImage = subitem.Image.Path,
                             ItemID = subitem.ItemID,
                         };
                         list.Add(model);
@@ -397,7 +389,7 @@ namespace eSMP.Services.OrderRepo
                             PricePurchase = subitem.Price,
                             Sub_ItemID = subitem.Sub_ItemID,
                             Sub_ItemName = subitem.Sub_ItemName,
-                            sub_ItemImage = GetImage(subitem.ImageID).Path,
+                            sub_ItemImage = subitem.Image.Path,
                             ItemID = subitem.ItemID,
                         };
                         list.Add(model);

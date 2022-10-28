@@ -10,10 +10,10 @@ namespace eSMP.Models
         public int OrderStore_TransactionID { get; set; }
         public int StoreID { get; set; }
         [ForeignKey("StoreID")]
-        public Store Store { get; set; }
+        public virtual Store Store { get; set; }
         public int OrderID { get; set; }
         [ForeignKey("OrderID")]
-        public Order Order { get; set; }
+        public virtual Order Order { get; set; }
         public DateTime Create_Date { get; set; }
         public double Price { get; set; }
         public Boolean IsActive { get; set; }

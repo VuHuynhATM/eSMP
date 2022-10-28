@@ -10,10 +10,10 @@ namespace eSMP.Models
         public int System_WithdrawalID { get; set; }
         public int SystemID { get; set; }//fk
         [ForeignKey("SystemID")]
-        public eSMP_System eSMP_System { get; set; }
+        public virtual eSMP_System eSMP_System { get; set; }
         public int ImageID { get; set; }//FK
         [ForeignKey("ImageID")]
-        public Image Image { get; set; }
+        public virtual Image Image { get; set; }
         public string Context { get; set; }
         public DateTime Create_Date { get; set; }
         public double Price { get; set; }

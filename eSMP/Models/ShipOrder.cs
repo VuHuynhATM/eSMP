@@ -10,10 +10,10 @@ namespace eSMP.Models
         public int ShipOrderID { get; set; }
         public int OrderID { get; set; }//Fk
         [ForeignKey("OrderID")]
-        public Order Order { get; set; }
+        public virtual Order Order { get; set; }
         public string Status_ID { get; set; }//FK
         [ForeignKey("Status_ID")]
-        public ShipStatus ShipStatus { get; set; }
+        public virtual ShipStatus ShipStatus { get; set; }
         public string Reason_code { get; set; }
         public string Reason { get; set; }
         public string LabelID { get; set; }

@@ -15,13 +15,13 @@ namespace eSMP.Models
         public DateTime Create_date { get; set; }
         public int StoreID { get; set; }//FK
         [ForeignKey("StoreID")]
-        public Store Store { get; set; }
+        public virtual Store Store { get; set; }
         public int Sub_CategoryID { get; set; }
         [ForeignKey("Sub_CategoryID")]
-        public Sub_Category Sub_Category { get; set; }
+        public virtual Sub_Category Sub_Category { get; set; }
         public int Item_StatusID { get; set; }
         [ForeignKey("Item_StatusID")]
-        public Item_Status Item_Status { get; set; }
+        public virtual Item_Status Item_Status { get; set; }
 
     }
 }

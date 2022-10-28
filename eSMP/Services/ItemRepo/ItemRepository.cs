@@ -1,13 +1,8 @@
 ﻿using eSMP.Models;
-using eSMP.Services.BrandRepo;
 using eSMP.Services.SpecificationRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.Services.UserRepo;
 using eSMP.VModels;
-using Microsoft.EntityFrameworkCore;
-using System.Drawing;
-using System.Linq;
-using System.Security.Policy;
 
 namespace eSMP.Services.ItemRepo
 {
@@ -16,17 +11,15 @@ namespace eSMP.Services.ItemRepo
         private readonly WebContext _context;
         private readonly IStoreReposity _storeReposity;
         private readonly ISpecificationReposity _specificationReposity;
-        private readonly IBrandReposity _brandReposity;
         private readonly IUserReposity _userReposity;
 
         public static int PAGE_SIZE { get; set; } = 15;
 
-        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IBrandReposity brandReposity, IUserReposity userReposity)
+        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity)
         {
             _context = context;
             _storeReposity = storeReposity;
             _specificationReposity = specificationReposity;
-            _brandReposity = brandReposity;
             _userReposity = userReposity;
         }
 
@@ -125,8 +118,7 @@ namespace eSMP.Services.ItemRepo
                     List<Image> result = new List<Image>();
                     foreach (var image in images)
                     {
-                        Image r = GetImage(image.ImageID);
-                        result.Add(r);
+                        result.Add(image.Image);
                     }
                     return result;
                 }
@@ -138,15 +130,6 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Image GetImage(int imageID)
-        {
-            Image image = _context.Images.SingleOrDefault(i => i.ImageID == imageID);
-            if (image != null)
-            {
-                return image;
-            }
-            return null;
-        }
 
         public double GetMinPriceForItem(int itemID)
         {
@@ -161,11 +144,6 @@ namespace eSMP.Services.ItemRepo
         public Item_Status GetItemStatus(int statusID)
         {
             var result = _context.Item_Statuses.SingleOrDefault(s => s.Item_StatusID == statusID);
-            return result;
-        }
-        public SubItem_Status GetSubItemStatus(int statusID)
-        {
-            var result = _context.subItem_Statuses.SingleOrDefault(s => s.SubItem_StatusID == statusID);
             return result;
         }
 
@@ -308,10 +286,10 @@ namespace eSMP.Services.ItemRepo
                     {
                         Sub_ItemID = item.Sub_ItemID,
                         Amount = item.Amount,
-                        SubItem_Status = GetSubItemStatus(item.SubItem_StatusID),
+                        SubItem_Status = item.SubItem_Status,
                         Price = item.Price,
                         Sub_ItemName = item.Sub_ItemName,
-                        Image = GetImage(item.ImageID),
+                        Image = item.Image,
                     };
                     list.Add(model);
                 }
@@ -328,8 +306,7 @@ namespace eSMP.Services.ItemRepo
             {
                 foreach(var image in listIF)
                 {
-                    var i = GetImage(image.ImageID);
-                    list.Add(i);    
+                    list.Add(image.Image);    
                 }
                 return list;
             }
@@ -385,7 +362,7 @@ namespace eSMP.Services.ItemRepo
                         List_Image = GetItemImage(item.ItemID),
                         Item_Status = GetItemStatus(item.Item_StatusID),
                         ListSubItem = GetListSubItem(item.ItemID),
-                        ListModel = _brandReposity.GetModelForItem(item.ItemID),
+                        //ListModel = _brandReposity.GetModelForItem(item.ItemID),
                         Num_Sold = GetNumSold(item.ItemID),
                         ListFeedBack = GetListFeedBack(itemID),
                     };
@@ -407,11 +384,6 @@ namespace eSMP.Services.ItemRepo
                 result.Data = "";
                 return result;
             }
-        }
-
-        public Item GetItem(int ItemID)
-        {
-            return _context.Items.SingleOrDefault(i => i.ItemID == ItemID);
         }
 
         public Result RemoveItem(int itemID)

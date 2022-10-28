@@ -18,13 +18,6 @@ namespace eSMP.Services.SpecificationRepo
                 return false;
             return true;
         }
-        public Specification GetSpecification(int spectificationID)
-        {
-            var specification = _context.Specification.SingleOrDefault(s => s.SpecificationID == spectificationID);
-            if (specification == null)
-                return null;
-            return specification;
-        }
         public Result GetAllSpecification()
         {
             Result result = new Result();
@@ -117,7 +110,7 @@ namespace eSMP.Services.SpecificationRepo
                             SpecificationID = item.SpecificationID,
                             Specification_ValueID = item.Specification_ValueID,
                             Value = item.Value,
-                            SpecificationName = GetSpecification(item.SpecificationID).SpecificationName,
+                            SpecificationName = item.Specification.SpecificationName,
                         };
                         result.Add(tag);
                     }

@@ -100,7 +100,7 @@ namespace eSMP.Services.StoreRepo
                     Email = store.Email,
                     Phone = store.Phone,
                     Pick_date = store.Pick_date,
-                    Address = GetAddress(store.AddressID),
+                    Address =store.Address,
                     Image = GetImage(store.ImageID),
                     Store_Status = GetStatus(store.Store_StatusID),
                     UserID = store.UserID,
@@ -111,20 +111,6 @@ namespace eSMP.Services.StoreRepo
             return null;
         }
 
-        public Address GetAddress(int AddressID)
-        {
-            try
-            {
-                var address = _context.Addresss.SingleOrDefault(s => s.AddressID == AddressID);
-                if (address != null)
-                    return address;
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
         public Address GetAddressByStoreID(int StoreID)
         {
             try
@@ -132,7 +118,7 @@ namespace eSMP.Services.StoreRepo
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == StoreID);
 
                 if (store != null)
-                    return GetAddress(store.AddressID);
+                    return store.Address;
                 return null;
             }
             catch
@@ -196,7 +182,7 @@ namespace eSMP.Services.StoreRepo
                         Email = store.Email,
                         Phone = store.Phone,
                         Pick_date = store.Pick_date,
-                        Address = GetAddress(store.AddressID),
+                        Address = store.Address,
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
@@ -235,7 +221,7 @@ namespace eSMP.Services.StoreRepo
                         Email = store.Email,
                         Phone = store.Phone,
                         Pick_date = store.Pick_date,
-                        Address = GetAddress(store.AddressID),
+                        Address = store.Address,
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
@@ -528,7 +514,7 @@ namespace eSMP.Services.StoreRepo
                         Email = store.Email,
                         Phone = store.Phone,
                         Pick_date = store.Pick_date,
-                        Address = GetAddress(store.AddressID),
+                        Address = store.Address,
                         Image = GetImage(store.ImageID),
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,

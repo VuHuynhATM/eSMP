@@ -11,10 +11,10 @@ namespace eSMP.Models
         public string Value { get; set; }
         public int SpecificationID { get; set; }//FK
         [ForeignKey("SpecificationID")]
-        public Specification Specification { get; set; }
+        public virtual Specification Specification { get; set; }
         public int ItemID { get; set; }//FK
         [ForeignKey("ItemID")]
-        public Item Item { get; set; }
+        public virtual Item Item { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

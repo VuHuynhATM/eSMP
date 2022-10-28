@@ -20,10 +20,10 @@ namespace eSMP.Models
         public Boolean isActive { get; set; } 
         public int RoleID { get; set; }//FK
         [ForeignKey("RoleID")]
-        public Role Role { get; set; }
+        public virtual Role Role { get; set; }
         public int ImageID { get; set; }//FK
         [ForeignKey("ImageID")]
-        public Image Image { get; set; }
+        public virtual Image Image { get; set; }
 
 
     }

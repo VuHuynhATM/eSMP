@@ -11,11 +11,11 @@ namespace eSMP.Models
         public DateTime Create_Date { get; set; }
         public int OrderStatusID { get; set; }//Fk
         [ForeignKey("OrderStatusID")]
-        public OrderStatus OrderStatus { get; set; }
+        public virtual OrderStatus OrderStatus { get; set; }
         public double FeeShip { get; set; }
         public int UserID { get; set; }//FK
         [ForeignKey("UserID")]
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public string Pick_Province { get; set; }
         public string Pick_District { get; set; }
         public string Pick_Ward { get; set; }

@@ -47,6 +47,7 @@ namespace eSMP.Models
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlServer("Data Source=20.235.113.50,1433;Initial Catalog=eSMP;User ID=sa;Password =123456");
+                optionsBuilder.UseLazyLoadingProxies();
             }
         }
         private ILoggerFactory GetLoggerFactory()

@@ -16,12 +16,12 @@ namespace eSMP.Models
         public DateTime? FeedBack_Date { get; set; }
         public int Sub_ItemID { get; set; }//FK
         [ForeignKey("Sub_ItemID")]
-        public Sub_Item Sub_Item { get; set; }
+        public virtual Sub_Item Sub_Item { get; set; }
         public int OrderID { get; set; }//Fk
         [ForeignKey("OrderID")]
-        public Order Order { get; set; }
+        public virtual Order Order { get; set; }
         public int? Feedback_StatusID { get; set; }//Fk
         [ForeignKey("Feedback_StatusID")]
-        public Feedback_Status? Feedback_Status { get; set; }
+        public virtual Feedback_Status? Feedback_Status { get; set; }
     }
 }

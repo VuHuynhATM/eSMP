@@ -10,10 +10,10 @@ namespace eSMP.Models
         public int Feedback_ImageID { get; set; }
         public int OrderDetailID { get; set; }//FK
         [ForeignKey("OrderDetailID")]
-        public OrderDetail OrderDetail { get; set; }
+        public virtual OrderDetail OrderDetail { get; set; }
         public int ImageID { get; set; }//FK
         [ForeignKey("ImageID")]
-        public Image Image { get; set; }
+        public virtual Image Image { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

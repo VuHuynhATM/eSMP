@@ -13,6 +13,6 @@ namespace eSMP.Models
         public long MomoTransactionID { get; set; }
         public int OrderID { get; set; }//FK
         [ForeignKey("OrderID")]
-        public Order Order { get; set; }    
+        public virtual Order Order { get; set; }    
     }
 }

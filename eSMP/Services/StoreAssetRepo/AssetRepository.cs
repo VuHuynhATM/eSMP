@@ -104,10 +104,6 @@ namespace eSMP.Services.StoreAssetRepo
                 return result;
             }
         }
-        public Image GetImage(int imageID)
-        {
-            return _context.Images.SingleOrDefault(i => i.ImageID == imageID);
-        }
         public Result GetALlSystemWitdrawl(int? page, DateTime? From, DateTime? To)
         {
             Result result = new Result();
@@ -138,7 +134,7 @@ namespace eSMP.Services.StoreAssetRepo
                             System_WithdrawalID = item.System_WithdrawalID,
                             Context = item.Context,
                             Create_Date = item.Create_Date,
-                            Image = GetImage(item.ImageID),
+                            Image = item.Image,
                             IsActive = item.IsActive,
                             Price = item.Price
                         };
@@ -459,7 +455,7 @@ namespace eSMP.Services.StoreAssetRepo
                         {
                             Context = item.Context,
                             Create_Date = item.Create_Date,
-                            Image = GetImage(item.ImageID.Value),
+                            Image = item.Image,
                             Price = item.Price,
                             Reason = item.Reason,
                             StoreID = item.StoreID,

@@ -10,10 +10,10 @@ namespace eSMP.Models
         public int SubCate_SpecificationID { get; set; }
         public int Sub_CategoryID { get; set; }//Fk
         [ForeignKey("Sub_CategoryID")]
-        public Sub_Category Sub_Category { get; set; }
+        public virtual Sub_Category Sub_Category { get; set; }
         public int SpecificationID { get; set; }//Fk
         [ForeignKey("SpecificationID")]
-        public Specification Specification { get; set; }
+        public virtual Specification Specification { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

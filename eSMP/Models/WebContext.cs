@@ -41,12 +41,12 @@ namespace eSMP.Models
         public DbSet<System_Withdrawal> System_Withdrawals { get; set; }
         public DbSet<Withdrawal_Status> Withdrawal_Statuses { get; set; }
         public DbSet<Store_Withdrawal> Store_Withdrawals { get; set; }
-
+        public DbSet<BankSupport> BankSupports { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=eSMP;User ID=sa;Password =123456");
+                optionsBuilder.UseSqlServer("Data Source=SQL5097.site4now.net;Initial Catalog=db_a8ef86_esmp;User Id=db_a8ef86_esmp_admin;Password=Se1234567890");
                 optionsBuilder.UseLazyLoadingProxies();
             }
         }

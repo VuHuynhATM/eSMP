@@ -14,7 +14,11 @@ namespace eSMP.Models
         public int? ImageID { get; set; }//FK
         [ForeignKey("ImageID")]
         public virtual Image? Image { get; set; }
-        public string Context { get; set; }
+        public string NumBankCart { get; set; }
+        public string OwnerBankCart { get; set; }
+        public int BankID { get; set; }//FK
+        [ForeignKey("BankID")]
+        public virtual BankSupport BankSupport { get; set; }
         public DateTime Create_Date { get; set; }
         public string Reason { get; set; }
         public double Price { get; set; }

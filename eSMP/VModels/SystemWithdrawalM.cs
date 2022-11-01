@@ -44,7 +44,9 @@ namespace eSMP.VModels
     {
         public int StoreID { get; set; }
         public double Price { get; set; }
-        public string context { get; set; }
+        public string NumBankCart { get; set; }
+        public string OwnerBankCart { get; set; }
+        public int BankID { get; set; }
 
     }
     public class StoreWithdrawalSuccessRequest
@@ -59,7 +61,9 @@ namespace eSMP.VModels
         public int Store_WithdrawalID { get; set; }
         public int StoreID { get; set; }
         public Image? Image { get; set; }
-        public string Context { get; set; }
+        public string NumBankCart { get; set; }
+        public string OwnerBankCart { get; set; }
+        public BankSupport Bank { get; set; }
         public DateTime Create_Date { get; set; }
         public string Reason { get; set; }
         public double Price { get; set; }

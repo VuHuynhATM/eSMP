@@ -794,7 +794,6 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
-
         public bool CancelOrder(int orderID)
         {
             try
@@ -813,5 +812,6 @@ namespace eSMP.Services.OrderRepo
                 return false;
             }
         }
+
     }
 }

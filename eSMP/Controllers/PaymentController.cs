@@ -1,14 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.Services.MomoRepo;
-using eSMP.Services.UserRepo;
 using eSMP.VModels;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web;
 
 namespace eSMP.Controllers
 {
@@ -45,7 +38,7 @@ namespace eSMP.Controllers
                 return BadRequest();
             }
         }
-        [HttpGet]
+        [HttpPut]
         [Route("cancel_order")]
         public IActionResult CancelOrder(int orderID)
         {
@@ -57,6 +50,44 @@ namespace eSMP.Controllers
             {
                 return BadRequest();
             }
+        }
+        [HttpGet]
+        [Route("confim_order")]
+        public IActionResult ConfimlOrder(int orderID)
+        {
+            try
+            {
+                return Ok(_momoReposity.ConfimOrder(orderID).Data);
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+        [HttpGet]
+        [Route("momo_store_pay")]
+        public IActionResult PayStore(int storeID)
+        {
+            try
+            {
+                return Ok(_momoReposity.GetStorePayUrl(storeID));
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+        [HttpPost]
+        [Route("store")]
+        public IActionResult ipnStoreUrl(MomoPayINP payINP)
+        {
+            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+            role.RoleName = payINP.resultCode+"";
+            _context.SaveChanges();
+            int resultCode = payINP.resultCode;
+            if (resultCode == 0)
+                _momoReposity.PayStoreINP(payINP);
+            return Ok();
         }
     }
 }

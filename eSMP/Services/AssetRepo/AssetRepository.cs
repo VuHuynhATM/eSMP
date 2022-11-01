@@ -297,7 +297,9 @@ namespace eSMP.Services.StoreAssetRepo
                     Store_Withdrawal withdrawal = new Store_Withdrawal();
                     withdrawal.Withdrawal_StatusID = 1;
                     withdrawal.Price = request.Price;
-                    withdrawal.Context = request.context;
+                    withdrawal.BankID = request.BankID;
+                    withdrawal.NumBankCart = request.NumBankCart;
+                    withdrawal.OwnerBankCart = request.OwnerBankCart;
                     withdrawal.Reason = "";
                     withdrawal.Create_Date = DateTime.UtcNow;
                     withdrawal.StoreID = request.StoreID;
@@ -453,7 +455,9 @@ namespace eSMP.Services.StoreAssetRepo
                     {
                         Store_WithdrawalModel model = new Store_WithdrawalModel
                         {
-                            Context = item.Context,
+                            Bank = item.BankSupport,
+                            NumBankCart=item.NumBankCart,
+                            OwnerBankCart=item.OwnerBankCart,
                             Create_Date = item.Create_Date,
                             Image = item.Image,
                             Price = item.Price,
@@ -467,6 +471,36 @@ namespace eSMP.Services.StoreAssetRepo
                 }
                 result.Success = false;
                 result.Message = "Yêu cầu rút tiền không tồn tại";
+                result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result GetBankSupport()
+        {
+            Result result = new Result();
+            try
+            {
+
+                var bankSupport = _context.BankSupports.Where(b=>b.IsActive);
+                List<BankSupport> list = new List<BankSupport>();
+                if (bankSupport.Count() > 0)
+                {
+                    foreach (var item in bankSupport.ToList())
+                    {
+                        
+                        list.Add(item);
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
                 result.Data = list;
                 return result;
             }

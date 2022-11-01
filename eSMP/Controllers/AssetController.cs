@@ -144,5 +144,18 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        [HttpGet]
+        [Route("bank")]
+        public IActionResult GetBank()
+        {
+            try
+            {
+                return Ok(_assetReposity.GetBankSupport());
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
     }
 }

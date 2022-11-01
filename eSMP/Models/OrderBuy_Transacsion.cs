@@ -9,8 +9,10 @@ namespace eSMP.Models
         [Key]
         public int ID { get; set; }
         public DateTime Create_Date { get; set; }
+        public string OrderIDMOMO { get; set; }
         public int ResultCode { get; set; }
         public long MomoTransactionID { get; set; }
+        public string RequestID { get; set; }
         public int OrderID { get; set; }//FK
         [ForeignKey("OrderID")]
         public virtual Order Order { get; set; }    

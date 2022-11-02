@@ -16,5 +16,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result SuccessStoreWithdrawal(StoreWithdrawalSuccessRequest request);
         public Result GetStoreWithdrawal(int? storeID, int?page, int? statusID);
         public Result GetBankSupport();
+        public Result GetStoreReveneuForChart(int storeID,int? year);
+        public Result GetSystemReveneuForChart(int? year, string Cate);
     }
 }

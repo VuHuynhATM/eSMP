@@ -1,9 +1,6 @@
 ﻿using FirebaseAdmin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication;
 using eSMP.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -21,6 +18,7 @@ using eSMP.Services.ShipRepo;
 using eSMP.Services.MomoRepo;
 using eSMP.Services;
 using eSMP.Services.StoreAssetRepo;
+using eSMP.Services.ReportSaleRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +40,7 @@ builder.Services.AddScoped<IOrderReposity, OrderRepository>();
 builder.Services.AddScoped<IShipReposity, ShipRepository>();
 builder.Services.AddScoped<IMomoReposity, MomoRepository>();
 builder.Services.AddScoped<IAssetReposity, AssetRepository>();
+builder.Services.AddScoped<ISaleReportReposity, SaleReportRepository>();
 
 
 var dbcontext = new WebContext();

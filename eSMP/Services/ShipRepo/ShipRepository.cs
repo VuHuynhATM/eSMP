@@ -1,9 +1,7 @@
 ﻿using eSMP.Models;
+using eSMP.Services.MomoRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.VModels;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using System.IO;
 using System.Text.Json;
 
 namespace eSMP.Services.ShipRepo
@@ -16,11 +14,13 @@ namespace eSMP.Services.ShipRepo
 
         private readonly WebContext _context;
         private readonly Lazy<IOrderReposity> _orderReposity;
+        private readonly Lazy<IMomoReposity> _momoReposity;
 
-        public ShipRepository(WebContext context, Lazy<IOrderReposity> orderReposity)
+        public ShipRepository(WebContext context, Lazy<IOrderReposity> orderReposity, Lazy<IMomoReposity> momoReposity)
         {
             _context = context;
             _orderReposity = orderReposity;
+            _momoReposity = momoReposity;   
         }
         public async Task<FeeReponse> GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight, string deliver_option)
         {
@@ -40,10 +40,11 @@ namespace eSMP.Services.ShipRepo
         {
             try
             {
-                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == int.Parse(partner_id) && so.Status_ID.Equals(status_id));
+                var orderID = int.Parse(partner_id);
+                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == orderID && so.Status_ID==status_id+"");
                 if (shipdb != null)
                 {
-                    return true;
+                    return false;
                 }
                 ShipOrder shipOrder = new ShipOrder();
                 shipOrder.Status_ID = status_id + "";
@@ -55,6 +56,16 @@ namespace eSMP.Services.ShipRepo
                 shipOrder.Reason_code= reason_code;
 
                 _context.ShipOrders.Add(shipOrder);
+                //giao hang thanh cong
+                if (status_id == 5)
+                {
+                    var comfim = _momoReposity.Value.ConfimOrder(shipOrder.OrderID);
+                }
+                //giao hang that bai
+                if(status_id ==9 || status_id == 7)
+                {
+                    var comfim = _momoReposity.Value.ConfimCancelOrder(shipOrder.OrderID);
+                }
                 _context.SaveChanges();
                 return true;
             }
@@ -78,6 +89,7 @@ namespace eSMP.Services.ShipRepo
             var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
             return int.Parse(weight);
         }
+
         public ShipReponse CreateOrder(int orderID)
         {
             try
@@ -150,6 +162,7 @@ namespace eSMP.Services.ShipRepo
                 return null;
             }
         }
+
         public ShipStatus GetShipStatus(string statusID)
         {
             return _context.ShipStatuses.SingleOrDefault(ss => ss.Status_ID.Equals(statusID));
@@ -206,6 +219,7 @@ namespace eSMP.Services.ShipRepo
                 return result;
             }
         }
+
         public async Task<ShipReponse> CancelOrderAsync(int orderID)
         {
             ShipCancel request = new ShipCancel();
@@ -246,6 +260,7 @@ namespace eSMP.Services.ShipRepo
             }
             
         }
+
         public async Task<Object> GetTicketAsync(string labelID)
         {
             var client = new HttpClient();
@@ -254,6 +269,7 @@ namespace eSMP.Services.ShipRepo
             var jsonreponse = await shipResponse.Content.ReadAsStreamAsync();
             return jsonreponse;
         }
+
         public object GetTicket(int orderID)
         {
             Result result = new Result();

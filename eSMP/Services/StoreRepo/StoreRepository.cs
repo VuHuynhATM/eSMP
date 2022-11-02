@@ -105,6 +105,9 @@ namespace eSMP.Services.StoreRepo
                     Store_Status = GetStatus(store.Store_StatusID),
                     UserID = store.UserID,
                     Asset=store.Asset,
+                    Actice_Date = store.Actice_Date,
+                    MomoTransactionID=store.MomoTransactionID,
+                    Actice_Amount=store.AmountActive,
                 };
                 return model;
             }
@@ -187,6 +190,9 @@ namespace eSMP.Services.StoreRepo
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
                         Asset=store.Asset,
+                        Actice_Date = store.Actice_Date,    
+                        MomoTransactionID = store.MomoTransactionID,
+                        Actice_Amount=store.AmountActive,
                     };
                     list.Add(model);
                 }
@@ -226,6 +232,9 @@ namespace eSMP.Services.StoreRepo
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
                         Asset= store.Asset,
+                        Actice_Date = store.Actice_Date,
+                        MomoTransactionID = store.MomoTransactionID,
+                        Actice_Amount = store.AmountActive,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -519,6 +528,9 @@ namespace eSMP.Services.StoreRepo
                         Store_Status = GetStatus(store.Store_StatusID),
                         UserID = store.UserID,
                         Asset=store.Asset,
+                        MomoTransactionID=store.MomoTransactionID,
+                        Actice_Date = store.Actice_Date,
+                        Actice_Amount=store.AmountActive,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";

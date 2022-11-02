@@ -157,5 +157,31 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        [HttpGet]
+        [Route("store_chart_reveneu")]
+        public IActionResult GetStoreChart(int storeID, int? year)
+        {
+            try
+            {
+                return Ok(_assetReposity.GetStoreReveneuForChart(storeID,year));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpGet]
+        [Route("system_chart_reveneu")]
+        public IActionResult GetSystemChart(int? year, string cate)
+        {
+            try
+            {
+                return Ok(_assetReposity.GetSystemReveneuForChart(year,cate));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
     }
 }

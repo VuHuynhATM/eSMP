@@ -144,11 +144,6 @@ namespace eSMP.Services.ItemRepo
             return _context.Sub_Items.Where(i => i.ItemID == itemID).Max(i => i.Price);
         }
 
-        public Item_Status GetItemStatus(int statusID)
-        {
-            var result = _context.Item_Statuses.SingleOrDefault(s => s.Item_StatusID == statusID);
-            return result;
-        }
 
         public Result GetItemWithStatusID(int? statusID, int? page)
         {
@@ -363,7 +358,7 @@ namespace eSMP.Services.ItemRepo
                         Store = _storeReposity.GetStoreModel(item.StoreID),
                         Specification_Tag = _specificationReposity.GetSpecificationsForItem(item.ItemID),
                         List_Image = GetItemImage(item.ItemID),
-                        Item_Status = GetItemStatus(item.Item_StatusID),
+                        Item_Status = item.Item_Status,
                         ListSubItem = GetListSubItem(item.ItemID),
                         ListModel = _brandReposity.GetModelForItem(item.ItemID),
                         Num_Sold = GetNumSold(item.ItemID),
@@ -1099,15 +1094,8 @@ namespace eSMP.Services.ItemRepo
             int result = 0;
             try
             {
-                var orderDetails = _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.Single(si => si.ItemID == itemID).Sub_ItemID && od.OrderID == _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1).OrderID);
-                if (orderDetails.Count() > 0)
-                {
-                    foreach (var order in orderDetails.ToList())
-                    {
-                        result = result + order.Amount;
-                    }
-                }
-                return result;
+                return _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.SingleOrDefault(si => si.ItemID == itemID).Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID==od.OrderID)!=null).Sum(od=>od.Amount);
+
             }
             catch
             {

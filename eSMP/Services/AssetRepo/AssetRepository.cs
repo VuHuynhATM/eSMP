@@ -512,5 +512,183 @@ namespace eSMP.Services.StoreAssetRepo
                 return result;
             }
         }
+
+        public Result GetStoreReveneuForChart(int storeID, int? year)
+        {
+            Result result = new Result();
+            try
+            {
+                List<ChartModel> list=new List<ChartModel>();
+                if (year.HasValue)
+                {
+                    for(int i = 1; i < 13; i++)
+                    {
+                        var sumreveneu=_context.OrderStore_Transactions.Where(ost=>ost.StoreID==storeID && ost.Create_Date.Year==year.Value && ost.Create_Date.Month==i && ost.IsActive).Sum(ost=>ost.Price);
+                        ChartModel model = new ChartModel
+                        {
+                            amount = sumreveneu,
+                            time = i,
+                        };
+                        list.Add(model);
+                    }
+                }
+                else
+                {
+                    var yearStart= _context.OrderStore_Transactions.OrderByDescending(ost => ost.Create_Date.Year).First().Create_Date.Year;
+                    var yearCrrent= DateTime.UtcNow.Year;
+                    for (int i = yearStart; i < yearCrrent+1; i++)
+                    {
+                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == i  && ost.IsActive).Sum(ost => ost.Price);
+                        ChartModel model = new ChartModel
+                        {
+                            amount = sumreveneu,
+                            time = i,
+                        };
+                        list.Add(model);
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result GetSystemReveneuForChart(int? year, string Cate)
+        {
+            Result result = new Result();
+            try
+            {
+                List<ChartModel> list = new List<ChartModel>();
+
+                if (Cate.Equals("store")){
+                    if (year.HasValue)
+                    {
+                        for (int i = 1; i < 13; i++)
+                        {
+                            var sumreveneu = _context.Stores.Where(ost =>ost.Actice_Date.Value.Year == year.Value && ost.Actice_Date.Value.Month == i && ost.Store_StatusID==1).Sum(ost => ost.AmountActive);
+                            ChartModel model = new ChartModel
+                            {
+                                amount = sumreveneu.Value,
+                                time = i,
+                            };
+                            list.Add(model);
+                        }
+                    }
+                    else
+                    {
+                        var yearStart = _context.Stores.OrderByDescending(ost => ost.Actice_Date.Value.Year).First().Actice_Date.Value.Year;
+                        var yearCrrent = DateTime.UtcNow.Year;
+                        for (int i = yearStart; i < yearCrrent + 1; i++)
+                        {
+                            var sumreveneu = _context.Stores.Where(ost => ost.Actice_Date.Value.Year == i && ost.Store_StatusID == 1).Sum(ost => ost.AmountActive);
+                            ChartModel model = new ChartModel
+                            {
+                                amount = sumreveneu.Value,
+                                time = i,
+                            };
+                            list.Add(model);
+                        }
+                    }
+                }
+                else
+                {
+                    if (year.HasValue)
+                    {
+                        for (int i = 1; i < 13; i++)
+                        {
+                            var sumreveneu = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive).Sum(ost => ost.Price);
+                            ChartModel model = new ChartModel
+                            {
+                                amount = sumreveneu,
+                                time = i,
+                            };
+                            list.Add(model);
+                        }
+                    }
+                    else
+                    {
+                        var yearStart = _context.OrderSystem_Transactions.OrderByDescending(ost => ost.Create_Date.Year).First().Create_Date.Year;
+                        var yearCrrent = DateTime.UtcNow.Year;
+                        for (int i = yearStart; i < yearCrrent + 1; i++)
+                        {
+                            var sumreveneu = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == i && ost.IsActive).Sum(ost => ost.Price);
+                            ChartModel model = new ChartModel
+                            {
+                                amount = sumreveneu,
+                                time = i,
+                            };
+                            list.Add(model);
+                        }
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result GetStoreSystemReveneu(int? page, DateTime? From, DateTime? To)
+        {
+            Result result = new Result();
+            try
+            {
+                var listReveneu = _context.Stores.AsQueryable();
+                if (From.HasValue)
+                {
+                    listReveneu = listReveneu.Where(ost => ost.Actice_Date.Value >= From);
+                }
+                if (To.HasValue)
+                {
+                    listReveneu = listReveneu.Where(ost => ost.Actice_Date.Value <= To);
+                }
+                listReveneu = listReveneu.OrderByDescending(ost => ost.Actice_Date.Value);
+                if (page.HasValue)
+                {
+                    listReveneu = listReveneu.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
+                listReveneu = listReveneu.Where(ot => ot.Store_StatusID == 1);
+                List<StoreSystemReveneuView> list = new List<StoreSystemReveneuView>();
+                if (listReveneu.Count() > 0)
+                {
+                    foreach (var item in listReveneu.ToList())
+                    {
+                        StoreSystemReveneuView model = new StoreSystemReveneuView
+                        {
+                            ActiveDate=item.Actice_Date.Value,
+                            Amount=item.AmountActive.Value,
+                            MomoTransaction=item.MomoTransactionID.Value,
+                            StoreID=item.StoreID,
+                        };
+                        list.Add(model);
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
     }
 }

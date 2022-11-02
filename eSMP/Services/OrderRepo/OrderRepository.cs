@@ -748,17 +748,15 @@ namespace eSMP.Services.OrderRepo
                 }
                 if (orders.Count() > 0)
                 {
-                    List<OrderModel> list = new List<OrderModel>();
+                    List<OrderModelView> list = new List<OrderModelView>();
                     foreach (var order in orders.ToList())
                     {
-                        OrderModel model = new OrderModel
+                        OrderModelView model = new OrderModelView
                         {
                             OrderID = order.OrderID,
-                            StoreView = GetStoreViewModel(order.OrderID),
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
                             PriceItem = GetPriceItemOrder(order.OrderID),
-                            OrderStatus = order.OrderStatus,
                             Pick_Address = order.Pick_Address,
                             Pick_Province = order.Pick_Province,
                             Pick_District = order.Pick_District,
@@ -771,8 +769,9 @@ namespace eSMP.Services.OrderRepo
                             Ward = order.Ward,
                             Name = order.Name,
                             Tel = order.Tel,
-                            Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             FeeShip = order.FeeShip,
+                            OrderShip=GetShipOrder(order.OrderID),
+                            
                         };
                         list.Add(model);
                     }
@@ -812,6 +811,23 @@ namespace eSMP.Services.OrderRepo
                 return false;
             }
         }
-
+        public ShipViewModel GetShipOrder(int orderID)
+        {
+            var ship = _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID);
+            if (ship == null)
+                return null;
+            else
+            {
+                ShipViewModel model = new ShipViewModel
+                {
+                    Create_Date = ship.Create_Date,
+                    LabelID = ship.LabelID,
+                    Reason = ship.Reason,
+                    Reason_code = ship.Reason_code,
+                    status = ship.ShipStatus.Status_Name,
+                };
+                return model;
+            }
+        }
     }
 }

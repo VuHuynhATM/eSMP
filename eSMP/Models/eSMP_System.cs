@@ -10,6 +10,7 @@ namespace eSMP.Models
         public int SystemID { get; set; }
         public double Commission_Precent { get; set; }
         public double Asset { get; set; }
+        public double AmountActive { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

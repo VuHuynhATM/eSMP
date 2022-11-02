@@ -14,17 +14,15 @@ namespace eSMP.Services.MomoRepo
         private readonly WebContext _context;
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IOrderReposity> _orderReposity;
-        private readonly Lazy<IStoreReposity> _storeReposity;
         string accessKey = "klm05TvNBzhg7h7j";
         string secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
         string partnerCode = "MOMOBKUN20180529";
 
-        public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<IStoreReposity> storeReposity)
+        public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
             _orderReposity = orderReposity;
-            _storeReposity = storeReposity;
         }
         public async Task<MomoPayReponse> GetPayAsync(int orderID)
         {
@@ -37,7 +35,7 @@ namespace eSMP.Services.MomoRepo
             request.orderInfo = "Thanh Toan";
             request.partnerCode = partnerCode;
             request.redirectUrl = "https://esmp.page.link/view";
-            request.ipnUrl = "https://1b64-2405-4802-9117-740-601a-1df3-421a-2ef7.ap.ngrok.io/api/Payment";
+            request.ipnUrl = "http://esmpfree-001-site1.etempurl.com/api/Payment";
             request.amount = Gettotalprice(orderID);
             request.orderId = orderID + "-" + myuuidAsString;
             request.requestId = myuuidAsString;
@@ -164,29 +162,6 @@ namespace eSMP.Services.MomoRepo
                         {
                             if (CheckShip(orderID))
                             {
-                                /*order.OrderStatusID = 1;
-                                _context.SaveChanges();
-                                result.Success = true;
-                                result.Message = "Thành Công";
-                                result.Data = "";
-                                return result;
-                                var shipReponse = _shipReposity.Value.CreateOrder(orderID);
-                                if (shipReponse != null)
-                                {
-                                    if (shipReponse.success)
-                                    {
-                                        order.OrderStatusID = 1;
-                                        _context.SaveChanges();
-                                        result.Success = true;
-                                        result.Message = "Thành Công";
-                                        result.Data = shipReponse.order;
-                                        return result;
-                                    }
-                                    result.Success = shipReponse.success;
-                                    result.Message = shipReponse.message;
-                                    result.Data = shipReponse.order;
-                                    return result;
-                                }*/
                                 MomoPayReponse momoPayReponse = GetPayAsync(orderID).Result;
                                 if (momoPayReponse != null)
                                 {
@@ -194,7 +169,7 @@ namespace eSMP.Services.MomoRepo
                                     {
                                         result.Success = true;
                                         result.Message = "Thành công";
-                                        result.Data = momoPayReponse.payUrl;
+                                        result.Data = momoPayReponse;
                                         return result;
                                     }
                                     else
@@ -244,7 +219,6 @@ namespace eSMP.Services.MomoRepo
                 return result;
             }
         }
-
         public void PayOrderINP(MomoPayINP payINP)
         {
             try
@@ -253,12 +227,9 @@ namespace eSMP.Services.MomoRepo
                 if (payINP.resultCode == 9000)
                 {
                     var orderid = payINP.orderId.Split('-')[0];
-                    
                     var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
                     if (order != null)
                     {
-                        order.OrderStatusID = 1;
-                        _context.SaveChanges();
                         OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
                         transacsion.OrderID = order.OrderID;
                         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -270,14 +241,29 @@ namespace eSMP.Services.MomoRepo
                         transacsion.RequestID = payINP.requestId;
                         _context.orderBuy_Transacsions.Add(transacsion);
                         _context.SaveChanges();
-                        //updateamount
-
-                        var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
-                        foreach (var detail in listdetail)
+                        //create ship
+                        var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
+                        if (shipReponse != null)
                         {
-                            var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == detail.Sub_ItemID);
-                            subItem.Amount = subItem.Amount - detail.Amount;
-                            _context.SaveChanges();
+                            if (shipReponse.success)
+                            {
+                                order.OrderStatusID = 1;
+                                _context.SaveChanges();
+                                //updateamount
+
+                                var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
+                                foreach (var detail in listdetail)
+                                {
+                                    var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == detail.Sub_ItemID);
+                                    subItem.Amount = subItem.Amount - detail.Amount;
+                                    _context.SaveChanges();
+                                }
+                            }
+                            else
+                            {
+                                ConfimCancelOrder(order.OrderID);
+                                _context.orderBuy_Transacsions.Remove(transacsion);
+                            }
                         }
                     }
                 }
@@ -290,7 +276,6 @@ namespace eSMP.Services.MomoRepo
                 return;
             }
         }
-
         public async Task<ConfirmReponse> confirmCancel(int orderID)
         {
             Guid myuuid = Guid.NewGuid();
@@ -318,7 +303,6 @@ namespace eSMP.Services.MomoRepo
             }
             return contents.Result;
         }
-
         public async Task<ConfirmReponse> confirm(int orderID)
         {
             Guid myuuid = Guid.NewGuid();
@@ -388,8 +372,13 @@ namespace eSMP.Services.MomoRepo
                         {
                             if (_orderReposity.Value.CancelOrder(orderID))
                             {
-                                order.OrderStatusID = 3;
-                                _context.SaveChanges();
+                                var comfim=ConfimCancelOrder(orderID);
+                                if (comfim.Success)
+                                {
+                                    order.OrderStatusID = 3;
+                                    _context.SaveChanges();
+                                    return comfim;
+                                }
                             }
                         }
                         result.Success = shipReponse.Success;
@@ -416,6 +405,22 @@ namespace eSMP.Services.MomoRepo
             var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1);
             return order.FeeShip;
         }
+        public Store GetStoreByorderID(int orderID)
+        {
+            var subitemID=_context.OrderDetails.FirstOrDefault(od=>od.OrderID == orderID).Sub_ItemID;
+            return GetStoreBySubItemID(subitemID);
+        }
+        public Store GetStoreBySubItemID(int sub_itemID)
+        {
+            try
+            {
+                return _context.Stores.SingleOrDefault(s => s.StoreID == _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == sub_itemID).ItemID == i.ItemID).StoreID);
+            }
+            catch
+            {
+                return null;
+            }
+        }
         public Result ConfimOrder(int orderID)
         {
             Result result = new Result();
@@ -424,6 +429,26 @@ namespace eSMP.Services.MomoRepo
                 ConfirmReponse confirmReponse = confirm(orderID).Result;
                 if (confirmReponse.resultCode == 0)
                 {
+                    //ghi nhan doanh thu
+                    //store
+                    var store = GetStoreByorderID(orderID);
+                    var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+
+                    OrderStore_Transaction orderStore_Transaction = new OrderStore_Transaction();
+                    orderStore_Transaction.OrderID = orderID;
+                    orderStore_Transaction.StoreID= store.StoreID;
+                    orderStore_Transaction.IsActive = true;
+                    orderStore_Transaction.Price = confirmReponse.amount * (1 - system.Commission_Precent);
+                    orderStore_Transaction.Create_Date = DateTime.UtcNow;
+                    //sys
+                    OrderSystem_Transaction orderSystem_Transaction = new OrderSystem_Transaction();
+                    orderSystem_Transaction.OrderStore_Transaction = orderStore_Transaction;
+                    orderSystem_Transaction.SystemID = system.SystemID;
+                    orderSystem_Transaction.Create_Date = DateTime.UtcNow;
+                    orderSystem_Transaction.Price= confirmReponse.amount *system.Commission_Precent;
+                    orderSystem_Transaction.IsActive = true;
+                    _context.OrderSystem_Transactions.Add(orderSystem_Transaction);
+                    _context.SaveChanges();
                     result.Success = true;
                     result.Message = confirmReponse.message;
                     result.Data = confirmReponse.resultCode;
@@ -470,6 +495,7 @@ namespace eSMP.Services.MomoRepo
         }
         public async Task<MomoPayReponse> GetPayStoreAsync(int storeID)
         {
+            var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
             Guid myuuid = Guid.NewGuid();
             string myuuidAsString = myuuid.ToString();
             var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
@@ -478,8 +504,8 @@ namespace eSMP.Services.MomoRepo
             request.orderInfo = "Thanh Toan";
             request.partnerCode = partnerCode;
             request.redirectUrl = "https://esmp.page.link/view";
-            request.ipnUrl = "https://1b64-2405-4802-9117-740-601a-1df3-421a-2ef7.ap.ngrok.io/api/Payment/store";
-            request.amount = 1000000;
+            request.ipnUrl = "http://esmpfree-001-site1.etempurl.com/api/Payment/store";
+            request.amount = (long)system.AmountActive;
             request.orderId = store.StoreID + "-" + myuuidAsString;
             request.requestId = myuuidAsString;
             request.extraData = "";
@@ -565,6 +591,9 @@ namespace eSMP.Services.MomoRepo
                     if (store != null)
                     {
                         store.Store_StatusID = 1;
+                        store.MomoTransactionID = payINP.transId;
+                        store.Actice_Date=DateTime.UtcNow;
+                        store.AmountActive = payINP.amount;
                         _context.SaveChanges();
                         //updateamount
                     }

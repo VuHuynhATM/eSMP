@@ -31,6 +31,13 @@ namespace eSMP.VModels
         public double Price { get; set; }
         public Boolean IsActive { get; set; }
     }
+    public class StoreSystemReveneuView
+    {
+        public long MomoTransaction { get; set; }
+        public int StoreID { get; set; }
+        public DateTime ActiveDate { get; set; }
+        public double Amount { get; set; }
+    }
 
     public class OrderStore_TransactionModel
     {

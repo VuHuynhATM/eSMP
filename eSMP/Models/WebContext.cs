@@ -31,7 +31,6 @@ namespace eSMP.Models
         public DbSet<Feedback_Status> Feedback_Statuses { get; set; }
         public DbSet<Feedback_Image> Feedback_Images { get; set; }  
         public DbSet<OrderBuy_Transacsion> orderBuy_Transacsions { get; set; }
-        public DbSet<OrderRefund_Transaction> orderRefund_Transactions { get; set; }
         public DbSet<ShipStatus> ShipStatuses { get; set; }
         public DbSet<ShipOrder> ShipOrders { get; set; }
         public DbSet<OrderStatus> OrderStatuses { get; set; }

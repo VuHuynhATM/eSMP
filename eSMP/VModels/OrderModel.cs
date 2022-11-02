@@ -27,6 +27,27 @@ namespace eSMP.VModels
         public string Address { get; set; }
         public List<OrderDetailModel> Details { get; set; }
     }
+    public class OrderModelView
+    {
+        public int OrderID { get; set; }
+        public DateTime Create_Date { get; set; }
+        public ShipViewModel OrderShip{ get; set; }
+        public int UserID { get; set; }
+        public double PriceItem { get; set; }
+        public double FeeShip { get; set; }
+        public string Pick_Province { get; set; }
+        public string Pick_District { get; set; }
+        public string Pick_Ward { get; set; }
+        public string Pick_Address { get; set; }
+        public string Pick_Tel { get; set; }
+        public string Pick_Name { get; set; }
+        public string Name { get; set; }
+        public string Tel { get; set; }
+        public string Province { get; set; }
+        public string District { get; set; }
+        public string Ward { get; set; }
+        public string Address { get; set; }
+    }
     public class OrderDetailModel
     {
         public int OrderDetailID { get; set; }

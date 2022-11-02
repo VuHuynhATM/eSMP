@@ -17,6 +17,9 @@ namespace eSMP.VModels
         public Store_Status Store_Status { get; set; }
         public Image Image { get; set; }
         public double Asset { get; set; }
+        public long? MomoTransactionID { get; set; }
+        public DateTime? Actice_Date { get; set; }
+        public double? Actice_Amount { get; set; }
     }
     public class StoreViewModel
     {

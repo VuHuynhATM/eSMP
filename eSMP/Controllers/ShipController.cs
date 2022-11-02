@@ -30,10 +30,6 @@ namespace eSMP.Controllers
             var action_time=inp.action_time;
             var reason_code=inp.reason_code;
             var reason =inp.reason;
-            _userReposity.Updaterole();
-            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-            role.RoleName = label_id+"-"+partner_id + "-" +status_id + "-" +action_time + "-" +reason_code + "-" +reason;
-            _context.SaveChanges();
             if (_shipReposity.CallBackAsync(label_id, partner_id, status_id, action_time, reason_code, reason))
             {
                 return Ok();

@@ -26,5 +26,8 @@ namespace eSMP.Models
         [ForeignKey("ImageID")]
         public virtual Image Image { get; set; }
         public double Asset { get; set; }
+        public double? AmountActive { get; set; }
+        public long? MomoTransactionID { get; set; }
+        public DateTime? Actice_Date { get; set; }
     }
 }

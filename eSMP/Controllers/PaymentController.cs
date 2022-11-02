@@ -2,6 +2,7 @@
 using eSMP.Services.MomoRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace eSMP.Controllers
 {
@@ -82,7 +83,7 @@ namespace eSMP.Controllers
         public IActionResult ipnStoreUrl(MomoPayINP payINP)
         {
             var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-            role.RoleName = payINP.resultCode+"";
+            role.RoleName = payINP.message;
             _context.SaveChanges();
             int resultCode = payINP.resultCode;
             if (resultCode == 0)

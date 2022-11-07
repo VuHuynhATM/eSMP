@@ -4,6 +4,7 @@ using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using Firebase.Auth;
 using System.Collections;
+using System.Linq;
 
 namespace eSMP.Services.OrderRepo
 {
@@ -21,6 +22,15 @@ namespace eSMP.Services.OrderRepo
             _shipReposity = shipReposity;
             _storeReposity = storeReposity;
         }
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
+
         public bool CheckAmount(int subItemID, int amount)
         {
             try
@@ -65,7 +75,7 @@ namespace eSMP.Services.OrderRepo
                         _context.SaveChanges();
                         result.Success = true;
                         result.Message = "Thêm vào giỏ hàng thành công";
-                        result.Data = odexist;
+                        result.Data = order.OrderID;
                         return result;
                     }
                     else
@@ -81,7 +91,7 @@ namespace eSMP.Services.OrderRepo
                 {
                     int storeID = GetStoreBySubItemID(orderDetail.Sub_ItemID).StoreID;
                     var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID == 2 && o.UserID == orderDetail.UserID && _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == storeID) != null) != null);
-                    if (order!=null)
+                    if (order != null)
                     {
                         int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
@@ -107,7 +117,7 @@ namespace eSMP.Services.OrderRepo
                             _context.SaveChanges();
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
-                            result.Data = newod;
+                            result.Data = order.OrderID;
                             return result;
                         }
                         else
@@ -137,7 +147,7 @@ namespace eSMP.Services.OrderRepo
                         o.Address = userAddress.Context;
                         o.Tel = userAddress.Phone;
 
-                        o.Create_Date = DateTime.UtcNow;
+                        o.Create_Date = GetVnTime();
                         o.OrderStatusID = 2;
                         o.UserID = orderDetail.UserID;
                         //ship
@@ -164,7 +174,7 @@ namespace eSMP.Services.OrderRepo
                             _context.SaveChanges();
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
-                            result.Data = od;
+                            result.Data = o.OrderID;
                             return result;
                         }
                         else
@@ -206,7 +216,7 @@ namespace eSMP.Services.OrderRepo
             var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
             return int.Parse(weight);
         }
-        
+
         public Store GetStoreBySubItemID(int sub_itemID)
         {
             try
@@ -720,7 +730,7 @@ namespace eSMP.Services.OrderRepo
             {
                 var orders = _context.Orders.AsQueryable();
                 orders = orders.Where(o => o.OrderStatusID != 2);
-                
+                var num = orders.Count();
                 if (userID.HasValue)
                 {
                     orders = orders.Where(o => o.UserID == userID);
@@ -731,17 +741,66 @@ namespace eSMP.Services.OrderRepo
                 }
                 if (shipOrderStatus.HasValue)
                 {
-                    orders = orders.Where(o => _context.ShipOrders.OrderByDescending(so=>so.Create_Date).LastOrDefault(so => so.Status_ID.Equals(shipOrderStatus + "")).OrderID == o.OrderID);
+                    string status = shipOrderStatus + "";
+                    switch (status)
+                    {
+                        case "-1":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-1"||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "127" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "9" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "7" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "49" ||
+                                                        o.OrderStatusID==3
+                            );
+                            break;
+                        case "1":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "1" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-2"
+                            );
+                            break;
+                        case "2":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "2" 
+                            );
+                            break;
+                        case "3":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "12" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "123" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "8" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "128" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "3"
+                            );
+                            break;
+                        case "4":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-4" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "8" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "10" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "410"
+                            );
+                            break;
+                        case "5":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "5" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "45" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "6"
+                            );
+                            break;
+                        case "6":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "11" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "13" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "20" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "21"
+                            );
+                            break;
+                    }
                     if (dateFrom.HasValue)
                     {
-                        orders = orders.Where(o => _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.Create_Date >= dateFrom).OrderID == o.OrderID);
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date >= dateFrom);
                     }
                     if (dateTo.HasValue)
                     {
-                        orders = orders.Where(o => _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.Create_Date <= dateTo).OrderID == o.OrderID);
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date <= dateTo);
                     }
                 }
-                orders = orders.OrderByDescending(o => _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date);
+                orders = orders.OrderByDescending(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date);
                 if (page.HasValue)
                 {
                     orders = orders.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
@@ -770,8 +829,10 @@ namespace eSMP.Services.OrderRepo
                             Name = order.Name,
                             Tel = order.Tel,
                             FeeShip = order.FeeShip,
-                            OrderShip=GetShipOrder(order.OrderID),
-                            
+                            OrderShip = GetShipOrder(order.OrderID),
+                            OrderStatus = order.OrderStatus,
+                            StoreView = GetStoreViewModel(order.OrderID),
+                            Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                         };
                         list.Add(model);
                     }
@@ -813,7 +874,7 @@ namespace eSMP.Services.OrderRepo
         }
         public ShipViewModel GetShipOrder(int orderID)
         {
-            var ship = _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID);
+            var ship = _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID);
             if (ship == null)
                 return null;
             else
@@ -827,6 +888,203 @@ namespace eSMP.Services.OrderRepo
                     status = ship.ShipStatus.Status_Name,
                 };
                 return model;
+            }
+        }
+        public List<Image> GetListImageFB(int orderdetailID)
+        {
+            var listIF = _context.Feedback_Images.Where(fi => fi.OrderDetailID == orderdetailID).ToList();
+            var list = new List<Image>();
+            if (listIF.Count > 0)
+            {
+                foreach (var image in listIF)
+                {
+                    list.Add(image.Image);
+                }
+                return list;
+            }
+            return null;
+        }
+
+        public Result GetlistFeedback(int? page, bool isFeedback, int? userID)
+        {
+            Result result = new Result();
+            try
+            {
+                var orderDetail = _context.OrderDetails.AsQueryable();
+                orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.OrderStatusID==1 && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so=>so.OrderID==o.OrderID && so.Status_ID=="5")!=null) != null);
+                if (userID.HasValue)
+                {
+                    orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.UserID == userID && o.OrderID == od.OrderID) != null);
+                }
+                if (isFeedback)
+                {
+                    orderDetail = orderDetail.Where(od => od.Feedback_StatusID != null);
+                }
+                else
+                {
+                    orderDetail = orderDetail.Where(od => od.Feedback_StatusID == null);
+                }
+
+                if (page.HasValue)
+                {
+                    orderDetail = orderDetail.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
+                List<FeedbackViewModel> list = new List<FeedbackViewModel>();
+
+                if (orderDetail != null)
+                {
+                    foreach(var detail in orderDetail.ToList())
+                    {
+                        FeedbackViewModel model = new FeedbackViewModel
+                        {
+                            Comment = detail.Feedback_Title,
+                            Create_Date = detail.FeedBack_Date,
+                            Feedback_Status = detail.Feedback_Status,
+                            orderDetaiID = detail.OrderDetailID,
+                            Rate = detail.Feedback_Rate,
+                            subItemImage = detail.Sub_Item.Image.Path,
+                            Sub_itemName = detail.Sub_Item.Sub_ItemName,
+                        };
+                        list.Add(model);
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result GetFeedbackDetail(int orderDetailID)
+        {
+            Result result=new Result();
+            try
+            {
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null);
+                if (orderDetail != null)
+                {
+                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderDetail.OrderID);
+                    FeedbackDetailModel mode = new FeedbackDetailModel
+                    {
+                        UserID = order.UserID,
+                        UserName = order.User.UserName,
+                        Useravatar=order.User.Image.Path,
+                        orderDetaiID=orderDetail.OrderDetailID,
+                        Comment=orderDetail.Feedback_Title,
+                        Create_Date=orderDetail.FeedBack_Date,
+                        Feedback_Status=orderDetail.Feedback_Status,
+                        Rate=orderDetail.Feedback_Rate,
+                        subItemImage=orderDetail.Sub_Item.Image.Path,
+                        Sub_itemName=orderDetail.Sub_Item.Sub_ItemName,
+                        ImagesFB=GetListImageFB(orderDetailID),
+                    };
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = mode;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Đơn hàng chưa được đánhh giá";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result HiddenFeedback(int orderDetailID)
+        {
+            Result result = new Result();
+            try
+            {
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null && od.Feedback_StatusID!=2);
+                if (orderDetail != null)
+                {
+                    orderDetail.Feedback_StatusID = 3;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Ẩn đánh giá thành công";
+                    result.Data = "";
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Đơn hàng chưa được đánhh giá";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result BlockFeedback(int orderDetailID)
+        {
+            Result result = new Result();
+            try
+            {
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null);
+                if (orderDetail != null)
+                {
+                    orderDetail.Feedback_StatusID = 2;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Ẩn đánh giá thành công";
+                    result.Data = "";
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Đơn hàng chưa được đánhh giá";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result CheckPay(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID==orderID && o.OrderStatusID==1);
+                if (order != null)
+                {
+                    result.Success = true;
+                    result.Message = "Thanh toán thành công";
+                    result.Data = "";
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thanh toán thất bại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
             }
         }
     }

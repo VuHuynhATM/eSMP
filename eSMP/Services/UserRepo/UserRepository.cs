@@ -11,7 +11,7 @@ namespace eSMP.Services.UserRepo
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
 
-        private int PAGE_SIZE = 15;
+        private int PAGE_SIZE = 25;
 
         public UserRepository(WebContext context, IConfiguration configuration, ITokenService tokenService)
         {
@@ -84,6 +84,12 @@ namespace eSMP.Services.UserRepo
                     if (u != null)
                     {
                         CreateTokenByUserID(u.UserID);
+                        var store = _context.Stores.SingleOrDefault(s=>s.UserID==u.UserID);
+                        int storeID = -1;
+                        if(store != null)
+                        {
+                            storeID = store.StoreID;
+                        }
                         UserModel model = new UserModel
                         {
                             UserID = u.UserID,
@@ -99,6 +105,7 @@ namespace eSMP.Services.UserRepo
                             Role = GetUserRole(u.RoleID),
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
+                            StoreID= storeID,
                         };
                         if (!model.IsActive)
                         {
@@ -626,7 +633,7 @@ namespace eSMP.Services.UserRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = GetUserbyID(user.UserID); ;
+                    result.Data = GetUserIFByID(user.UserID);
                     return result;
                 }
                 result.Success = false;
@@ -654,7 +661,7 @@ namespace eSMP.Services.UserRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = GetUserbyID(user.UserID); ;
+                    result.Data = GetUserIFByID(user.UserID);
                     return result;
                 }
                 result.Success = false;
@@ -682,7 +689,7 @@ namespace eSMP.Services.UserRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = user; ;
+                    result.Data = GetUserIFByID(user.UserID);
                     return result;
                 }
                 result.Success = false;
@@ -710,7 +717,7 @@ namespace eSMP.Services.UserRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
-                    result.Data = user; ;
+                    result.Data = GetUserIFByID(user.UserID);
                     return result;
                 }
                 result.Success = false;
@@ -743,7 +750,7 @@ namespace eSMP.Services.UserRepo
                         _context.SaveChanges();
                         result.Success = true;
                         result.Message = "Thay đổi thành công";
-                        result.Data = img;
+                        result.Data = GetUserIFByID(user.UserID);
                         return result;
                     }
                 }
@@ -772,7 +779,7 @@ namespace eSMP.Services.UserRepo
                     CreateTokenByUserID(userID);
                     result.Success = true;
                     result.Message = "Gia hạn thành công";
-                    result.Data = GetUserbyID(user.UserID);
+                    result.Data = GetUserIFByID(user.UserID);
                     return result;
                 }
                 result.Success = false;
@@ -834,40 +841,6 @@ namespace eSMP.Services.UserRepo
             catch
             {
                 return;
-            }
-        }
-
-        public UserModel GetUserbyID(int userID)
-        {
-            try
-            {
-                var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
-                if (u != null)
-                {
-                    CreateTokenByUserID(u.UserID);
-                    UserModel model = new UserModel
-                    {
-                        UserID = u.UserID,
-                        Email = u.Email,
-                        Phone = u.Phone,
-                        IsActive = u.isActive,
-                        Password = u.Password,
-                        UserName = u.UserName,
-                        Crete_date = u.Crete_date,
-                        DateOfBirth = u.DateOfBirth,
-                        Gender = u.Gender,
-                        Token = u.Token,
-                        Role = GetUserRole(u.RoleID),
-                        Image = GetUserImage(u.ImageID),
-                        addresses = GetAddresses(u.UserID),
-                    };
-                    return model;
-                }
-                return null;
-            }
-            catch
-            {
-                return null;
             }
         }
 

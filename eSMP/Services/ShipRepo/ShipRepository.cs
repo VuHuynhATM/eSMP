@@ -2,6 +2,7 @@
 using eSMP.Services.MomoRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.VModels;
+using System;
 using System.Text.Json;
 
 namespace eSMP.Services.ShipRepo
@@ -22,6 +23,15 @@ namespace eSMP.Services.ShipRepo
             _orderReposity = orderReposity;
             _momoReposity = momoReposity;   
         }
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
+
         public async Task<FeeReponse> GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight, string deliver_option)
         {
             var client = new HttpClient();
@@ -48,8 +58,9 @@ namespace eSMP.Services.ShipRepo
                 }
                 ShipOrder shipOrder = new ShipOrder();
                 shipOrder.Status_ID = status_id + "";
-                DateTime datetime = DateTime.Parse(action_time, null, System.Globalization.DateTimeStyles.RoundtripKind);
-                shipOrder.Create_Date = datetime;
+                DateTime datetime = DateTime.Parse(action_time);
+                DateTime cstTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(datetime, TimeZoneInfo.Local.Id, "SE Asia Standard Time");
+                shipOrder.Create_Date = cstTime;
                 shipOrder.LabelID = label_id;
                 shipOrder.Reason= reason;
                 shipOrder.OrderID=int.Parse(partner_id);
@@ -69,8 +80,11 @@ namespace eSMP.Services.ShipRepo
                 _context.SaveChanges();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+                role.RoleName = ex.Message;
+                _context.SaveChanges();
                 return false;
             }
         }
@@ -143,7 +157,7 @@ namespace eSMP.Services.ShipRepo
 
                     ShipOrder shipOrder = new ShipOrder();
                     shipOrder.Status_ID = "-2";
-                    DateTime datetime = DateTime.UtcNow;
+                    DateTime datetime = GetVnTime();
                     shipOrder.Create_Date = datetime;
                     shipOrder.LabelID = Shipreponse.order.label;
                     shipOrder.Reason = "";
@@ -173,12 +187,12 @@ namespace eSMP.Services.ShipRepo
             Result result = new Result();
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID==1);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID!=2);
                 if(order != null)
                 {
                     var liststatus = _context.ShipOrders.AsQueryable();
                     liststatus = liststatus.Where(so => so.OrderID == orderID);
-                    liststatus=liststatus.OrderByDescending(so => so.Create_Date);
+                    liststatus=liststatus.OrderBy(so => so.Create_Date);
                     ShipModel model = new ShipModel();
                     List<ShipStatusModel> list = new List<ShipStatusModel>();
                     if (liststatus.Count() > 0)

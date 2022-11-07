@@ -19,6 +19,7 @@ using eSMP.Services.MomoRepo;
 using eSMP.Services;
 using eSMP.Services.StoreAssetRepo;
 using eSMP.Services.ReportSaleRepo;
+using eSMP.Services.ReportRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,7 @@ builder.Services.AddScoped<IShipReposity, ShipRepository>();
 builder.Services.AddScoped<IMomoReposity, MomoRepository>();
 builder.Services.AddScoped<IAssetReposity, AssetRepository>();
 builder.Services.AddScoped<ISaleReportReposity, SaleReportRepository>();
+builder.Services.AddScoped<IReportReposity, ReportRepository>();
 
 
 var dbcontext = new WebContext();

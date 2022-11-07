@@ -14,7 +14,14 @@ namespace eSMP.Services.BrandRepo
         {
             _context = context;
         }
-
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
         public Result GetAllBrand()
         {
             Result result = new Result();

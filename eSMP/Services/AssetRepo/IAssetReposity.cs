@@ -18,5 +18,6 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetBankSupport();
         public Result GetStoreReveneuForChart(int storeID,int? year);
         public Result GetSystemReveneuForChart(int? year, string Cate);
+        public Result GetStoreSystemReveneu(int? page, DateTime? From, DateTime? To);
     }
 }

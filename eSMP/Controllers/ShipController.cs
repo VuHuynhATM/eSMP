@@ -12,13 +12,11 @@ namespace eSMP.Controllers
     public class ShipController : ControllerBase
     {
         private readonly IShipReposity _shipReposity;
-        private readonly IUserReposity _userReposity;
         private readonly WebContext _context;
 
-        public ShipController(IShipReposity shipReposity, IUserReposity userReposity, WebContext context)
+        public ShipController(IShipReposity shipReposity, WebContext context)
         {
             _shipReposity = shipReposity;
-            _userReposity = userReposity;
             _context = context;
         }
         [HttpPost]
@@ -30,6 +28,9 @@ namespace eSMP.Controllers
             var action_time=inp.action_time;
             var reason_code=inp.reason_code;
             var reason =inp.reason;
+            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+            role.RoleName = label_id + "-" + partner_id + "-" + status_id;
+            _context.SaveChanges();
             if (_shipReposity.CallBackAsync(label_id, partner_id, status_id, action_time, reason_code, reason))
             {
                 return Ok();
@@ -37,7 +38,7 @@ namespace eSMP.Controllers
             return Ok();
         }
         [HttpGet]
-        [Route("createoder")]
+        [Route("create_order")]
         public IActionResult Createorder(int orderID)
         {
             return Ok(_shipReposity.CreateOrder(orderID));

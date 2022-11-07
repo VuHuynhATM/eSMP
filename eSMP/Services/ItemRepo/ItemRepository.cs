@@ -15,7 +15,7 @@ namespace eSMP.Services.ItemRepo
         private readonly IUserReposity _userReposity;
         private readonly IBrandReposity _brandReposity;
 
-        public static int PAGE_SIZE { get; set; } = 15;
+        public static int PAGE_SIZE { get; set; } = 25;
 
         public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity)
         {
@@ -24,6 +24,14 @@ namespace eSMP.Services.ItemRepo
             _specificationReposity = specificationReposity;
             _userReposity = userReposity;
             _brandReposity = brandReposity;
+        }
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
         }
 
         public Result CreateItem(ItemRegister item)
@@ -34,7 +42,7 @@ namespace eSMP.Services.ItemRepo
                 Item newItem = new Item();
                 newItem.Name = item.Name;
                 newItem.Description = item.Description;
-                newItem.Create_date = DateTime.UtcNow;
+                newItem.Create_date = GetVnTime();
                 newItem.StoreID = item.StoreID;
                 newItem.Sub_CategoryID = item.Sub_CategoryID;
                 newItem.Rate = 0;
@@ -52,7 +60,7 @@ namespace eSMP.Services.ItemRepo
                     sub.Item = newItem;
 
                     Image i = new Image();
-                    i.Crete_date = DateTime.UtcNow;
+                    i.Crete_date = GetVnTime();
                     i.FileName = itemsub.filename;
                     i.Path = itemsub.imagepath;
                     i.IsActive = true;
@@ -66,7 +74,7 @@ namespace eSMP.Services.ItemRepo
                 foreach (var image in listImage)
                 {
                     Image i = new Image();
-                    i.Crete_date = DateTime.UtcNow;
+                    i.Crete_date = GetVnTime();
                     i.FileName = image.FileName;
                     i.Path = image.Path;
                     i.IsActive = true;
@@ -99,7 +107,7 @@ namespace eSMP.Services.ItemRepo
                 _context.SaveChanges();
                 result.Success = true;
                 result.Message = "thành Công";
-                result.Data = GetItemDetail(newItem.ItemID);
+                result.Data = newItem.ItemID;
                 return result;
             }
             catch
@@ -166,21 +174,24 @@ namespace eSMP.Services.ItemRepo
                 if (listItem != null)
                 {
                     List<ItemViewModel> listmodel = new List<ItemViewModel>();
-                    foreach (var item in listItem.ToList())
+                    if (listItem.Count() > 0)
                     {
-                        ItemViewModel model = new ItemViewModel
+                        foreach (var item in listItem.ToList())
                         {
-                            ItemID = item.ItemID,
-                            Description = item.Description,
-                            Rate = item.Rate,
-                            Item_Image = GetItemImage(item.ItemID)[0].Path,
-                            Name = item.Name,
-                            Price = GetMinPriceForItem(item.ItemID),
-                            Discount = item.Discount,
-                            Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
-                            Num_Sold = GetNumSold(item.ItemID),
-                        };
-                        listmodel.Add(model);
+                            ItemViewModel model = new ItemViewModel
+                            {
+                                ItemID = item.ItemID,
+                                Description = item.Description,
+                                Rate = item.Rate,
+                                Item_Image = GetItemImage(item.ItemID)[0].Path,
+                                Name = item.Name,
+                                Price = GetMinPriceForItem(item.ItemID),
+                                Discount = item.Discount,
+                                Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
+                                Num_Sold = GetNumSold(item.ItemID),
+                            };
+                            listmodel.Add(model);
+                        }
                     }
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -312,7 +323,7 @@ namespace eSMP.Services.ItemRepo
         }
         public List<FeedBackModel> GetListFeedBack(int itemID)
         {
-            var listorderdetail = _context.OrderDetails.Where(od =>_context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID).ItemID==itemID).ToList();
+            var listorderdetail = _context.OrderDetails.Where(od =>_context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID).ItemID==itemID).Take(PAGE_SIZE).ToList();
             var list = new List<FeedBackModel>();
             if (listorderdetail.Count > 0)
             {
@@ -323,6 +334,7 @@ namespace eSMP.Services.ItemRepo
                     FeedBackModel model = new FeedBackModel();
                     model.UserName = user.UserName;
                     model.UserAvatar = user.Image.Path;
+                    model.orderDetaiID = item.OrderDetailID;
                     model.Sub_itemName = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID).Sub_ItemName;
                     if (item.FeedBack_Date.HasValue)
                     {
@@ -493,25 +505,69 @@ namespace eSMP.Services.ItemRepo
                     switch (sortBy)
                     {
                         case "price_desc":
-                            listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            if (lot.HasValue && lat.HasValue)
+                            {
+                                double lo = lot.Value;
+                                double la = lat.Value;
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price)).ThenBy(i =>
+                                                6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                                );
+                            }
+                            else
+                            {
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            }
                             break;
                         case "price_asc":
-                            listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            if (lot.HasValue && lat.HasValue)
+                            {
+                                double lo = lot.Value;
+                                double la = lat.Value;
+                                listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price)).ThenBy(i =>
+                                                6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                                );
+                            }
+                            else
+                            {
+                                listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+
+                            }
                             break;
                         case "discount":
-                            listItem = listItem.OrderByDescending(i => i.Discount);
+                            if (lot.HasValue && lat.HasValue)
+                            {
+                                double lo = lot.Value;
+                                double la = lat.Value;
+                                listItem = listItem.OrderByDescending(i => i.Discount).ThenBy(i =>
+                                                6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                                );
+                            }
+                            else
+                            {
+                                listItem = listItem.OrderByDescending(i => i.Discount);
+
+                            }
                             break;
                     }
                 }
-                if (lot.HasValue && lat.HasValue)
+                else
                 {
-                    double lo = lot.Value;
-                    double la = lat.Value;
-                    listItem = listItem.OrderBy(i =>
-                                    6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
-                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
-                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
-                    );
+                    if (lot.HasValue && lat.HasValue)
+                    {
+                        double lo = lot.Value;
+                        double la = lat.Value;
+                        listItem = listItem.OrderBy(i =>
+                                        6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                        * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                        * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                        );
+                    }
                 }
 
                 //Paging
@@ -961,26 +1017,71 @@ namespace eSMP.Services.ItemRepo
                     switch (sortBy)
                     {
                         case "price_desc":
-                            listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            if (lot.HasValue && lat.HasValue)
+                            {
+                                double lo = lot.Value;
+                                double la = lat.Value;
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price)).ThenBy(i =>
+                                                6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                                );
+                            }
+                            else
+                            {
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            }
                             break;
                         case "price_asc":
-                            listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+                            if (lot.HasValue && lat.HasValue)
+                            {
+                                double lo = lot.Value;
+                                double la = lat.Value;
+                                listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price)).ThenBy(i =>
+                                                6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                                );
+                            }
+                            else
+                            {
+                                listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price));
+
+                            }
                             break;
                         case "discount":
-                            listItem = listItem.OrderByDescending(i => i.Discount);
+                            if (lot.HasValue && lat.HasValue)
+                            {
+                                double lo = lot.Value;
+                                double la = lat.Value;
+                                listItem = listItem.OrderByDescending(i => i.Discount).ThenBy(i =>
+                                                6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                                * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                                );
+                            }
+                            else
+                            {
+                                listItem = listItem.OrderByDescending(i => i.Discount);
+
+                            }
                             break;
                     }
                 }
-                if (lot.HasValue && lat.HasValue)
+                else
                 {
-                    double lo = lot.Value;
-                    double la = lat.Value;
-                    listItem = listItem.OrderBy(i =>
-                                    6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
-                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
-                                    * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
-                    );
+                    if (lot.HasValue && lat.HasValue)
+                    {
+                        double lo = lot.Value;
+                        double la = lat.Value;
+                        listItem = listItem.OrderBy(i =>
+                                        6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
+                                        * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
+                                        * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
+                        );
+                    }
                 }
+
 
                 //Paging
 
@@ -1099,6 +1200,82 @@ namespace eSMP.Services.ItemRepo
             }
             catch
             {
+                return result;
+            }
+        }
+
+        public Result UpdateDiscount(int itemID, double dícsount)
+        {
+            Result result = new Result();
+            try
+            {
+                var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
+                if(item == null)
+                {
+                    result.Success = false;
+                    result.Message = "sản phhẩm không tồn tại";
+                    result.Data = "";
+                    return result;
+                }
+                else
+                {
+                    item.Discount = dícsount;
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = dícsount;
+                    return result;
+                }            
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result GetListFeedback(int itemID, int? page)
+        {
+            Result result = new Result();
+            try
+            {
+                var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == itemID).AsQueryable();
+                if (page.HasValue)
+                {
+                    listorderdetail=listorderdetail.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
+                var list = new List<FeedBackModel>();
+                if (listorderdetail.Count() > 0)
+                {
+                    foreach (var item in listorderdetail.ToList())
+                    {
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == item.OrderID);
+                        var user = _userReposity.GetUserIFByID(order.UserID);
+                        FeedBackModel model = new FeedBackModel();
+                        model.UserName = user.UserName;
+                        model.UserAvatar = user.Image.Path;
+                        model.orderDetaiID = item.OrderDetailID;
+                        model.Sub_itemName = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID).Sub_ItemName;
+                        if (item.FeedBack_Date.HasValue)
+                        {
+                            model.Rate = item.Feedback_Rate;
+                            model.Comment = item.Feedback_Title;
+                            model.ImagesFB = GetListImageFB(item.OrderDetailID);
+                            list.Add(model);
+                        }
+                    }
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
                 return result;
             }
         }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221107075903_v24.1")]
+    partial class v241
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -626,16 +628,18 @@ namespace eSMP.Migrations
                     b.Property<DateTime>("Create_Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ItemID")
+                        .IsRequired()
                         .HasColumnType("int");
 
-                    b.Property<int?>("OrderDetaiID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ReportStatusID")
+                    b.Property<int>("OrderDetaiID")
                         .HasColumnType("int");
 
                     b.Property<int?>("StoreID")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("Text")
@@ -651,33 +655,11 @@ namespace eSMP.Migrations
 
                     b.HasIndex("OrderDetaiID");
 
-                    b.HasIndex("ReportStatusID");
-
                     b.HasIndex("StoreID");
 
                     b.HasIndex("UserID");
 
                     b.ToTable("Report");
-                });
-
-            modelBuilder.Entity("eSMP.Models.ReportStatus", b =>
-                {
-                    b.Property<int>("ReportStatusID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportStatusID"), 1L, 1);
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ReportStatusID");
-
-                    b.ToTable("ReportStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.Role", b =>
@@ -1385,23 +1367,20 @@ namespace eSMP.Migrations
                     b.HasOne("eSMP.Models.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("eSMP.Models.OrderDetail", "OrderDetail")
                         .WithMany()
                         .HasForeignKey("OrderDetaiID")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("eSMP.Models.ReportStatus", "ReportStatus")
-                        .WithMany()
-                        .HasForeignKey("ReportStatusID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("eSMP.Models.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("eSMP.Models.User", "User")
                         .WithMany()
@@ -1412,8 +1391,6 @@ namespace eSMP.Migrations
                     b.Navigation("Item");
 
                     b.Navigation("OrderDetail");
-
-                    b.Navigation("ReportStatus");
 
                     b.Navigation("Store");
 

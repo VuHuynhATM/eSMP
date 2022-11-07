@@ -17,7 +17,7 @@ namespace eSMP.VModels
         public string Token { get; set; }
         public Role Role { get; set; }
         public Image Image { get; set; }
-
+        public int? StoreID { get; set; }
         public List<Address> addresses { get; set; }
 
     }

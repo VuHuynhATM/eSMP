@@ -17,6 +17,14 @@ namespace eSMP.Services.StoreRepo
             _shipReposity = shipReposity;
             _orderReposity = orderReposity;
         }
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
         public User GetUser(int userID)
         {
             return _context.Users.SingleOrDefault(u => u.UserID == userID);
@@ -49,7 +57,7 @@ namespace eSMP.Services.StoreRepo
                     };
                     Image image = new Image
                     {
-                        Crete_date = DateTime.UtcNow,
+                        Crete_date = GetVnTime(),
                         FileName = store.ImageName,
                         IsActive = true,
                         Path = store.ImagePath
@@ -57,7 +65,7 @@ namespace eSMP.Services.StoreRepo
                     Store storeRegister = new Store
                     {
                         StoreName = store.StoreName,
-                        Create_date = DateTime.UtcNow,
+                        Create_date = GetVnTime(),
                         Email = store.Email,
                         Phone = store.Phone,
                         Store_StatusID = 3,

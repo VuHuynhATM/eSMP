@@ -44,7 +44,7 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("store")]
-        public IActionResult GetItemWithStatusIDS(int storeID, int? statusID, int page)
+        public IActionResult GetItemWithStatusIDS(int storeID, int? statusID, int? page)
         {
             try
             {
@@ -58,11 +58,25 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("item_detail")]
-        public IActionResult GetAllItem(int itemID)
+        public IActionResult GetItemDetail(int itemID)
         {
             try
             {
                 var result = _itemReposity.GetItemDetail(itemID);
+                return Ok(result);
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpGet]
+        [Route("item_feedback")]
+        public IActionResult GetListFeedback(int itemID, int? page)
+        {
+            try
+            {
+                var result = _itemReposity.GetListFeedback(itemID,page);
                 return Ok(result);
             }
             catch
@@ -269,6 +283,18 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
-
+        [HttpPut]
+        [Route("update_discount")]
+        public IActionResult UpdateDiscount(int ItemID, double discount)
+        {
+            try
+            {
+                return Ok(_itemReposity.UpdateDiscount(ItemID, discount));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
     }
 }

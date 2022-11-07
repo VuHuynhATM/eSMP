@@ -1,6 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.Services.OrderRepo;
 using eSMP.VModels;
+using System;
 using System.Linq.Expressions;
 
 namespace eSMP.Services.StoreAssetRepo
@@ -10,7 +11,6 @@ namespace eSMP.Services.StoreAssetRepo
         private readonly WebContext _context;
         private readonly IOrderReposity _orderReposity;
         private readonly int PAGE_SIZE = 25;
-
         public AssetRepository(WebContext context, IOrderReposity orderReposity)
         {
             _context = context;
@@ -20,10 +20,20 @@ namespace eSMP.Services.StoreAssetRepo
         {
             return _context.Stores.SingleOrDefault(s => _context.Orders.SingleOrDefault(o => o.OrderID == orderID && _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == s.StoreID) != null) != null) != null);
         }
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
         public bool SendPriceTostore(int OrderID)
         {
             try
             {
+                
+
                 var esmpSystem = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == OrderID && o.OrderStatusID == 1 && _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID.Equals("5"));
                 if (order == null)
@@ -34,13 +44,13 @@ namespace eSMP.Services.StoreAssetRepo
                 var afterprice = orderPrice * (1 - esmpSystem.Commission_Precent) + orderFee;
                 OrderStore_Transaction transaction = new OrderStore_Transaction();
                 transaction.OrderID = order.OrderID;
-                transaction.Create_Date = DateTime.UtcNow;
+                transaction.Create_Date = GetVnTime();
                 transaction.Price = afterprice;
                 transaction.StoreID = store.StoreID;
                 transaction.IsActive = true;
 
                 OrderSystem_Transaction system_Transaction = new OrderSystem_Transaction();
-                system_Transaction.Create_Date = DateTime.UtcNow;
+                system_Transaction.Create_Date = GetVnTime();
                 system_Transaction.OrderStore_Transaction = transaction;
                 system_Transaction.Price = orderPrice * esmpSystem.Commission_Precent;
                 system_Transaction.IsActive = true;
@@ -66,7 +76,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
                 Image image = new Image();
-                image.Crete_date = DateTime.UtcNow;
+                image.Crete_date = GetVnTime();
                 image.FileName = request.FileName;
                 image.Path = request.FilePath;
                 image.IsActive = true;
@@ -75,7 +85,7 @@ namespace eSMP.Services.StoreAssetRepo
                 system_Withdrawal.SystemID = 1;
                 system_Withdrawal.Price = request.Price;
                 system_Withdrawal.Context = request.Context;
-                system_Withdrawal.Create_Date = DateTime.UtcNow;
+                system_Withdrawal.Create_Date = GetVnTime();
                 system_Withdrawal.IsActive = true;
                 system_Withdrawal.Image = image;
                 _context.System_Withdrawals.Add(system_Withdrawal);
@@ -301,7 +311,7 @@ namespace eSMP.Services.StoreAssetRepo
                     withdrawal.NumBankCart = request.NumBankCart;
                     withdrawal.OwnerBankCart = request.OwnerBankCart;
                     withdrawal.Reason = "";
-                    withdrawal.Create_Date = DateTime.UtcNow;
+                    withdrawal.Create_Date = GetVnTime();
                     withdrawal.StoreID = request.StoreID;
 
                     _context.Store_Withdrawals.Add(withdrawal);
@@ -401,7 +411,7 @@ namespace eSMP.Services.StoreAssetRepo
                     image.IsActive = true;
                     image.FileName = request.Filename;
                     image.Path = request.Path;
-                    image.Crete_date = DateTime.UtcNow;
+                    image.Crete_date = GetVnTime();
 
                     storeWitdrawal.Image=image;
 
@@ -535,7 +545,7 @@ namespace eSMP.Services.StoreAssetRepo
                 else
                 {
                     var yearStart= _context.OrderStore_Transactions.OrderByDescending(ost => ost.Create_Date.Year).First().Create_Date.Year;
-                    var yearCrrent= DateTime.UtcNow.Year;
+                    var yearCrrent= GetVnTime().Year;
                     for (int i = yearStart; i < yearCrrent+1; i++)
                     {
                         var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == i  && ost.IsActive).Sum(ost => ost.Price);
@@ -584,7 +594,7 @@ namespace eSMP.Services.StoreAssetRepo
                     else
                     {
                         var yearStart = _context.Stores.OrderByDescending(ost => ost.Actice_Date.Value.Year).First().Actice_Date.Value.Year;
-                        var yearCrrent = DateTime.UtcNow.Year;
+                        var yearCrrent = GetVnTime().Year;
                         for (int i = yearStart; i < yearCrrent + 1; i++)
                         {
                             var sumreveneu = _context.Stores.Where(ost => ost.Actice_Date.Value.Year == i && ost.Store_StatusID == 1).Sum(ost => ost.AmountActive);
@@ -615,7 +625,7 @@ namespace eSMP.Services.StoreAssetRepo
                     else
                     {
                         var yearStart = _context.OrderSystem_Transactions.OrderByDescending(ost => ost.Create_Date.Year).First().Create_Date.Year;
-                        var yearCrrent = DateTime.UtcNow.Year;
+                        var yearCrrent = GetVnTime().Year;
                         for (int i = yearStart; i < yearCrrent + 1; i++)
                         {
                             var sumreveneu = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == i && ost.IsActive).Sum(ost => ost.Price);

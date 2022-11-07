@@ -24,5 +24,7 @@ namespace eSMP.Services.ItemRepo
         public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, bool? isSupplier);
         public Result UpdateBrandModel(int itemID, int[] brandmodelIDs);
         public Result RemoveBrandModel(int itemID, int[] brandmodelIDs);
+        public Result UpdateDiscount(int itemID, double dícsount);
+        public Result GetListFeedback(int itemID, int? page);
     }
 }

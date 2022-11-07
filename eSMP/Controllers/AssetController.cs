@@ -183,5 +183,18 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        [HttpGet]
+        [Route("system_store_reveneu")]
+        public IActionResult GetSystemStore(int? page, DateTime? From, DateTime? To)
+        {
+            try
+            {
+                return Ok(_assetReposity.GetStoreSystemReveneu(page,From,To));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
     }
 }

@@ -11,5 +11,6 @@ namespace eSMP.Services.MomoRepo
         public Result ConfimCancelOrder(int orderID);
         public void PayStoreINP(MomoPayINP payINP);
         public Result GetStorePayUrl(int storeID);
+        public Result RefundOrder(int orderID);
     }
 }

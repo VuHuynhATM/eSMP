@@ -30,8 +30,9 @@ namespace eSMP.VModels
     public class OrderModelView
     {
         public int OrderID { get; set; }
+        public StoreViewModel StoreView { get; set; }
         public DateTime Create_Date { get; set; }
-        public ShipViewModel OrderShip{ get; set; }
+        public OrderStatus OrderStatus { get; set; }
         public int UserID { get; set; }
         public double PriceItem { get; set; }
         public double FeeShip { get; set; }
@@ -47,6 +48,8 @@ namespace eSMP.VModels
         public string District { get; set; }
         public string Ward { get; set; }
         public string Address { get; set; }
+        public List<OrderDetailModel> Details { get; set; }
+        public ShipViewModel OrderShip{ get; set; }
     }
     public class OrderDetailModel
     {

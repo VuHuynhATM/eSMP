@@ -24,17 +24,26 @@ namespace eSMP.Services.MomoRepo
             _shipReposity = shipReposity;
             _orderReposity = orderReposity;
         }
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
+
         public async Task<MomoPayReponse> GetPayAsync(int orderID)
         {
             Guid myuuid = Guid.NewGuid();
             string myuuidAsString = myuuid.ToString();
-
+            var firebaseReponse= Getapplink(orderID);
 
             MomoPayRequest request = new MomoPayRequest();
             //https://esmp.page.link/view
             request.orderInfo = "Thanh Toan";
             request.partnerCode = partnerCode;
-            request.redirectUrl = "https://esmp.page.link/view";
+            request.redirectUrl = firebaseReponse.Result.shortLink;
             request.ipnUrl = "http://esmpfree-001-site1.etempurl.com/api/Payment";
             request.amount = Gettotalprice(orderID);
             request.orderId = orderID + "-" + myuuidAsString;
@@ -232,9 +241,14 @@ namespace eSMP.Services.MomoRepo
                     {
                         OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
                         transacsion.OrderID = order.OrderID;
-                        DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-                        dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToLocalTime();
-                        transacsion.Create_Date = dateTime;
+                        DateTime dateTime = new DateTime();
+                        dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToUniversalTime();
+
+                        string vnTimeZoneKey = "SE Asia Standard Time";
+                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
+
+                        transacsion.Create_Date = VnTime;
                         transacsion.ResultCode = payINP.resultCode;
                         transacsion.MomoTransactionID = payINP.transId;
                         transacsion.OrderIDMOMO = payINP.orderId;
@@ -247,10 +261,11 @@ namespace eSMP.Services.MomoRepo
                         {
                             if (shipReponse.success)
                             {
+                                //lay tien
+                                ConfirmReponse confirmReponse = confirm(order.OrderID).Result;
                                 order.OrderStatusID = 1;
                                 _context.SaveChanges();
                                 //updateamount
-
                                 var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
                                 foreach (var detail in listdetail)
                                 {
@@ -298,6 +313,8 @@ namespace eSMP.Services.MomoRepo
             var contents = quickPayResponse.Content.ReadFromJsonAsync<ConfirmReponse>();
             if (contents.Result.resultCode == 0)
             {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                order.OrderStatusID = 3;
                 ordertransaction.ResultCode = -1;
                 _context.SaveChanges();
             }
@@ -362,7 +379,7 @@ namespace eSMP.Services.MomoRepo
             Result result = new Result();
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1 && int.Parse(_context.ShipOrders.LastOrDefault(so => so.OrderID == orderID).Status_ID) < 2 && int.Parse(_context.ShipOrders.LastOrDefault(so => so.OrderID == orderID).Status_ID) != -1);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1 && _context.ShipOrders.OrderByDescending(so=>so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID=="-2" || _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID=="1");
                 if (order != null)
                 {
                     var shipReponse=_shipReposity.Value.CancelOrder(orderID);
@@ -375,8 +392,6 @@ namespace eSMP.Services.MomoRepo
                                 var comfim=ConfimCancelOrder(orderID);
                                 if (comfim.Success)
                                 {
-                                    order.OrderStatusID = 3;
-                                    _context.SaveChanges();
                                     return comfim;
                                 }
                             }
@@ -426,37 +441,38 @@ namespace eSMP.Services.MomoRepo
             Result result = new Result();
             try
             {
-                ConfirmReponse confirmReponse = confirm(orderID).Result;
-                if (confirmReponse.resultCode == 0)
+                var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt=>obt.OrderID==orderID);
+                if (confirmReponse.ResultCode == 0)
                 {
                     //ghi nhan doanh thu
                     //store
                     var store = GetStoreByorderID(orderID);
                     var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
-
+                    var orderprice=_orderReposity.Value.GetPriceItemOrder(orderID);
+                    var shipprice = GetFeeship(orderID);
                     OrderStore_Transaction orderStore_Transaction = new OrderStore_Transaction();
                     orderStore_Transaction.OrderID = orderID;
                     orderStore_Transaction.StoreID= store.StoreID;
                     orderStore_Transaction.IsActive = true;
-                    orderStore_Transaction.Price = confirmReponse.amount * (1 - system.Commission_Precent);
-                    orderStore_Transaction.Create_Date = DateTime.UtcNow;
+                    orderStore_Transaction.Price = orderprice * (1 - system.Commission_Precent)+shipprice;
+                    orderStore_Transaction.Create_Date = GetVnTime();
                     //sys
                     OrderSystem_Transaction orderSystem_Transaction = new OrderSystem_Transaction();
                     orderSystem_Transaction.OrderStore_Transaction = orderStore_Transaction;
                     orderSystem_Transaction.SystemID = system.SystemID;
-                    orderSystem_Transaction.Create_Date = DateTime.UtcNow;
-                    orderSystem_Transaction.Price= confirmReponse.amount *system.Commission_Precent;
+                    orderSystem_Transaction.Create_Date = GetVnTime();
+                    orderSystem_Transaction.Price= orderprice *system.Commission_Precent;
                     orderSystem_Transaction.IsActive = true;
                     _context.OrderSystem_Transactions.Add(orderSystem_Transaction);
                     _context.SaveChanges();
                     result.Success = true;
-                    result.Message = confirmReponse.message;
-                    result.Data = confirmReponse.resultCode;
+                    result.Message = "Thành công";
+                    result.Data = "";
                     return result;
                 }
                 result.Success = false;
-                result.Message = confirmReponse.message;
-                result.Data = confirmReponse.resultCode;
+                result.Message = "Thất bại";
+                result.Data = "";
                 return result;
             }
             catch
@@ -592,7 +608,7 @@ namespace eSMP.Services.MomoRepo
                     {
                         store.Store_StatusID = 1;
                         store.MomoTransactionID = payINP.transId;
-                        store.Actice_Date=DateTime.UtcNow;
+                        store.Actice_Date=GetVnTime();
                         store.AmountActive = payINP.amount;
                         _context.SaveChanges();
                         //updateamount
@@ -606,6 +622,47 @@ namespace eSMP.Services.MomoRepo
                 _context.SaveChanges();
                 return;
             }
+        }
+        public Result RefundOrder(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                RefundReponse refundReponse = refundtransaction(orderID).Result;
+                if (refundReponse.resultCode == 0)
+                {
+                    result.Success = true;
+                    result.Message = refundReponse.message;
+                    result.Data = refundReponse.resultCode;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = refundReponse.message;
+                result.Data = refundReponse.resultCode;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public async Task<FirebaseReponse> Getapplink(int orderID)
+        {
+            FirebaseRequest request = new FirebaseRequest();
+            //https://esmp.page.link/view
+            request.longDynamicLink = "https://esmp.page.link/?link=http://www.google.com?orderID="+orderID+"&apn=com.example.esmp_project";
+            Suffix suffix = new Suffix();
+            suffix.option = "UNGUESSABLE";
+            request.suffix = suffix;
+            var client = new HttpClient();
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+
+            var quickPayResponse = await client.PostAsync("https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyBaUaNJe050MkvaSfL2LOw24AnXKN2Sl60", httpContent);
+            var contents = quickPayResponse.Content.ReadFromJsonAsync<FirebaseReponse>();
+            return contents.Result;
         }
     }
 }

@@ -93,7 +93,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
-        [Route("orderinfo")]
+        [Route("order_info")]
         public IActionResult GetOrderInfo(int orderID)
         {
             try
@@ -119,12 +119,77 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
-        [Route("get_order_staus")]
+        [Route("get_order_status")]
         public IActionResult GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page)
         {
             try
             {
                 return Ok(_orderReposity.GetOrdersWithShipstatus(userID,storeID,dateFrom,dateTo,shipOrderStatus,page));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpGet]
+        [Route("get_list_feedback")]
+        public IActionResult GetlistFeedback(int? page, bool isFeedback, int? userID)
+        {
+            try
+            {
+                return Ok(_orderReposity.GetlistFeedback(page,isFeedback,userID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpGet]
+        [Route("get_feedback_detail")]
+        public IActionResult GetFeedbackDetail(int orderDetailID)
+        {
+            try
+            {
+                return Ok(_orderReposity.GetFeedbackDetail(orderDetailID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("hidden_feedback")]
+        public IActionResult HiddenFeedback(int orderDetailID)
+        {
+            try
+            {
+                return Ok(_orderReposity.HiddenFeedback(orderDetailID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("block_feedback")]
+        public IActionResult BlockFeedback(int orderDetailID)
+        {
+            try
+            {
+                return Ok(_orderReposity.BlockFeedback(orderDetailID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
+        [HttpPut]
+        [Route("check_pay")]
+        public IActionResult CheckOrderPay(int orderID)
+        {
+            try
+            {
+                return Ok(_orderReposity.CheckPay(orderID));
             }
             catch
             {

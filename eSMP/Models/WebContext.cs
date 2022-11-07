@@ -41,11 +41,13 @@ namespace eSMP.Models
         public DbSet<Withdrawal_Status> Withdrawal_Statuses { get; set; }
         public DbSet<Store_Withdrawal> Store_Withdrawals { get; set; }
         public DbSet<BankSupport> BankSupports { get; set; }
+        public DbSet<Report> Reports { get; set; }
+        public DbSet<ReportStatus> ReportStatuses { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Data Source=SQL5097.site4now.net;Initial Catalog=db_a8ef86_esmp;User Id=db_a8ef86_esmp_admin;Password=Se1234567890");
+                optionsBuilder.UseSqlServer("Data Source=SQL5107.site4now.net;Initial Catalog=db_a8ef86_esmp;User Id=db_a8ef86_esmp_admin;Password=Se1234567890");
                 optionsBuilder.UseLazyLoadingProxies();
             }
         }
@@ -103,6 +105,18 @@ namespace eSMP.Models
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<OrderStore_Transaction>()
                 .HasOne(e => e.Store)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Report>()
+                .HasOne(e => e.Store)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Report>()
+                .HasOne(e => e.OrderDetail)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Report>()
+                .HasOne(e => e.Item)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Model_Item>()

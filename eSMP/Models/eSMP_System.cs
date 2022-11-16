@@ -11,6 +11,7 @@ namespace eSMP.Models
         public double Commission_Precent { get; set; }
         public double Asset { get; set; }
         public double AmountActive { get; set; }
+        public double Refund_Precent { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

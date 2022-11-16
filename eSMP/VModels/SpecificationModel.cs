@@ -30,6 +30,5 @@ namespace eSMP.VModels
     {
         public int SpecificationID { get; set; }
         public string Value { get; set; }
-        public Boolean IsActive { get; set; }
     }
 }

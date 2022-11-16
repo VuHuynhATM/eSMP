@@ -22,7 +22,7 @@ namespace eSMP.Controllers
         public IActionResult ipnUrl(MomoPayINP payINP)
         {
             int resultCode = payINP.resultCode;
-            if (resultCode == 9000)
+            if (resultCode == 0)
                 _momoReposity.PayOrderINP(payINP);
             return Ok();
         }
@@ -41,11 +41,11 @@ namespace eSMP.Controllers
         }
         [HttpPut]
         [Route("cancel_order")]
-        public IActionResult CancelOrder(int orderID)
+        public IActionResult CancelOrder(int orderID, string reason)
         {
             try
             {
-                return Ok(_momoReposity.CancelOrder(orderID));
+                return Ok(_momoReposity.CancelOrder(orderID,reason));
             }
             catch
             {
@@ -58,7 +58,7 @@ namespace eSMP.Controllers
         {
             try
             {
-                return Ok(_momoReposity.ConfimOrder(orderID).Data);
+                return Ok(_momoReposity.ConfimOrder(orderID));
             }
             catch
             {

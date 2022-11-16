@@ -16,6 +16,7 @@
     public class ShipViewModel
     {
         public string LabelID { get; set; }
+        public string ShipStatusID { get; set; }
         public string Reason_code { get; set; }
         public string Reason { get; set; }
         public string status { get; set; }

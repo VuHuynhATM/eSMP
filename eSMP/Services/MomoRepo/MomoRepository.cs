@@ -37,7 +37,7 @@ namespace eSMP.Services.MomoRepo
         {
             Guid myuuid = Guid.NewGuid();
             string myuuidAsString = myuuid.ToString();
-            var firebaseReponse= Getapplink(orderID);
+            var firebaseReponse = Getapplink(orderID);
 
             MomoPayRequest request = new MomoPayRequest();
             //https://esmp.page.link/view
@@ -51,7 +51,7 @@ namespace eSMP.Services.MomoRepo
             request.extraData = "";
             request.lang = "vi";
             request.requestType = "captureWallet";
-            request.autoCapture = false;
+            request.autoCapture = true;
 
 
             var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&extraData=" + request.extraData + "&ipnUrl=" + request.ipnUrl + "&orderId=" + request.orderId + "&orderInfo=" + request.orderInfo + "&partnerCode=" + request.partnerCode + "&redirectUrl=" + request.redirectUrl + "&requestId=" + request.requestId + "&requestType=" + request.requestType;
@@ -86,7 +86,15 @@ namespace eSMP.Services.MomoRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    var feeShip = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(orderID)).fee.fee;
+                    var feeShip = 0;
+                    if (order.OrderStatusID != 2)
+                    {
+                        feeShip = (int)order.FeeShip;
+                    }
+                    else
+                    {
+                        feeShip = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(orderID)).fee.fee;
+                    }
                     var priceitem = _orderReposity.Value.GetPriceItemOrder(orderID);
                     if (feeShip != 0 && priceitem != 0)
                     {
@@ -188,7 +196,6 @@ namespace eSMP.Services.MomoRepo
                                         result.Data = momoPayReponse;
                                         return result;
                                     }
-
                                 }
                                 else
                                 {
@@ -232,8 +239,8 @@ namespace eSMP.Services.MomoRepo
         {
             try
             {
-                
-                if (payINP.resultCode == 9000)
+
+                if (payINP.resultCode == 0)
                 {
                     var orderid = payINP.orderId.Split('-')[0];
                     var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
@@ -262,8 +269,11 @@ namespace eSMP.Services.MomoRepo
                             if (shipReponse.success)
                             {
                                 //lay tien
-                                ConfirmReponse confirmReponse = confirm(order.OrderID).Result;
+                                //ConfirmReponse confirmReponse = confirm(order.OrderID).Result;
                                 order.OrderStatusID = 1;
+                                order.FeeShip = shipReponse.order.fee;
+                                order.Create_Date = GetVnTime();
+                                //tạo status
                                 _context.SaveChanges();
                                 //updateamount
                                 var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
@@ -276,7 +286,12 @@ namespace eSMP.Services.MomoRepo
                             }
                             else
                             {
-                                ConfimCancelOrder(order.OrderID);
+                                //ConfimCancelOrder(order.OrderID);
+                                order.OrderStatusID = 3;
+                                order.FeeShip = shipReponse.order.fee;
+                                order.Create_Date = GetVnTime();
+                                _context.SaveChanges();
+                                RefundOrder(order.OrderID);
                                 _context.orderBuy_Transacsions.Remove(transacsion);
                             }
                         }
@@ -295,7 +310,7 @@ namespace eSMP.Services.MomoRepo
         {
             Guid myuuid = Guid.NewGuid();
             string myuuidAsString = myuuid.ToString();
-            var ordertransaction=_context.orderBuy_Transacsions.SingleOrDefault(obt=>obt.OrderID==orderID);
+            var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
             ConfirmRequest request = new ConfirmRequest();
             request.orderId = ordertransaction.OrderIDMOMO;
             request.requestId = myuuidAsString;
@@ -341,7 +356,7 @@ namespace eSMP.Services.MomoRepo
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
             var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/confirm", httpContent);
             var contents = quickPayResponse.Content.ReadFromJsonAsync<ConfirmReponse>();
-            if (contents.Result.resultCode ==0)
+            if (contents.Result.resultCode == 0)
             {
                 ordertransaction.ResultCode = 0;
                 _context.SaveChanges();
@@ -360,7 +375,7 @@ namespace eSMP.Services.MomoRepo
             request.lang = "vi";
             request.amount = Gettotalprice(orderID);
             request.description = "";
-            request.transId = long.Parse(ordertransaction.OrderIDMOMO);
+            request.transId = ordertransaction.MomoTransactionID;
 
             var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId + "&partnerCode=" + request.partnerCode + "&requestId=" + request.requestId + "&transId=" + request.transId;
 
@@ -369,36 +384,66 @@ namespace eSMP.Services.MomoRepo
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
             var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent);
             var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>();
-            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-            role.RoleName = contents.Result.message + "-" + contents.Result.resultCode + "-" + contents.Result.amount;
-            _context.SaveChanges();
+            if (contents.Result.resultCode == 0)
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                order.OrderStatusID = 3;
+                ordertransaction.ResultCode = -1;
+                _context.SaveChanges();
+            }
             return contents.Result;
         }
-        public Result CancelOrder(int orderID)
+        public Result CancelOrder(int orderID, string reason)
         {
             Result result = new Result();
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1 && _context.ShipOrders.OrderByDescending(so=>so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID=="-2" || _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID=="1");
+                var check = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 3);
+                if (check != null)
+                {
+                    result.Success = false;
+                    result.Message = "Đơn hàn đã hủy trước đó";
+                    result.Data = "";
+                    return result;
+                }
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1 && _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID == "-2" || _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID == "1");
                 if (order != null)
                 {
-                    var shipReponse=_shipReposity.Value.CancelOrder(orderID);
-                    if(shipReponse != null)
+                    var shipReponse = _shipReposity.Value.CancelOrder(orderID);
+                    if (shipReponse != null)
                     {
                         if (shipReponse.Success)
                         {
-                            if (_orderReposity.Value.CancelOrder(orderID))
+                            var comfim = RefundOrder(orderID);
+                            if (comfim.Success)
                             {
-                                var comfim=ConfimCancelOrder(orderID);
-                                if (comfim.Success)
-                                {
-                                    return comfim;
-                                }
+                                var labelID = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID).LabelID;
+                                order.Reason = reason;
+                                order.OrderStatusID = 3;
+                                _orderReposity.Value.CancelOrder(orderID);
+                                ShipOrder model = new ShipOrder();
+                                model.OrderID = order.OrderID;
+                                model.Create_Date = GetVnTime();
+                                model.LabelID = labelID;
+                                model.Reason = "";
+                                model.Reason_code = "";
+                                model.Status_ID = "-3";
+                                _context.ShipOrders.Add(model);
+                                _context.SaveChanges();
+
+                                result.Success = true;
+                                result.Message = "Hủy đơn hàng thành công";
+                                result.Data = "";
+                                return result;
                             }
+                            result.Success = false;
+                            result.Message = "Thất bại do không thể hoàn tiền";
+                            result.Data = "";
+                            return result;
                         }
-                        result.Success = shipReponse.Success;
-                        result.Message = shipReponse.Message;
-                        result.Data = shipReponse.Data;
+                        result.Success = false;
+                        result.Message = "Không thể huỷ cho hoá đơn này(shíp service)";
+                        result.Data = "";
                         return result;
                     }
                 }
@@ -422,7 +467,7 @@ namespace eSMP.Services.MomoRepo
         }
         public Store GetStoreByorderID(int orderID)
         {
-            var subitemID=_context.OrderDetails.FirstOrDefault(od=>od.OrderID == orderID).Sub_ItemID;
+            var subitemID = _context.OrderDetails.FirstOrDefault(od => od.OrderID == orderID).Sub_ItemID;
             return GetStoreBySubItemID(subitemID);
         }
         public Store GetStoreBySubItemID(int sub_itemID)
@@ -441,28 +486,30 @@ namespace eSMP.Services.MomoRepo
             Result result = new Result();
             try
             {
-                var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt=>obt.OrderID==orderID);
+                var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
                 if (confirmReponse.ResultCode == 0)
                 {
                     //ghi nhan doanh thu
                     //store
                     var store = GetStoreByorderID(orderID);
                     var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
-                    var orderprice=_orderReposity.Value.GetPriceItemOrder(orderID);
+                    var orderprice = _orderReposity.Value.GetPriceItemOrder(orderID);
                     var shipprice = GetFeeship(orderID);
                     OrderStore_Transaction orderStore_Transaction = new OrderStore_Transaction();
                     orderStore_Transaction.OrderID = orderID;
-                    orderStore_Transaction.StoreID= store.StoreID;
+                    orderStore_Transaction.StoreID = store.StoreID;
                     orderStore_Transaction.IsActive = true;
-                    orderStore_Transaction.Price = orderprice * (1 - system.Commission_Precent)+shipprice;
+                    orderStore_Transaction.Price = orderprice * (1 - system.Commission_Precent) + shipprice;
                     orderStore_Transaction.Create_Date = GetVnTime();
+                    store.Asset = store.Asset + orderStore_Transaction.Price;
                     //sys
                     OrderSystem_Transaction orderSystem_Transaction = new OrderSystem_Transaction();
                     orderSystem_Transaction.OrderStore_Transaction = orderStore_Transaction;
                     orderSystem_Transaction.SystemID = system.SystemID;
                     orderSystem_Transaction.Create_Date = GetVnTime();
-                    orderSystem_Transaction.Price= orderprice *system.Commission_Precent;
+                    orderSystem_Transaction.Price = orderprice * system.Commission_Precent;
                     orderSystem_Transaction.IsActive = true;
+                    system.Asset = system.Asset + orderSystem_Transaction.Price;
                     _context.OrderSystem_Transactions.Add(orderSystem_Transaction);
                     _context.SaveChanges();
                     result.Success = true;
@@ -602,14 +649,15 @@ namespace eSMP.Services.MomoRepo
                 if (payINP.resultCode == 0)
                 {
                     var storeID = payINP.orderId.Split('-')[0];
-
+                    var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
                     var store = _context.Stores.SingleOrDefault(s => s.StoreID == int.Parse(storeID));
                     if (store != null)
                     {
                         store.Store_StatusID = 1;
                         store.MomoTransactionID = payINP.transId;
-                        store.Actice_Date=GetVnTime();
+                        store.Actice_Date = GetVnTime();
                         store.AmountActive = payINP.amount;
+                        system.Asset=system.Asset+payINP.amount;
                         _context.SaveChanges();
                         //updateamount
                     }
@@ -632,7 +680,7 @@ namespace eSMP.Services.MomoRepo
                 if (refundReponse.resultCode == 0)
                 {
                     result.Success = true;
-                    result.Message = refundReponse.message;
+                    result.Message = "Thành công";
                     result.Data = refundReponse.resultCode;
                     return result;
                 }
@@ -653,7 +701,7 @@ namespace eSMP.Services.MomoRepo
         {
             FirebaseRequest request = new FirebaseRequest();
             //https://esmp.page.link/view
-            request.longDynamicLink = "https://esmp.page.link/?link=http://www.google.com?orderID="+orderID+"&apn=com.example.esmp_project";
+            request.longDynamicLink = "https://esmp.page.link/?link=http://www.google.com?orderID=" + orderID + "&apn=com.example.esmp_project";
             Suffix suffix = new Suffix();
             suffix.option = "UNGUESSABLE";
             request.suffix = suffix;

@@ -1,9 +1,15 @@
 ﻿using eSMP.Models;
 using eSMP.Services.BrandRepo;
+using eSMP.Services.FileRepo;
 using eSMP.Services.SpecificationRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.Services.UserRepo;
 using eSMP.VModels;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
 
 namespace eSMP.Services.ItemRepo
 {
@@ -14,16 +20,18 @@ namespace eSMP.Services.ItemRepo
         private readonly ISpecificationReposity _specificationReposity;
         private readonly IUserReposity _userReposity;
         private readonly IBrandReposity _brandReposity;
+        private readonly IFileReposity _fileReposity;
 
         public static int PAGE_SIZE { get; set; } = 25;
 
-        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity)
+        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity, IFileReposity fileReposity)
         {
             _context = context;
             _storeReposity = storeReposity;
             _specificationReposity = specificationReposity;
             _userReposity = userReposity;
             _brandReposity = brandReposity;
+            _fileReposity = fileReposity;
         }
         public DateTime GetVnTime()
         {
@@ -49,34 +57,49 @@ namespace eSMP.Services.ItemRepo
                 newItem.Discount = item.Discount;
                 newItem.Item_StatusID = 3;
 
-                var listsub = item.List_SubItem;
+                //var listsub = JsonConvert.DeserializeObject<ItemRegister_Sub>(item.List_SubItem);
+                IEnumerable<ItemRegister_Sub> listsub = JsonConvert.DeserializeObject<IEnumerable<ItemRegister_Sub>>(item.List_SubItem);
+                IEnumerable<SpecificationTagRegister> listSpec = JsonConvert.DeserializeObject<IEnumerable<SpecificationTagRegister>>(item.List_Specitication);
+                IEnumerable<int> listModel = JsonConvert.DeserializeObject<IEnumerable<int>>(item.ListModel);
+                int index = 0;
+                var listSubImage = item.List_SubItem_Image;
                 foreach (var itemsub in listsub)
                 {
+                    Guid myuuid = Guid.NewGuid();
+                    string myuuidAsString = myuuid.ToString();
+                    var filename = "eSMP" + myuuidAsString;
+                    string path = _fileReposity.UploadFile(listSubImage[index], filename).Result;
+
                     Sub_Item sub = new Sub_Item();
-                    sub.Sub_ItemName = itemsub.Sub_ItemName;
-                    sub.Amount = itemsub.Amount;
+                    sub.Sub_ItemName = itemsub.sub_ItemName;
+                    sub.Amount = itemsub.amount;
                     sub.SubItem_StatusID = 3;
-                    sub.Price = itemsub.Price;
+                    sub.Price = itemsub.price;
                     sub.Item = newItem;
 
                     Image i = new Image();
                     i.Crete_date = GetVnTime();
-                    i.FileName = itemsub.filename;
-                    i.Path = itemsub.imagepath;
+                    i.FileName = filename;
+                    i.Path = path;
                     i.IsActive = true;
 
                     sub.Image = i;
-
+                    index++;
                     _context.Sub_Items.Add(sub);
                 }
 
                 var listImage = item.List_Image;
                 foreach (var image in listImage)
                 {
+                    Guid myuuid = Guid.NewGuid();
+                    string myuuidAsString = myuuid.ToString();
+                    var filename = "eSMP" + myuuidAsString;
+                    string path = _fileReposity.UploadFile(image, filename).Result;
+
                     Image i = new Image();
                     i.Crete_date = GetVnTime();
-                    i.FileName = image.FileName;
-                    i.Path = image.Path;
+                    i.FileName = filename;
+                    i.Path = path;
                     i.IsActive = true;
 
                     Item_Image item_Image = new Item_Image();
@@ -85,7 +108,7 @@ namespace eSMP.Services.ItemRepo
 
                     _context.Item_Images.Add(item_Image);
                 }
-                var listSpec = item.List_Specitication;
+
                 foreach (var specitication in listSpec)
                 {
                     Specification_Value specification_Value = new Specification_Value();
@@ -95,7 +118,7 @@ namespace eSMP.Services.ItemRepo
                     specification_Value.IsActive = true;
                     _context.Specification_Values.Add(specification_Value);
                 }
-                var listModel = item.ListModel;
+
                 foreach (var model in listModel)
                 {
                     Model_Item model_Item = new Model_Item();
@@ -333,8 +356,10 @@ namespace eSMP.Services.ItemRepo
                     var user = _userReposity.GetUserIFByID(order.UserID);
                     FeedBackModel model = new FeedBackModel();
                     model.UserName = user.UserName;
+                    model.UserID = user.UserID;
                     model.UserAvatar = user.Image.Path;
                     model.orderDetaiID = item.OrderDetailID;
+                    model.Create_Date = item.FeedBack_Date;
                     model.Sub_itemName = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID).Sub_ItemName;
                     if (item.FeedBack_Date.HasValue)
                     {
@@ -451,7 +476,7 @@ namespace eSMP.Services.ItemRepo
                 //Fillter
                 if (!string.IsNullOrEmpty(search))
                 {
-                    listItem = listItem.Where(i => i.Name.Contains(search));
+                    listItem = listItem.Where(i => EF.Functions.Collate(i.Name, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
                 }
                 else
                 {
@@ -638,20 +663,32 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result AddsubItem(int itemID, Sub_ItemRegister subItem)
+        public Result AddsubItem(Sub_ItemRegister subItem)
         {
             Result result = new Result();
             try
             {
-                var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
+                var item = _context.Items.SingleOrDefault(i => i.ItemID == subItem.itemID);
                 if (item != null)
                 {
+                    Guid myuuid = Guid.NewGuid();
+                    string myuuidAsString = myuuid.ToString();
+                    var filename = "eSMP" +item.ItemID + myuuidAsString;
+                    string path = _fileReposity.UploadFile(subItem.File, filename).Result;
+
+                    Image image = new Image();
+                    image.Crete_date = GetVnTime();
+                    image.FileName = filename;
+                    image.Path = path;
+                    image.IsActive = true;
+
                     Sub_Item si = new Sub_Item();
                     si.Sub_ItemName = subItem.Sub_ItemName;
                     si.Amount = subItem.Amount;
                     si.Price = subItem.Price;
                     si.SubItem_StatusID = 3;
                     si.ItemID = item.ItemID;
+                    si.Image = image;
                     _context.Sub_Items.Add(si);
                     _context.SaveChanges();
                     result.Success = false;
@@ -962,7 +999,7 @@ namespace eSMP.Services.ItemRepo
                 //Fillter
                 if (!string.IsNullOrEmpty(search))
                 {
-                    listItem = listItem.Where(i => i.Name.Contains(search));
+                    listItem = listItem.Where(i => EF.Functions.Collate(i.Name, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
                 }
                 else
                 {

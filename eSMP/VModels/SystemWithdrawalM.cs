@@ -6,8 +6,7 @@ namespace eSMP.VModels
 {
     public class SystemWithdrawalM
     {
-        public string FileName { get; set; }
-        public string FilePath { get; set; }
+        public IFormFile File { get; set; }
         public string Context { get; set; }
         public DateTime Create_Date { get; set; }
         public double Price { get; set; }
@@ -25,8 +24,8 @@ namespace eSMP.VModels
     public class OrderSystemTransactionView
     {
         public int OrderSystem_TransactionID { get; set; }
-        public int OrderStore_TransactionID { get; set; }
-        public int orderID { get; set; }
+        public int StoreID { get; set; }
+        public OrderStore_TransactionModel OrderStore_TransactionModel { get; set; }
         public DateTime Create_Date { get; set; }
         public double Price { get; set; }
         public Boolean IsActive { get; set; }
@@ -43,6 +42,7 @@ namespace eSMP.VModels
     {
         public int OrderStore_TransactionID { get; set; }
         public int OrderID { get; set; }
+        public long MomoTransaction { get; set; }
         public DateTime Create_Date { get; set; }
         public double Price { get; set; }
         public Boolean IsActive { get; set; }
@@ -59,8 +59,7 @@ namespace eSMP.VModels
     public class StoreWithdrawalSuccessRequest
     {
         public int Store_WithdrawalID { get; set; }
-        public string Filename { get; set; }
-        public string Path { get; set; }
+        public IFormFile File { get; set; }
 
     }
     public class Store_WithdrawalModel

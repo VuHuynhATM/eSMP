@@ -75,7 +75,7 @@ namespace eSMP.Services.ShipRepo
                 //giao hang that bai
                 if(status_id ==9 || status_id == 7)
                 {
-                    var comfim = _momoReposity.Value.ConfimCancelOrder(shipOrder.OrderID);
+                    var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID);
                 }
                 _context.SaveChanges();
                 return true;
@@ -171,8 +171,11 @@ namespace eSMP.Services.ShipRepo
                 }
                 return null;
             }
-            catch
+            catch(Exception ex)
             {
+                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+                role.RoleName = role.RoleName+ex.Message;
+                _context.SaveChanges();
                 return null;
             }
         }

@@ -83,7 +83,6 @@ namespace eSMP.VModels
     public class EditImage
     {
         public int UserID { get; set; }
-        public string PathImage { get; set; }
-        public string FileName { get; set; }
+        public IFormFile File { get; set; }
     }
 }

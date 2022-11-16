@@ -107,7 +107,7 @@ namespace eSMP.Controllers
         }
         [HttpPost]
         [Route("feedback")]
-        public IActionResult FeedBack (FeedBackOrderDetail feedBack)
+        public IActionResult FeedBack ([FromForm] FeedBackOrderDetail feedBack)
         {
             try
             {
@@ -183,7 +183,7 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
-        [HttpPut]
+        [HttpGet]
         [Route("check_pay")]
         public IActionResult CheckOrderPay(int orderID)
         {

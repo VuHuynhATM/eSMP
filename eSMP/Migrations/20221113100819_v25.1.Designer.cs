@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221113100819_v25.1")]
+    partial class v251
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,7 +67,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("AddressID");
 
-                    b.ToTable("Address", (string)null);
+                    b.ToTable("Address");
                 });
 
             modelBuilder.Entity("eSMP.Models.BankSupport", b =>
@@ -89,7 +91,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("BankID");
 
-                    b.ToTable("BankSupport", (string)null);
+                    b.ToTable("BankSupport");
                 });
 
             modelBuilder.Entity("eSMP.Models.Brand", b =>
@@ -109,7 +111,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("BrandID");
 
-                    b.ToTable("Brand", (string)null);
+                    b.ToTable("Brand");
                 });
 
             modelBuilder.Entity("eSMP.Models.Brand_Model", b =>
@@ -134,7 +136,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("BrandID");
 
-                    b.ToTable("Brand_Model", (string)null);
+                    b.ToTable("Brand_Model");
                 });
 
             modelBuilder.Entity("eSMP.Models.Category", b =>
@@ -154,7 +156,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("CategoryID");
 
-                    b.ToTable("Category", (string)null);
+                    b.ToTable("Category");
                 });
 
             modelBuilder.Entity("eSMP.Models.eSMP_System", b =>
@@ -182,7 +184,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("SystemID");
 
-                    b.ToTable("eSMP_System", (string)null);
+                    b.ToTable("eSMP_System");
                 });
 
             modelBuilder.Entity("eSMP.Models.Feedback_Image", b =>
@@ -209,7 +211,7 @@ namespace eSMP.Migrations
                     b.HasIndex("ImageID", "OrderDetailID")
                         .IsUnique();
 
-                    b.ToTable("Feedback_Image", (string)null);
+                    b.ToTable("Feedback_Image");
                 });
 
             modelBuilder.Entity("eSMP.Models.Feedback_Status", b =>
@@ -229,7 +231,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("Feedback_StatusID");
 
-                    b.ToTable("Feedback_Status", (string)null);
+                    b.ToTable("Feedback_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.Image", b =>
@@ -256,7 +258,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("ImageID");
 
-                    b.ToTable("Image", (string)null);
+                    b.ToTable("Image");
                 });
 
             modelBuilder.Entity("eSMP.Models.Item", b =>
@@ -301,7 +303,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("Sub_CategoryID");
 
-                    b.ToTable("Item", (string)null);
+                    b.ToTable("Item");
                 });
 
             modelBuilder.Entity("eSMP.Models.Item_Image", b =>
@@ -325,7 +327,7 @@ namespace eSMP.Migrations
                     b.HasIndex("ImageID", "ItemID")
                         .IsUnique();
 
-                    b.ToTable("Item_Image", (string)null);
+                    b.ToTable("Item_Image");
                 });
 
             modelBuilder.Entity("eSMP.Models.Item_Status", b =>
@@ -345,7 +347,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("Item_StatusID");
 
-                    b.ToTable("ItemStatus", (string)null);
+                    b.ToTable("ItemStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.Model_Item", b =>
@@ -372,7 +374,7 @@ namespace eSMP.Migrations
                     b.HasIndex("ItemID", "Brand_ModelID")
                         .IsUnique();
 
-                    b.ToTable("Model_Item", (string)null);
+                    b.ToTable("Model_Item");
                 });
 
             modelBuilder.Entity("eSMP.Models.Order", b =>
@@ -452,7 +454,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("Order", (string)null);
+                    b.ToTable("Order");
                 });
 
             modelBuilder.Entity("eSMP.Models.OrderBuy_Transacsion", b =>
@@ -487,7 +489,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("OrderID");
 
-                    b.ToTable("OrderBuy_Transacsion", (string)null);
+                    b.ToTable("OrderBuy_Transacsion");
                 });
 
             modelBuilder.Entity("eSMP.Models.OrderDetail", b =>
@@ -533,7 +535,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("Sub_ItemID");
 
-                    b.ToTable("OrderDetail", (string)null);
+                    b.ToTable("OrderDetail");
                 });
 
             modelBuilder.Entity("eSMP.Models.OrderStatus", b =>
@@ -553,7 +555,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("OrderStatusID");
 
-                    b.ToTable("OrderStatus", (string)null);
+                    b.ToTable("OrderStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.OrderStore_Transaction", b =>
@@ -586,7 +588,7 @@ namespace eSMP.Migrations
                     b.HasIndex("StoreID", "OrderID")
                         .IsUnique();
 
-                    b.ToTable("OrderStore_Transaction", (string)null);
+                    b.ToTable("OrderStore_Transaction");
                 });
 
             modelBuilder.Entity("eSMP.Models.OrderSystem_Transaction", b =>
@@ -618,7 +620,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("SystemID");
 
-                    b.ToTable("OrderSystem_Transaction", (string)null);
+                    b.ToTable("OrderSystem_Transaction");
                 });
 
             modelBuilder.Entity("eSMP.Models.Report", b =>
@@ -663,7 +665,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("Report", (string)null);
+                    b.ToTable("Report");
                 });
 
             modelBuilder.Entity("eSMP.Models.ReportStatus", b =>
@@ -683,7 +685,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("ReportStatusID");
 
-                    b.ToTable("ReportStatus", (string)null);
+                    b.ToTable("ReportStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.Role", b =>
@@ -703,7 +705,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("RoleID");
 
-                    b.ToTable("Role", (string)null);
+                    b.ToTable("Role");
                 });
 
             modelBuilder.Entity("eSMP.Models.ShipOrder", b =>
@@ -742,7 +744,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("Status_ID");
 
-                    b.ToTable("ShipOrder", (string)null);
+                    b.ToTable("ShipOrder");
                 });
 
             modelBuilder.Entity("eSMP.Models.ShipStatus", b =>
@@ -756,7 +758,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("Status_ID");
 
-                    b.ToTable("ShipStatus", (string)null);
+                    b.ToTable("ShipStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.Specification", b =>
@@ -776,7 +778,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("SpecificationID");
 
-                    b.ToTable("Specification", (string)null);
+                    b.ToTable("Specification");
                 });
 
             modelBuilder.Entity("eSMP.Models.Specification_Value", b =>
@@ -807,7 +809,7 @@ namespace eSMP.Migrations
                     b.HasIndex("SpecificationID", "ItemID")
                         .IsUnique();
 
-                    b.ToTable("Specification_Value", (string)null);
+                    b.ToTable("Specification_Value");
                 });
 
             modelBuilder.Entity("eSMP.Models.Store", b =>
@@ -871,7 +873,7 @@ namespace eSMP.Migrations
                     b.HasIndex("UserID")
                         .IsUnique();
 
-                    b.ToTable("Store", (string)null);
+                    b.ToTable("Store");
                 });
 
             modelBuilder.Entity("eSMP.Models.Store_Status", b =>
@@ -891,7 +893,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("Store_StatusID");
 
-                    b.ToTable("Store_Status", (string)null);
+                    b.ToTable("Store_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.Store_Withdrawal", b =>
@@ -942,7 +944,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("Withdrawal_StatusID");
 
-                    b.ToTable("Store_Withdrawal", (string)null);
+                    b.ToTable("Store_Withdrawal");
                 });
 
             modelBuilder.Entity("eSMP.Models.Sub_Category", b =>
@@ -967,7 +969,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("CategoryID");
 
-                    b.ToTable("Sub_Category", (string)null);
+                    b.ToTable("Sub_Category");
                 });
 
             modelBuilder.Entity("eSMP.Models.Sub_Item", b =>
@@ -1005,7 +1007,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("SubItem_StatusID");
 
-                    b.ToTable("Sub_Item", (string)null);
+                    b.ToTable("Sub_Item");
                 });
 
             modelBuilder.Entity("eSMP.Models.SubCate_Specification", b =>
@@ -1032,7 +1034,7 @@ namespace eSMP.Migrations
                     b.HasIndex("SpecificationID", "Sub_CategoryID")
                         .IsUnique();
 
-                    b.ToTable("SubCate_Specification", (string)null);
+                    b.ToTable("SubCate_Specification");
                 });
 
             modelBuilder.Entity("eSMP.Models.SubItem_Status", b =>
@@ -1052,7 +1054,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("SubItem_StatusID");
 
-                    b.ToTable("SubItem_Status", (string)null);
+                    b.ToTable("SubItem_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.System_Withdrawal", b =>
@@ -1088,7 +1090,7 @@ namespace eSMP.Migrations
 
                     b.HasIndex("SystemID");
 
-                    b.ToTable("System_Withdrawal", (string)null);
+                    b.ToTable("System_Withdrawal");
                 });
 
             modelBuilder.Entity("eSMP.Models.User", b =>
@@ -1148,7 +1150,7 @@ namespace eSMP.Migrations
                     b.HasIndex("Phone", "RoleID")
                         .IsUnique();
 
-                    b.ToTable("User", (string)null);
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("eSMP.Models.User_Address", b =>
@@ -1175,7 +1177,7 @@ namespace eSMP.Migrations
                     b.HasIndex("AddressID", "UserID")
                         .IsUnique();
 
-                    b.ToTable("User_Address", (string)null);
+                    b.ToTable("User_Address");
                 });
 
             modelBuilder.Entity("eSMP.Models.Withdrawal_Status", b =>
@@ -1195,7 +1197,7 @@ namespace eSMP.Migrations
 
                     b.HasKey("Withdrawal_StatusID");
 
-                    b.ToTable("Withdrawal_Status", (string)null);
+                    b.ToTable("Withdrawal_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.Brand_Model", b =>

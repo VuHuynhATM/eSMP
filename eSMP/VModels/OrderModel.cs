@@ -26,6 +26,7 @@ namespace eSMP.VModels
         public string Ward { get; set; }
         public string Address { get; set; }
         public List<OrderDetailModel> Details { get; set; }
+        public string? Reason { get; set; }
     }
     public class OrderModelView
     {
@@ -50,6 +51,8 @@ namespace eSMP.VModels
         public string Address { get; set; }
         public List<OrderDetailModel> Details { get; set; }
         public ShipViewModel OrderShip{ get; set; }
+        public string? Reason { get; set; }
+
     }
     public class OrderDetailModel
     {
@@ -65,6 +68,8 @@ namespace eSMP.VModels
         public string sub_ItemImage { get; set; }
         public int ItemID { get; set; }
         public Feedback_Status? Feedback_Status { get; set; }
+        public List<Image>? ListImageFb { get; set; } 
+
     }
     public class OrderDetailAdd
     {
@@ -76,12 +81,7 @@ namespace eSMP.VModels
     {
         public int OrderDetaiID { get; set; }
         public int Rate { get; set; }
-        public string Text { get; set; }
-        public List<feedbackImage>? feedbackImages { get; set; }
-    }
-    public class feedbackImage
-    {
-        public string Name { get; set; }
-        public string Path { get; set; }
+        public string? Text { get; set; }
+        public IFormFileCollection? feedbackImages { get; set; }
     }
 }

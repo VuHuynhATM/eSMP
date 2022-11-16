@@ -99,7 +99,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        public IActionResult CreateItem(ItemRegister item)
+        public IActionResult CreateItem([FromForm]ItemRegister item)
         {
             try
             {
@@ -113,11 +113,11 @@ namespace eSMP.Controllers
         }
         [HttpPost]
         [Route("add_subitem")]
-        public IActionResult AddSubItem(int itemID, Sub_ItemRegister SubItem)
+        public IActionResult AddSubItem([FromForm]Sub_ItemRegister SubItem)
         {
             try
             {
-                var result = _itemReposity.AddsubItem(itemID,SubItem);
+                var result = _itemReposity.AddsubItem(SubItem);
                 return Ok(result);
             }
             catch

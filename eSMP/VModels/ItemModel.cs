@@ -1,4 +1,5 @@
 ﻿using eSMP.Models;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace eSMP.VModels
@@ -35,6 +36,12 @@ namespace eSMP.VModels
         public List<BrandModel> ListModel { get; set; }
         public List<FeedBackModel> ListFeedBack { get; set; }
     }
+    public class ItemRegister_Sub
+    {
+        public string sub_ItemName { get; set; }
+        public int amount { get; set; }
+        public double price { get; set; }
+    }
     public class SubItemModel
     {
         public int Sub_ItemID { get; set; }
@@ -46,10 +53,10 @@ namespace eSMP.VModels
     }
     public class Sub_ItemRegister
     {
+        public int itemID { get; set; }
         public string Sub_ItemName { get; set; }
         public int Amount { get; set; }
-        public string imagepath { get; set; }
-        public string filename { get; set; }
+        public IFormFile File { get; set; }
         public double Price { get; set; }
     }
     public class ItemImageRegister
@@ -64,10 +71,11 @@ namespace eSMP.VModels
         public double Discount { get; set; }
         public int StoreID { get; set; }
         public int Sub_CategoryID { get; set; }
-        public List<ItemImageRegister> List_Image { get; set; }
-        public List<Sub_ItemRegister> List_SubItem { get; set; }
-        public List<SpecificationTagRegister> List_Specitication { get; set; }
-        public List<int> ListModel { get; set; }
+        public IFormFileCollection List_Image { get; set; }
+        public IFormFileCollection List_SubItem_Image { get; set; }
+        public string List_SubItem { get; set; }
+        public string List_Specitication { get; set; }
+        public string ListModel { get; set; }
     }
     public class SubItemUpdate
     {

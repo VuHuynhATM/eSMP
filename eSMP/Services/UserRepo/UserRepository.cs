@@ -1,6 +1,8 @@
 ﻿using eSMP.Models;
+using eSMP.Services.FileRepo;
 using eSMP.Services.TokenRepo;
 using eSMP.VModels;
+using Microsoft.AspNetCore.Http;
 using User = eSMP.Models.User;
 
 namespace eSMP.Services.UserRepo
@@ -10,16 +12,25 @@ namespace eSMP.Services.UserRepo
         private readonly WebContext _context;
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
-
+        private readonly IFileReposity _fileReposity;
         private int PAGE_SIZE = 25;
 
-        public UserRepository(WebContext context, IConfiguration configuration, ITokenService tokenService)
+        public UserRepository(WebContext context, IConfiguration configuration, ITokenService tokenService, IFileReposity fileReposity)
         {
             _context = context;
             _configuration = configuration;
             _tokenService = tokenService;
+            _fileReposity = fileReposity;
         }
 
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
         public Result CustomerLogin(string phone)
         {
             Result result = new Result();
@@ -84,9 +95,9 @@ namespace eSMP.Services.UserRepo
                     if (u != null)
                     {
                         CreateTokenByUserID(u.UserID);
-                        var store = _context.Stores.SingleOrDefault(s=>s.UserID==u.UserID);
+                        var store = _context.Stores.SingleOrDefault(s => s.UserID == u.UserID);
                         int storeID = -1;
-                        if(store != null)
+                        if (store != null)
                         {
                             storeID = store.StoreID;
                         }
@@ -105,7 +116,7 @@ namespace eSMP.Services.UserRepo
                             Role = GetUserRole(u.RoleID),
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
-                            StoreID= storeID,
+                            StoreID = storeID,
                         };
                         if (!model.IsActive)
                         {
@@ -209,17 +220,18 @@ namespace eSMP.Services.UserRepo
                 {
                     try
                     {
+                        var date = GetVnTime();
                         Image image = new Image();
                         image.FileName = user.ImageName;
                         image.Path = user.Imagepath;
-                        image.Crete_date = DateTime.UtcNow;
+                        image.Crete_date = date;
                         image.IsActive = true;
 
                         User new_user = new User();
                         new_user.UserName = user.UserName;
                         new_user.Email = user.Email;
                         new_user.Phone = user.Phone;
-                        new_user.Crete_date = DateTime.UtcNow;
+                        new_user.Crete_date = date;
                         new_user.DateOfBirth = user.DateOfBirth;
                         new_user.Gender = user.Gender;
                         new_user.isActive = true;
@@ -296,17 +308,18 @@ namespace eSMP.Services.UserRepo
                 {
                     try
                     {
+                        var date = GetVnTime();
                         Image image = new Image();
                         image.FileName = user.ImageName;
                         image.Path = user.Imagepath;
-                        image.Crete_date = DateTime.UtcNow;
+                        image.Crete_date = date;
                         image.IsActive = true;
 
                         User new_user = new User();
                         new_user.UserName = user.UserName;
                         new_user.Email = user.Email;
                         new_user.Phone = user.Phone;
-                        new_user.Crete_date = DateTime.UtcNow;
+                        new_user.Crete_date = date;
                         new_user.DateOfBirth = user.DateOfBirth;
                         new_user.Gender = user.Gender;
                         new_user.isActive = true;
@@ -420,7 +433,7 @@ namespace eSMP.Services.UserRepo
                 var listuser = _context.Users.AsQueryable();
                 if (page.HasValue)
                 {
-                    listuser=listuser.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                    listuser = listuser.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 var r = new List<UserModel>();
                 if (listuser.Count() > 0)
@@ -744,18 +757,43 @@ namespace eSMP.Services.UserRepo
                     var img = _context.Images.SingleOrDefault(i => i.ImageID == user.ImageID);
                     if (img != null)
                     {
-                        img.Crete_date = DateTime.UtcNow;
-                        img.FileName = image.FileName;
-                        img.Path = image.PathImage;
-                        _context.SaveChanges();
-                        result.Success = true;
-                        result.Message = "Thay đổi thành công";
-                        result.Data = GetUserIFByID(user.UserID);
-                        return result;
+                        var file = image.File;
+                        var date = GetVnTime();
+                        Guid myuuid = Guid.NewGuid();
+                        string myuuidAsString = myuuid.ToString();
+                        string filename = user.UserID + "-" + myuuidAsString;
+                        string path = _fileReposity.UploadFile(file, filename).Result;
+                        string pathDelete = img.Path;
+                        string imageDelete = img.FileName;
+                        if (pathDelete != "https://firebasestorage.googleapis.com/v0/b/esmp-4b85e.appspot.com/o/images%2F16-1c8843e5-4dd0-4fb7-b061-3a9fcbd68c0d?alt=media&token=0c8838a5-d3c4-4c31-82ed-d9b91d8c11d9")
+                        {
+                            if (_fileReposity.DeleteFileASYNC(imageDelete).Result)
+                            {
+                                img.Crete_date = GetVnTime();
+                                img.FileName = filename;
+                                img.Path = path;
+                                _context.SaveChanges();
+                                result.Success = true;
+                                result.Message = "Thay đổi thành công";
+                                result.Data = GetUserIFByID(user.UserID);
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            img.Crete_date = GetVnTime();
+                            img.FileName = filename;
+                            img.Path = path;
+                            _context.SaveChanges();
+                            result.Success = true;
+                            result.Message = "Thay đổi thành công";
+                            result.Data = GetUserIFByID(user.UserID);
+                            return result;
+                        }
                     }
                 }
                 result.Success = false;
-                result.Message = "Thay đổi không thành công";
+                result.Message = "Tài khoản không tồn tại";
                 result.Data = "";
                 return result;
             }
@@ -876,7 +914,7 @@ namespace eSMP.Services.UserRepo
             Result result = new Result();
             try
             {
-                var u = _context.Users.SingleOrDefault(user => user.UserID==userID);
+                var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
                 if (u != null)
                 {
                     UserModel model = new UserModel

@@ -12,7 +12,7 @@ namespace eSMP.Services.ItemRepo
         public Result RemoveItem(int itemID);
         public Result SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int? page);
         public Result UpdatesubItem(SubItemUpdate subItem);
-        public Result AddsubItem(int itemID, Sub_ItemRegister subItem);
+        public Result AddsubItem(Sub_ItemRegister subItem);
         public Result ActivesubItem(int subitemID);
         public Result ActiveItem(int itemID);
         public Result BlocksubItem(int subitemID);

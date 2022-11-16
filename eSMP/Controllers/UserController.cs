@@ -3,6 +3,7 @@ using eSMP.Services.UserRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace eSMP.Controllers
 {
@@ -257,7 +258,7 @@ namespace eSMP.Controllers
         }
         [HttpPut]
         [Route("edit_birth")]
-        public IActionResult EditBirth(EditBirth birth)
+        public IActionResult EditBirth([FromForm] EditBirth birth)
         {
             try
             {
@@ -271,7 +272,7 @@ namespace eSMP.Controllers
         }
         [HttpPut]
         [Route("edit_image")]
-        public IActionResult EditImage(EditImage image)
+        public IActionResult EditImage([FromForm] EditImage image)
         {
             try
             {

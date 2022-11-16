@@ -55,5 +55,18 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        [HttpGet]
+        [Route("get_report")]
+        public IActionResult GetListReport(int? page, int reportType, int? reportStatusID, int? storeID)
+        {
+            try
+            {
+                return Ok(_reportReposity.GetListReport(page,reportType,reportStatusID, storeID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
     }
 }

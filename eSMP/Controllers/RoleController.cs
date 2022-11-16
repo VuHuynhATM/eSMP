@@ -63,6 +63,7 @@ namespace eSMP.Controllers
             if (role == null)
                 return NotFound();
             _context.Remove(role);
+            _context.SaveChanges();
             return Ok(role);
         }
     }

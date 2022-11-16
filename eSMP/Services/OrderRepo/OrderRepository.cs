@@ -1,8 +1,10 @@
 ﻿using eSMP.Models;
+using eSMP.Services.FileRepo;
 using eSMP.Services.ShipRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using Firebase.Auth;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections;
 using System.Linq;
 
@@ -13,14 +15,16 @@ namespace eSMP.Services.OrderRepo
         private readonly WebContext _context;
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IStoreReposity> _storeReposity;
+        private readonly Lazy<IFileReposity> _fileReposity;
 
         public static int PAGE_SIZE { get; set; } = 25;
 
-        public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IStoreReposity> storeReposity)
+        public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IStoreReposity> storeReposity, Lazy<IFileReposity> fileReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
             _storeReposity = storeReposity;
+            _fileReposity = fileReposity;
         }
         public DateTime GetVnTime()
         {
@@ -326,10 +330,7 @@ namespace eSMP.Services.OrderRepo
                 }
                 _context.OrderDetails.Remove(orderDetail);
                 _context.SaveChanges();
-                result.Success = true;
-                result.Message = "Xoá thành công";
-                result.Data = orderDetail;
-                return result;
+                return GetOrderInfo(orderDetail.OrderID);
             }
             catch
             {
@@ -386,6 +387,7 @@ namespace eSMP.Services.OrderRepo
                             Sub_ItemName = subitem.Sub_ItemName,
                             sub_ItemImage = subitem.Image.Path,
                             ItemID = subitem.ItemID,
+                            ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
                         };
                         list.Add(model);
                     }
@@ -420,6 +422,7 @@ namespace eSMP.Services.OrderRepo
                 {
                     listOrder = listOrder.Where(o => o.OrderStatusID == orderStatusID);
                 }
+                listOrder = listOrder.OrderByDescending(o => o.Create_Date);
                 if (listOrder.Count() > 0)
                 {
                     foreach (var order in listOrder.ToList())
@@ -446,6 +449,7 @@ namespace eSMP.Services.OrderRepo
                             Tel = order.Tel,
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             FeeShip = order.FeeShip,
+                            Reason = order.Reason,
                         };
                         list.Add(model);
                     }
@@ -508,6 +512,7 @@ namespace eSMP.Services.OrderRepo
                         Tel = order.Tel,
                         Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                         FeeShip = order.FeeShip,
+                        Reason = order.Reason,
                     };
 
                     result.Success = true;
@@ -551,9 +556,7 @@ namespace eSMP.Services.OrderRepo
                         {
                             order.FeeShip = shipModel.fee.fee;
                             _context.SaveChanges();
-                            result.Success = true;
-                            result.Message = "Thành công";
-                            result.Data = order;
+                            result.Data = GetOrderInfo(order.OrderID);
                             return result;
                         }
                         else
@@ -601,7 +604,7 @@ namespace eSMP.Services.OrderRepo
                         _context.SaveChanges();
                         result.Success = true;
                         result.Message = "Thành công";
-                        result.Data = orderdetail;
+                        result.Data = orderdetail.Amount;
                         return result;
                     }
                     result.Success = false;
@@ -650,7 +653,6 @@ namespace eSMP.Services.OrderRepo
                         }
                     }
                 }
-
                 return total;
             }
             catch
@@ -672,7 +674,7 @@ namespace eSMP.Services.OrderRepo
                 var orderdetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == feedBack.OrderDetaiID);
                 if (orderdetail != null)
                 {
-                    orderdetail.FeedBack_Date = DateTime.Now;
+                    orderdetail.FeedBack_Date = GetVnTime();
                     orderdetail.Feedback_Rate = (double)feedBack.Rate;
                     orderdetail.Feedback_Title = feedBack.Text;
                     orderdetail.Feedback_StatusID = 1;
@@ -688,10 +690,15 @@ namespace eSMP.Services.OrderRepo
                     {
                         foreach (var image in listImage)
                         {
+                            Guid myuuid = Guid.NewGuid();
+                            string myuuidAsString = myuuid.ToString();
+                            var filename = "eSMP" + orderdetail.OrderDetailID + myuuidAsString;
+                            string path = _fileReposity.Value.UploadFile(image, filename).Result;
+
                             Image i = new Image();
-                            i.Crete_date = DateTime.Now;
-                            i.FileName = image.Name;
-                            i.Path = image.Path;
+                            i.Crete_date = GetVnTime();
+                            i.FileName = filename;
+                            i.Path = path;
                             i.IsActive = true;
 
                             Feedback_Image fi = new Feedback_Image();
@@ -704,10 +711,22 @@ namespace eSMP.Services.OrderRepo
                         }
 
                     }
+                    FeedbackViewModel model = new FeedbackViewModel
+                    {
+                        Comment = orderdetail.Feedback_Title,
+                        Create_Date = orderdetail.FeedBack_Date,
+                        Feedback_Status = orderdetail.Feedback_Status,
+                        orderDetaiID = orderdetail.OrderDetailID,
+                        Rate = orderdetail.Feedback_Rate,
+                        subItemImage = orderdetail.Sub_Item.Image.Path,
+                        Sub_itemName = orderdetail.Sub_Item.Sub_ItemName,
+                        ImagesFB = GetListImageFB(orderdetail.OrderDetailID),
+
+                    };
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";
-                    result.Data = orderdetail;
+                    result.Data = model;
                     return result;
                 }
                 result.Success = false;
@@ -745,21 +764,24 @@ namespace eSMP.Services.OrderRepo
                     switch (status)
                     {
                         case "-1":
-                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-1"||
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-1" ||
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-3" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "127" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "9" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "7" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "49" ||
-                                                        o.OrderStatusID==3
+                                                        o.OrderStatusID == 3
                             );
                             break;
                         case "1":
                             orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "1" ||
-                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-2"
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-2" &&
+                                                         o.OrderStatusID != 3
                             );
                             break;
                         case "2":
-                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "2" 
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "2" &&
+                                                         o.OrderStatusID != 3
                             );
                             break;
                         case "3":
@@ -767,27 +789,30 @@ namespace eSMP.Services.OrderRepo
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "123" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "8" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "128" ||
-                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "3"
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "3" &&
+                                                         o.OrderStatusID != 3
                             );
                             break;
                         case "4":
                             orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-4" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "8" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "10" ||
-                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "410"
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "410" &&
+                                                         o.OrderStatusID != 3
                             );
                             break;
                         case "5":
                             orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "5" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "45" ||
-                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "6"
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "6" &&
+                                                         o.OrderStatusID != 3
                             );
                             break;
                         case "6":
                             orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "11" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "13" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "20" ||
-                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "21"
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "21" 
                             );
                             break;
                     }
@@ -833,6 +858,7 @@ namespace eSMP.Services.OrderRepo
                             OrderStatus = order.OrderStatus,
                             StoreView = GetStoreViewModel(order.OrderID),
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
+                            Reason = order.Reason,
                         };
                         list.Add(model);
                     }
@@ -886,6 +912,7 @@ namespace eSMP.Services.OrderRepo
                     Reason = ship.Reason,
                     Reason_code = ship.Reason_code,
                     status = ship.ShipStatus.Status_Name,
+                    ShipStatusID = ship.Status_ID,
                 };
                 return model;
             }
@@ -911,7 +938,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 var orderDetail = _context.OrderDetails.AsQueryable();
-                orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.OrderStatusID==1 && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so=>so.OrderID==o.OrderID && so.Status_ID=="5")!=null) != null);
+                orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID) != null) != null);
                 if (userID.HasValue)
                 {
                     orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.UserID == userID && o.OrderID == od.OrderID) != null);
@@ -922,7 +949,7 @@ namespace eSMP.Services.OrderRepo
                 }
                 else
                 {
-                    orderDetail = orderDetail.Where(od => od.Feedback_StatusID == null);
+                    orderDetail = orderDetail.Where(od => od.Feedback_StatusID == null && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "5") != null) != null);
                 }
 
                 if (page.HasValue)
@@ -933,7 +960,7 @@ namespace eSMP.Services.OrderRepo
 
                 if (orderDetail != null)
                 {
-                    foreach(var detail in orderDetail.ToList())
+                    foreach (var detail in orderDetail.ToList())
                     {
                         FeedbackViewModel model = new FeedbackViewModel
                         {
@@ -944,6 +971,8 @@ namespace eSMP.Services.OrderRepo
                             Rate = detail.Feedback_Rate,
                             subItemImage = detail.Sub_Item.Image.Path,
                             Sub_itemName = detail.Sub_Item.Sub_ItemName,
+                            ImagesFB=GetListImageFB(detail.OrderDetailID),
+                            
                         };
                         list.Add(model);
                     }
@@ -964,7 +993,7 @@ namespace eSMP.Services.OrderRepo
 
         public Result GetFeedbackDetail(int orderDetailID)
         {
-            Result result=new Result();
+            Result result = new Result();
             try
             {
                 var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null);
@@ -975,15 +1004,15 @@ namespace eSMP.Services.OrderRepo
                     {
                         UserID = order.UserID,
                         UserName = order.User.UserName,
-                        Useravatar=order.User.Image.Path,
-                        orderDetaiID=orderDetail.OrderDetailID,
-                        Comment=orderDetail.Feedback_Title,
-                        Create_Date=orderDetail.FeedBack_Date,
-                        Feedback_Status=orderDetail.Feedback_Status,
-                        Rate=orderDetail.Feedback_Rate,
-                        subItemImage=orderDetail.Sub_Item.Image.Path,
-                        Sub_itemName=orderDetail.Sub_Item.Sub_ItemName,
-                        ImagesFB=GetListImageFB(orderDetailID),
+                        Useravatar = order.User.Image.Path,
+                        orderDetaiID = orderDetail.OrderDetailID,
+                        Comment = orderDetail.Feedback_Title,
+                        Create_Date = orderDetail.FeedBack_Date,
+                        Feedback_Status = orderDetail.Feedback_Status,
+                        Rate = orderDetail.Feedback_Rate,
+                        subItemImage = orderDetail.Sub_Item.Image.Path,
+                        Sub_itemName = orderDetail.Sub_Item.Sub_ItemName,
+                        ImagesFB = GetListImageFB(orderDetailID),
                     };
                     result.Success = true;
                     result.Message = "Thành công";
@@ -1009,7 +1038,7 @@ namespace eSMP.Services.OrderRepo
             Result result = new Result();
             try
             {
-                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null && od.Feedback_StatusID!=2);
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null && od.Feedback_StatusID != 2);
                 if (orderDetail != null)
                 {
                     orderDetail.Feedback_StatusID = 3;
@@ -1066,7 +1095,7 @@ namespace eSMP.Services.OrderRepo
             Result result = new Result();
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID==orderID && o.OrderStatusID==1);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1);
                 if (order != null)
                 {
                     result.Success = true;

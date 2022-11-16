@@ -63,6 +63,7 @@ namespace eSMP.Models
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AI");
             modelBuilder.Entity<User>()
                 .HasIndex(e => new { e.Phone, e.RoleID })
                 .IsUnique();

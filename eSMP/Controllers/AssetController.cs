@@ -16,7 +16,7 @@ namespace eSMP.Controllers
             _assetReposity = assetReposity;
         }
         [HttpPost]
-        public IActionResult SystemWithdrawal(SystemWithdrawalM request)
+        public IActionResult SystemWithdrawal([FromForm]SystemWithdrawalM request)
         {
             try
             {
@@ -54,11 +54,11 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("get_system_reveneu")]
-        public IActionResult GetSystemReveneu(int? page, DateTime? From, DateTime? To)
+        public IActionResult GetSystemReveneu(int? page, DateTime? From, DateTime? To, int? orderID)
         {
             try
             {
-                return Ok(_assetReposity.GetALlReveneu(page,From, To));
+                return Ok(_assetReposity.GetALlReveneu(page,From, To, orderID));
             }
             catch
             {
@@ -67,11 +67,11 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("get_store_reveneu")]
-        public IActionResult GetStoreReveneu(int storeID, int? page, DateTime? From, DateTime? To)
+        public IActionResult GetStoreReveneu(int storeID, int? page, DateTime? From, DateTime? To, int? orderID)
         {
             try
             {
-                return Ok(_assetReposity.GetStoreReveneu(storeID, page,From, To));
+                return Ok(_assetReposity.GetStoreReveneu(storeID, page,From, To, orderID));
             }
             catch
             {
@@ -120,7 +120,7 @@ namespace eSMP.Controllers
         }
         [HttpPut]
         [Route("success_store_withdrawal")]
-        public IActionResult SuccessRequestStoreWithdrawal(StoreWithdrawalSuccessRequest request)
+        public IActionResult SuccessRequestStoreWithdrawal([FromForm] StoreWithdrawalSuccessRequest request)
         {
             try
             {

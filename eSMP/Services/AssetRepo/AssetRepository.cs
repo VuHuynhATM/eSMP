@@ -1,4 +1,5 @@
 ﻿using eSMP.Models;
+using eSMP.Services.FileRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.VModels;
 using System;
@@ -10,15 +11,21 @@ namespace eSMP.Services.StoreAssetRepo
     {
         private readonly WebContext _context;
         private readonly IOrderReposity _orderReposity;
+        private readonly IFileReposity _fileReposity;
         private readonly int PAGE_SIZE = 25;
-        public AssetRepository(WebContext context, IOrderReposity orderReposity)
+        public AssetRepository(WebContext context, IOrderReposity orderReposity, IFileReposity fileReposity)
         {
             _context = context;
             _orderReposity = orderReposity;
+            _fileReposity = fileReposity;
         }
         public Store GetStore(int orderID)
         {
             return _context.Stores.SingleOrDefault(s => _context.Orders.SingleOrDefault(o => o.OrderID == orderID && _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == s.StoreID) != null) != null) != null);
+        }
+        public long GetMomoTransaction(int orderID)
+        {
+            return _context.orderBuy_Transacsions.SingleOrDefault(obt=>obt.OrderID==orderID).MomoTransactionID;
         }
         public DateTime GetVnTime()
         {
@@ -75,10 +82,15 @@ namespace eSMP.Services.StoreAssetRepo
             Result result = new Result();
             try
             {
+                Guid myuuid = Guid.NewGuid();
+                string myuuidAsString = myuuid.ToString();
+                var filename = "eSMP1"  + myuuidAsString;
+                string path = _fileReposity.UploadFile(request.File, filename).Result;
+
                 Image image = new Image();
                 image.Crete_date = GetVnTime();
-                image.FileName = request.FileName;
-                image.Path = request.FilePath;
+                image.FileName = filename;
+                image.Path = path;
                 image.IsActive = true;
 
                 System_Withdrawal system_Withdrawal = new System_Withdrawal();
@@ -168,7 +180,7 @@ namespace eSMP.Services.StoreAssetRepo
         {
             return _context.OrderStore_Transactions.SingleOrDefault(ost => ost.OrderStore_TransactionID == orderStore_TransactionID);
         }
-        public Result GetALlReveneu(int? page, DateTime? From, DateTime? To)
+        public Result GetALlReveneu(int? page, DateTime? From, DateTime? To, int? orderID)
         {
             Result result = new Result();
             try
@@ -181,6 +193,10 @@ namespace eSMP.Services.StoreAssetRepo
                 if (To.HasValue)
                 {
                     listReveneu = listReveneu.Where(ost => ost.Create_Date <= To);
+                }
+                if (orderID.HasValue)
+                {
+                    listReveneu = listReveneu.Where(ost => ost.OrderStore_Transaction.OrderID == orderID);
                 }
                 listReveneu = listReveneu.OrderByDescending(ost => ost.Create_Date);
                 if (page.HasValue)
@@ -198,9 +214,17 @@ namespace eSMP.Services.StoreAssetRepo
                             Create_Date = item.Create_Date,
                             IsActive = item.IsActive,
                             OrderSystem_TransactionID = item.OrderSystem_TransactionID,
-                            OrderStore_TransactionID = item.OrderStore_TransactionID,
+                            OrderStore_TransactionModel = new OrderStore_TransactionModel
+                            {
+                                Create_Date = item.OrderStore_Transaction.Create_Date,
+                                IsActive = item.OrderStore_Transaction.IsActive,
+                                OrderID = item.OrderStore_Transaction.OrderID,
+                                OrderStore_TransactionID = item.OrderStore_TransactionID,
+                                Price = item.OrderStore_Transaction.Price,
+                                MomoTransaction=GetMomoTransaction(item.OrderStore_Transaction.OrderID)
+                            },
                             Price = item.Price,
-                            orderID = GetOrderStore_Transaction(item.OrderStore_TransactionID).OrderID,
+                            StoreID=GetStore(item.OrderStore_Transaction.OrderID).StoreID,
                         };
                         list.Add(model);
                     }
@@ -238,7 +262,7 @@ namespace eSMP.Services.StoreAssetRepo
             }
         }
 
-        public Result GetStoreReveneu(int storeID, int? page, DateTime? From, DateTime? To)
+        public Result GetStoreReveneu(int storeID, int? page, DateTime? From, DateTime? To, int? orderID)
         {
             Result result = new Result();
             try
@@ -252,6 +276,10 @@ namespace eSMP.Services.StoreAssetRepo
                 if (To.HasValue)
                 {
                     listReveneu = listReveneu.Where(ost => ost.Create_Date <= To);
+                }
+                if (orderID.HasValue)
+                {
+                    listReveneu = listReveneu.Where(ost => ost.OrderID==orderID);
                 }
                 listReveneu = listReveneu.OrderByDescending(ost => ost.Create_Date);
                 if (page.HasValue)
@@ -271,6 +299,7 @@ namespace eSMP.Services.StoreAssetRepo
                             OrderStore_TransactionID = item.OrderStore_TransactionID,
                             Price = item.Price,
                             OrderID = item.OrderID,
+                            MomoTransaction = GetMomoTransaction(item.OrderID)
                         };
                         list.Add(model);
                     }
@@ -406,11 +435,16 @@ namespace eSMP.Services.StoreAssetRepo
                 var storeWitdrawal = _context.Store_Withdrawals.SingleOrDefault(stw => stw.Store_WithdrawalID == request.Store_WithdrawalID && stw.Store_WithdrawalID != 3);
                 if (storeWitdrawal != null)
                 {
+                    Guid myuuid = Guid.NewGuid();
+                    string myuuidAsString = myuuid.ToString();
+                    var filename = "eSMP" + storeWitdrawal.Store_WithdrawalID + myuuidAsString;
+                    string path = _fileReposity.UploadFile(request.File, filename).Result;
+
                     storeWitdrawal.Withdrawal_StatusID = 4;
                     Image image = new Image();
                     image.IsActive = true;
-                    image.FileName = request.Filename;
-                    image.Path = request.Path;
+                    image.FileName = filename;
+                    image.Path = path;
                     image.Crete_date = GetVnTime();
 
                     storeWitdrawal.Image=image;
@@ -479,8 +513,8 @@ namespace eSMP.Services.StoreAssetRepo
                         list.Add(model);
                     }
                 }
-                result.Success = false;
-                result.Message = "Yêu cầu rút tiền không tồn tại";
+                result.Success = true;
+                result.Message = "Thành Công";
                 result.Data = list;
                 return result;
             }

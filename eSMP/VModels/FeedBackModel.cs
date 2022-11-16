@@ -5,6 +5,7 @@ namespace eSMP.VModels
     public class FeedBackModel
     {
         public string UserName { get; set; }
+        public int UserID { get; set; }
         public int orderDetaiID { get; set; }
         public string UserAvatar { get; set; }
         public string Sub_itemName { get; set; }
@@ -22,6 +23,7 @@ namespace eSMP.VModels
         public string? Comment { get; set; }
         public Feedback_Status? Feedback_Status { get; set; }
         public DateTime? Create_Date { get; set; }
+        public List<Image>? ImagesFB { get; set; }
     }
     public class FeedbackDetailModel
     {

@@ -185,6 +185,10 @@ namespace eSMP.Services.ReportRepo
                 if (reportType == 1)
                 {
                     listReport = listReport.Where(r => r.OrderDetaiID != null);
+                    if (storeID.HasValue)
+                    {
+                        listReport = listReport.Where(r => _context.Items.SingleOrDefault(i => i.ItemID == r.OrderDetail.Sub_Item.ItemID && i.StoreID == storeID) != null);
+                    }
                     if (page.HasValue)
                     {
                         listReport = listReport.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
@@ -214,10 +218,10 @@ namespace eSMP.Services.ReportRepo
                 }
                 else if (reportType == 2)
                 {
-                    listReport = listReport.Where(r => r.ItemID != null);
+                    listReport = listReport.Where(r => r.StoreID != null);
                     if (storeID.HasValue)
                     {
-                        listReport = listReport.Where(r => _context.Items.SingleOrDefault(i => i.ItemID == r.ItemID && i.StoreID == storeID) != null);
+                        listReport = listReport.Where(r => _context.Items.SingleOrDefault(i =>i.StoreID == storeID) != null);
                     }
                     if (page.HasValue)
                     {
@@ -245,7 +249,11 @@ namespace eSMP.Services.ReportRepo
                 }
                 else if(reportType == 3)
                 {
-                    listReport = listReport.Where(r => r.StoreID != null);
+                    listReport = listReport.Where(r => r.ItemID != null);
+                    if (storeID.HasValue)
+                    {
+                        listReport = listReport.Where(r => _context.Items.SingleOrDefault(i => i.ItemID == r.ItemID && i.StoreID == storeID) != null);
+                    }
                     if (page.HasValue)
                     {
                         listReport = listReport.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
@@ -253,6 +261,7 @@ namespace eSMP.Services.ReportRepo
                     List<ItemReportModel> list = new List<ItemReportModel>();
                     foreach(var item in listReport.ToList())
                     {
+                        var product = item.Item;
                         ItemReportModel model = new ItemReportModel
                         {
                             UserID = item.UserID,

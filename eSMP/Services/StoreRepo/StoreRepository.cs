@@ -1,7 +1,12 @@
-﻿using eSMP.Models;
+﻿using Castle.Core.Internal;
+using eSMP.Models;
+using eSMP.Services.FileRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.Services.ShipRepo;
 using eSMP.VModels;
+using Firebase.Auth;
+using Microsoft.EntityFrameworkCore;
+using User = eSMP.Models.User;
 
 namespace eSMP.Services.StoreRepo
 {
@@ -10,12 +15,14 @@ namespace eSMP.Services.StoreRepo
         private readonly WebContext _context;
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IOrderReposity> _orderReposity;
+        private readonly Lazy<IFileReposity> _fileReposity;
 
-        public StoreRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity)
+        public StoreRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<IFileReposity> fileReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
             _orderReposity = orderReposity;
+            _fileReposity = fileReposity;
         }
         public DateTime GetVnTime()
         {
@@ -43,10 +50,11 @@ namespace eSMP.Services.StoreRepo
                 }
                 if (store != null)
                 {
+                    var user = GetUser(store.UserID);
                     Address address = new Address
                     {
-                        UserName = GetUser(store.UserID).UserName,
-                        Phone = GetUser(store.UserID).Phone,
+                        UserName = user.UserName,
+                        Phone = user.Phone,
                         Context = store.contextAddress,
                         Province = store.Province,
                         District = store.District,
@@ -55,12 +63,19 @@ namespace eSMP.Services.StoreRepo
                         Longitude = store.longitude,
                         IsActive = true
                     };
+
+                    var file = store.File;
+                    var date = GetVnTime();
+                    Guid myuuid = Guid.NewGuid();
+                    string myuuidAsString = myuuid.ToString();
+                    string filename = store.UserID + "-" + myuuidAsString;
+                    string path = _fileReposity.Value.UploadFile(file, filename).Result;
                     Image image = new Image
                     {
                         Crete_date = GetVnTime(),
-                        FileName = store.ImageName,
+                        FileName = filename,
                         IsActive = true,
-                        Path = store.ImagePath
+                        Path = path
                     };
                     Store storeRegister = new Store
                     {
@@ -116,6 +131,8 @@ namespace eSMP.Services.StoreRepo
                     Actice_Date = store.Actice_Date,
                     MomoTransactionID=store.MomoTransactionID,
                     Actice_Amount=store.AmountActive,
+                    FirebaseID=store.User.FirebaseID,
+                    FCM_Firebase=store.User.FCM_Firebase,
                 };
                 return model;
             }
@@ -176,14 +193,18 @@ namespace eSMP.Services.StoreRepo
                 return false;
             }
         }
-        public Result GetAllStore()
+        public Result GetAllStore(string? search)
         {
             Result result = new Result();
             List<StoreModel> list = new List<StoreModel>();
             try
             {
-                var listStore = _context.Stores.ToList();
-                foreach (var store in listStore)
+                var listStore = _context.Stores.AsQueryable();
+                if (search != null)
+                {
+                    listStore = listStore.Where(s => EF.Functions.Collate(s.StoreName, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
+                }
+                foreach (var store in listStore.ToList())
                 {
                     StoreModel model = new StoreModel
                     {
@@ -201,6 +222,8 @@ namespace eSMP.Services.StoreRepo
                         Actice_Date = store.Actice_Date,    
                         MomoTransactionID = store.MomoTransactionID,
                         Actice_Amount=store.AmountActive,
+                        FCM_Firebase = store.User.FCM_Firebase,
+                        FirebaseID = store.User.FirebaseID,
                     };
                     list.Add(model);
                 }
@@ -243,6 +266,8 @@ namespace eSMP.Services.StoreRepo
                         Actice_Date = store.Actice_Date,
                         MomoTransactionID = store.MomoTransactionID,
                         Actice_Amount = store.AmountActive,
+                        FirebaseID=store.User.FirebaseID,
+                        FCM_Firebase=store.User.FCM_Firebase,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -307,6 +332,8 @@ namespace eSMP.Services.StoreRepo
                         StoreID = store.StoreID,
                         StoreName = store.StoreName,
                         Imagepath = GetImage(store.ImageID).Path,
+                        FirebaseID=store.User.FirebaseID,
+                        FCM_Firebase=store.User.FCM_Firebase,
                     };
                     return model;
                 }
@@ -539,6 +566,8 @@ namespace eSMP.Services.StoreRepo
                         MomoTransactionID=store.MomoTransactionID,
                         Actice_Date = store.Actice_Date,
                         Actice_Amount=store.AmountActive,
+                        FCM_Firebase=store.User.FCM_Firebase,
+                        FirebaseID=store.User.FirebaseID,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -556,6 +585,24 @@ namespace eSMP.Services.StoreRepo
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
                 return result;
+            }
+        }
+
+        public bool CheckStore(string firebaseID)
+        {
+            Result result = new Result();
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.User.FirebaseID == firebaseID && s.Store_StatusID==1);
+                if (store != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

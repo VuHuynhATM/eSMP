@@ -23,6 +23,7 @@ namespace eSMP.VModels
         public string? Comment { get; set; }
         public Feedback_Status? Feedback_Status { get; set; }
         public DateTime? Create_Date { get; set; }
+        public DateTime? Delivery_Date { get; set; }
         public List<Image>? ImagesFB { get; set; }
     }
     public class FeedbackDetailModel

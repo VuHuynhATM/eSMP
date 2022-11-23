@@ -71,6 +71,7 @@
         public string? street { get; set; }
         public string hamlet { get; set; }
         public string tel { get; set; }
+        public string transport { get; set; }
         public int is_freeship { get; set; }
         public int value { get; set; }
         public Array tags { get; set; }

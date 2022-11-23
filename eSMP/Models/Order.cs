@@ -29,6 +29,7 @@ namespace eSMP.Models
         public string Ward { get; set; }
         public string Address { get; set; }
         public string? Reason { get; set; }
+        public string? Pick_Time { get; set; }
 
     }
 }

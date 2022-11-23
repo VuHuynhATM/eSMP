@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221122205548_v28")]
+    partial class v28
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -390,7 +392,7 @@ namespace eSMP.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ItemID")
+                    b.Property<int>("ItemID")
                         .HasColumnType("int");
 
                     b.Property<int?>("OrderID")
@@ -403,9 +405,6 @@ namespace eSMP.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
                     b.HasKey("NotificationID");
 
                     b.HasIndex("ItemID");
@@ -413,8 +412,6 @@ namespace eSMP.Migrations
                     b.HasIndex("OrderID");
 
                     b.HasIndex("StoreID");
-
-                    b.HasIndex("UserID");
 
                     b.ToTable("Notification");
                 });
@@ -1350,7 +1347,9 @@ namespace eSMP.Migrations
                 {
                     b.HasOne("eSMP.Models.Item", "Item")
                         .WithMany()
-                        .HasForeignKey("ItemID");
+                        .HasForeignKey("ItemID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("eSMP.Models.Order", "Order")
                         .WithMany()
@@ -1360,19 +1359,11 @@ namespace eSMP.Migrations
                         .WithMany()
                         .HasForeignKey("StoreID");
 
-                    b.HasOne("eSMP.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Item");
 
                     b.Navigation("Order");
 
                     b.Navigation("Store");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("eSMP.Models.Order", b =>

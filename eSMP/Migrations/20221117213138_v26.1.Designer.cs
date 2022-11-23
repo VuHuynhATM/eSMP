@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221117213138_v26.1")]
+    partial class v261
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -374,49 +376,6 @@ namespace eSMP.Migrations
                         .IsUnique();
 
                     b.ToTable("Model_Item");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Notification", b =>
-                {
-                    b.Property<int>("NotificationID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationID"), 1L, 1);
-
-                    b.Property<DateTime>("Create_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("ItemID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("OrderID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StoreID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("NotificationID");
-
-                    b.HasIndex("ItemID");
-
-                    b.HasIndex("OrderID");
-
-                    b.HasIndex("StoreID");
-
-                    b.HasIndex("UserID");
-
-                    b.ToTable("Notification");
                 });
 
             modelBuilder.Entity("eSMP.Models.Order", b =>
@@ -1158,12 +1117,6 @@ namespace eSMP.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FCM_Firebase")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FirebaseID")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1344,35 +1297,6 @@ namespace eSMP.Migrations
                     b.Navigation("Brand_Model");
 
                     b.Navigation("Item");
-                });
-
-            modelBuilder.Entity("eSMP.Models.Notification", b =>
-                {
-                    b.HasOne("eSMP.Models.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("ItemID");
-
-                    b.HasOne("eSMP.Models.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderID");
-
-                    b.HasOne("eSMP.Models.Store", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreID");
-
-                    b.HasOne("eSMP.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Item");
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Store");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("eSMP.Models.Order", b =>

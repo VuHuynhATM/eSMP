@@ -1,9 +1,11 @@
 ﻿using eSMP.Models;
 using eSMP.Services.MomoRepo;
+using eSMP.Services.NotificationRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.VModels;
 using System;
 using System.Text.Json;
+using Notification = eSMP.VModels.Notification;
 
 namespace eSMP.Services.ShipRepo
 {
@@ -16,12 +18,14 @@ namespace eSMP.Services.ShipRepo
         private readonly WebContext _context;
         private readonly Lazy<IOrderReposity> _orderReposity;
         private readonly Lazy<IMomoReposity> _momoReposity;
+        private readonly Lazy<INotificationReposity> _notification;
 
-        public ShipRepository(WebContext context, Lazy<IOrderReposity> orderReposity, Lazy<IMomoReposity> momoReposity)
+        public ShipRepository(WebContext context, Lazy<IOrderReposity> orderReposity, Lazy<IMomoReposity> momoReposity, Lazy<INotificationReposity> notification)
         {
             _context = context;
             _orderReposity = orderReposity;
-            _momoReposity = momoReposity;   
+            _momoReposity = momoReposity;
+            _notification = notification;
         }
         public DateTime GetVnTime()
         {
@@ -36,7 +40,7 @@ namespace eSMP.Services.ShipRepo
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
-            HttpResponseMessage shipResponse = await client.GetAsync(string.Format("https://services.giaohangtietkiem.vn/services/shipment/fee?province={0}&district={1}&pick_province={2}&pick_district={3}&weight={4}&deliver_option={5}", province, district, pick_province, pick_district, weight, deliver_option));
+            HttpResponseMessage shipResponse = await client.GetAsync(string.Format("https://services.giaohangtietkiem.vn/services/shipment/fee?province={0}&district={1}&pick_province={2}&pick_district={3}&weight={4}&deliver_option={5}&transport=road", province, district, pick_province, pick_district, weight, deliver_option));
             var jsonreponse = await shipResponse.Content.ReadFromJsonAsync<FeeReponse>();
             return jsonreponse;
         }
@@ -51,31 +55,65 @@ namespace eSMP.Services.ShipRepo
             try
             {
                 var orderID = int.Parse(partner_id);
-                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == orderID && so.Status_ID==status_id+"");
+                DateTime datetime = DateTime.Parse(action_time);
+                DateTime cstTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(datetime, TimeZoneInfo.Local.Id, "SE Asia Standard Time");
+                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == orderID && so.Status_ID==status_id+"" && so.Create_Date==cstTime );
                 if (shipdb != null)
                 {
                     return false;
                 }
                 ShipOrder shipOrder = new ShipOrder();
                 shipOrder.Status_ID = status_id + "";
-                DateTime datetime = DateTime.Parse(action_time);
-                DateTime cstTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(datetime, TimeZoneInfo.Local.Id, "SE Asia Standard Time");
                 shipOrder.Create_Date = cstTime;
                 shipOrder.LabelID = label_id;
                 shipOrder.Reason= reason;
                 shipOrder.OrderID=int.Parse(partner_id);
                 shipOrder.Reason_code= reason_code;
-
                 _context.ShipOrders.Add(shipOrder);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                //thhong bao
+                _notification.Value.CreateNotifiaction(order.UserID, shipOrder.ShipStatus.Status_Name, null, orderID, null);
+                Notification notification = new Notification
+                {
+                    title = "Cập nhập đơn hàng " + orderID,
+                    body = "Đơn hàng " + orderID + " đang trong trạng thái: " + shipOrder.ShipStatus.Status_Name,
+                };
+                FirebaseNotification firebaseNotification = new FirebaseNotification
+                {
+                    notification = notification,
+                    to = order.User.FCM_Firebase,
+                };
+                _notification.Value.PushUserNotificationAsync(firebaseNotification);
                 //giao hang thanh cong
                 if (status_id == 5)
                 {
                     var comfim = _momoReposity.Value.ConfimOrder(shipOrder.OrderID);
                 }
                 //giao hang that bai
-                if(status_id ==9 || status_id == 7)
+                if(status_id ==9)
                 {
-                    var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID);
+                    var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
+                    if (reason_code == "130")
+                    {
+                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
+                    }
+                    else if (reason_code == "131" || reason_code == "132")
+                    {
+                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, refundpre);
+                        if (comfim.Success)
+                        {
+                            _momoReposity.Value.ConfimStoreShipOrder(shipOrder.OrderID);
+                        }
+                    }
+                    else
+                    {
+                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
+                    }
+                }
+                // không lấy được hàng
+                if (status_id == 7)
+                {
+                    var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
                 }
                 _context.SaveChanges();
                 return true;
@@ -145,6 +183,7 @@ namespace eSMP.Services.ShipRepo
                     ward=order.Ward,
                     tel=order.Tel,
                     value=(int)priceOrder,
+                    transport= "road",
                 };
                 if (order != null)
                 {
@@ -155,17 +194,34 @@ namespace eSMP.Services.ShipRepo
                     };
                     var Shipreponse = CreateOrderAsync(request).Result;
 
-                    ShipOrder shipOrder = new ShipOrder();
-                    shipOrder.Status_ID = "-2";
-                    DateTime datetime = GetVnTime();
-                    shipOrder.Create_Date = datetime;
-                    shipOrder.LabelID = Shipreponse.order.label;
-                    shipOrder.Reason = "";
-                    shipOrder.OrderID = int.Parse(Shipreponse.order.partner_id);
-                    shipOrder.Reason_code = "";
+                    if (Shipreponse.success)
+                    {
+                        ShipOrder shipOrder = new ShipOrder();
+                        shipOrder.Status_ID = "-2";
+                        DateTime datetime = GetVnTime();
+                        shipOrder.Create_Date = datetime;
+                        shipOrder.LabelID = Shipreponse.order.label;
+                        shipOrder.Reason = "";
+                        shipOrder.OrderID = int.Parse(Shipreponse.order.partner_id);
+                        shipOrder.Reason_code = "";
+                        order.Pick_Time=Shipreponse.order.estimated_pick_time;
+                        _context.ShipOrders.Add(shipOrder);
+                        _context.SaveChanges();
+                    }
+                    else
+                    {
+                        ShipOrder shipOrder = new ShipOrder();
+                        shipOrder.Status_ID = "-1";
+                        DateTime datetime = GetVnTime();
+                        shipOrder.Create_Date = datetime;
+                        shipOrder.LabelID = orderID+"";
+                        shipOrder.Reason = Shipreponse.message;
+                        shipOrder.OrderID = orderID;
+                        shipOrder.Reason_code = "";
 
-                    _context.ShipOrders.Add(shipOrder);
-                    _context.SaveChanges();
+                        _context.ShipOrders.Add(shipOrder);
+                        _context.SaveChanges();
+                    }
 
                     return Shipreponse;
                 }

@@ -401,7 +401,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
 
-                var storeWitdrawal = _context.Store_Withdrawals.SingleOrDefault(stw => stw.Store_WithdrawalID == storeWithhdrawalID && stw.Store_WithdrawalID==1);
+                var storeWitdrawal = _context.Store_Withdrawals.SingleOrDefault(stw => stw.Store_WithdrawalID == storeWithhdrawalID && stw.Withdrawal_StatusID!=4);
                 if (storeWitdrawal != null)
                 {
                     storeWitdrawal.Withdrawal_StatusID = 3;
@@ -432,7 +432,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
 
-                var storeWitdrawal = _context.Store_Withdrawals.SingleOrDefault(stw => stw.Store_WithdrawalID == request.Store_WithdrawalID && stw.Store_WithdrawalID != 3);
+                var storeWitdrawal = _context.Store_Withdrawals.SingleOrDefault(stw => stw.Store_WithdrawalID == request.Store_WithdrawalID && stw.Withdrawal_StatusID != 3);
                 if (storeWitdrawal != null)
                 {
                     Guid myuuid = Guid.NewGuid();
@@ -507,7 +507,7 @@ namespace eSMP.Services.StoreAssetRepo
                             Price = item.Price,
                             Reason = item.Reason,
                             StoreID = item.StoreID,
-                            Store_WithdrawalID = item.StoreID,
+                            Store_WithdrawalID = item.Store_WithdrawalID,
                             Withdrawal_Status = GetWithdrawal_Status(item.Withdrawal_StatusID),
                         };
                         list.Add(model);

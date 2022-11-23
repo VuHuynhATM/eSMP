@@ -20,12 +20,16 @@ namespace eSMP.VModels
         public long? MomoTransactionID { get; set; }
         public DateTime? Actice_Date { get; set; }
         public double? Actice_Amount { get; set; }
+        public string? FirebaseID { get; set; }
+        public string? FCM_Firebase { get; set; }
     }
     public class StoreViewModel
     {
         public int StoreID { get; set; }
         public string StoreName { get; set; }
         public string Imagepath { get; set; }
+        public string? FirebaseID { get; set; }
+        public string? FCM_Firebase { get; set; }
     }
     public class StoreRegister
     {
@@ -33,8 +37,7 @@ namespace eSMP.VModels
         public string Email { get; set; }
         public string Phone { get; set; }
         public int UserID { get; set; }
-        public string ImagePath { get; set; }
-        public string ImageName { get; set; }
+        public IFormFile File { get; set; }
         public int Pick_date { get; set; }
         public string contextAddress { get; set; }
         public string Province { get; set; }

@@ -1,0 +1,100 @@
+﻿using eSMP.Models;
+using eSMP.VModels;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using Notification = eSMP.Models.Notification;
+
+namespace eSMP.Services.NotificationRepo
+{
+    public class NotificationRepository:INotificationReposity
+    {
+        public static string TOKEN = "key=AAAAoDgJlCQ:APA91bEteTyEFMRfc_ly8aU1DAWEBdAsSU_QUWm2djkaqNDm7nEaDFUVxp5DeGOSkF3FKRhwjBGLvjGQnOobw4levIE-bovbeva2tHRMItW8TH-9tRzb9I754oxNaSBzHhVQGEOcN0uH";
+        private readonly WebContext _context;
+
+        public NotificationRepository(WebContext context)
+        {
+            _context = context;
+        }
+        public DateTime GetVnTime()
+        {
+            DateTime utcDateTime = DateTime.UtcNow;
+            string vnTimeZoneKey = "SE Asia Standard Time";
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
+            return VnTime;
+        }
+        public void CreateNotifiaction(int userID, string title, int? storeID, int? orderID, int? ItemID)
+        {
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserID == userID);
+                if (user != null)
+                {
+                    Notification notification = new Notification();
+                    notification.UserID = userID;
+                    notification.Title = title; 
+                    notification.StoreID = storeID;
+                    notification.OrderID = orderID; 
+                    notification.ItemID = ItemID;
+                    notification.IsActive = true;
+                    notification.Create_Date = GetVnTime();
+                    _context.Notifications.Add(notification);
+                    _context.SaveChanges();
+                }
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        public Result GetListNotification(int userID, int? page)
+        {
+            Result result = new Result();
+            try
+            {
+                var listNotification=_context.Notifications.Where(n=>n.UserID==userID);
+                List<NotificationModel> list = new List<NotificationModel>();
+                foreach (var notification in listNotification.ToList())
+                {
+                    NotificationModel notificationModel = new NotificationModel
+                    {
+                        UserID = notification.UserID,
+                        Title = notification.Title,
+                        Create_Date=notification.Create_Date,
+                        IsActive = notification.IsActive,
+                        ItemID = notification.ItemID,
+                        NotificationID = notification.NotificationID,
+                        OrderID = notification.OrderID,
+                        StoreID = notification.StoreID
+                    };
+                    list.Add(notificationModel);
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public async Task<NotificationReponse> PushUserNotificationAsync(FirebaseNotification request)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", TOKEN);
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+
+            var quickPayResponse = await client.PostAsync("https://fcm.googleapis.com/fcm/send", httpContent);
+            var contents = quickPayResponse.Content.ReadFromJsonAsync<NotificationReponse>();
+            return contents.Result;
+        }
+
+    }
+}

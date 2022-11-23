@@ -24,7 +24,8 @@ namespace eSMP.Models
         public int ImageID { get; set; }//FK
         [ForeignKey("ImageID")]
         public virtual Image Image { get; set; }
-
+        public string? FirebaseID { get; set; }
+        public string? FCM_Firebase { get; set; }
 
     }
 }

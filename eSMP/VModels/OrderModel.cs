@@ -27,6 +27,8 @@ namespace eSMP.VModels
         public string Address { get; set; }
         public List<OrderDetailModel> Details { get; set; }
         public string? Reason { get; set; }
+        public string? Pick_Time { get; set; }
+        public string? ShipOrderID { get; set; }
     }
     public class OrderModelView
     {
@@ -52,6 +54,7 @@ namespace eSMP.VModels
         public List<OrderDetailModel> Details { get; set; }
         public ShipViewModel OrderShip{ get; set; }
         public string? Reason { get; set; }
+        public string? Pick_Time { get; set; }
 
     }
     public class OrderDetailModel

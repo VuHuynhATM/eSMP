@@ -17,11 +17,11 @@ namespace eSMP.Controllers
             _sttoreReposity = storeReposity;
         }
         [HttpGet]
-        public IActionResult GetAllStore()
+        public IActionResult GetAllStore(string? search)
         {
             try
             {
-                var result = _sttoreReposity.GetAllStore();
+                var result = _sttoreReposity.GetAllStore(search);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -31,7 +31,7 @@ namespace eSMP.Controllers
         }
         [HttpPost]
         [Route("register")]
-        public IActionResult RegisterStore(StoreRegister store)
+        public IActionResult RegisterStore([FromForm] StoreRegister store)
         {
             try
             {
@@ -143,6 +143,20 @@ namespace eSMP.Controllers
             try
             {
                 return Ok(_sttoreReposity.GetStorebyuserID(userID));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("check_store")]
+        public IActionResult CheckStoreFirebase(string firebaseID)
+        {
+            try
+            {
+                return Ok(_sttoreReposity.CheckStore(firebaseID));
             }
             catch (Exception ex)
             {

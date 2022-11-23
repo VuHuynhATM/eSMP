@@ -43,6 +43,7 @@ namespace eSMP.Models
         public DbSet<BankSupport> BankSupports { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<ReportStatus> ReportStatuses { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

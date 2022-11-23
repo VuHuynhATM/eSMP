@@ -19,18 +19,21 @@ namespace eSMP.VModels
         public Image Image { get; set; }
         public int? StoreID { get; set; }
         public List<Address> addresses { get; set; }
+        public string? FirebaseID { get; set; }
+        public string? FCM_Firebase { get; set; }
 
     }
     public class UserLogin
     {
         public string Phone { get; set; }
+        public string? FCM_Firebase { get; set; }
     }
     public class AdminLogin
     {
         public string Email { get; set; }
-        public string Pasword { get; set; }
+        public string Password { get; set; }
+        public string? FCM_Firebase { get; set; }
     }
-
     public class UserRegister
     {
         public string UserName { get; set; }
@@ -46,6 +49,8 @@ namespace eSMP.VModels
         public string Province { get; set; }
         public string District { get; set; }
         public string Ward { get; set; }
+        public string? FirebaseID { get; set; }
+        public string? FCM_Firebase { get; set; }
     }
     public class UserAddAddress
     {
@@ -59,7 +64,6 @@ namespace eSMP.VModels
         public double Latitude { get; set; }
         public double Longitude { get; set; }
     }
-
     public class EditName
     {
         public int UserID { get; set; }

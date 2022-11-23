@@ -1299,6 +1299,7 @@ namespace eSMP.Services.ItemRepo
                             model.Rate = item.Feedback_Rate;
                             model.Comment = item.Feedback_Title;
                             model.ImagesFB = GetListImageFB(item.OrderDetailID);
+                            model.Create_Date = item.FeedBack_Date;
                             list.Add(model);
                         }
                     }

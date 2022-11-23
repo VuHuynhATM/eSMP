@@ -2,7 +2,9 @@
 using eSMP.Services.FileRepo;
 using eSMP.Services.TokenRepo;
 using eSMP.VModels;
+using Firebase.Auth;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using User = eSMP.Models.User;
 
 namespace eSMP.Services.UserRepo
@@ -31,7 +33,7 @@ namespace eSMP.Services.UserRepo
             DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
             return VnTime;
         }
-        public Result CustomerLogin(string phone)
+        public Result CustomerLogin(string phone, string? FCM_Firebase)
         {
             Result result = new Result();
             try
@@ -42,6 +44,8 @@ namespace eSMP.Services.UserRepo
                     if (u != null)
                     {
                         CreateTokenByUserID(u.UserID);
+                        u.FCM_Firebase=FCM_Firebase;
+                        _context.SaveChanges();
                         UserModel model = new UserModel
                         {
                             UserID = u.UserID,
@@ -57,6 +61,8 @@ namespace eSMP.Services.UserRepo
                             Role = GetUserRole(u.RoleID),
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
+                            FCM_Firebase=u.FCM_Firebase,
+                            FirebaseID=u.FirebaseID,
                         };
                         if (!model.IsActive)
                         {
@@ -84,7 +90,7 @@ namespace eSMP.Services.UserRepo
                 return result;
             }
         }
-        public Result SupplierLogin(string phone)
+        public Result SupplierLogin(string phone, string? FCM_Firebase)
         {
             Result result = new Result();
             try
@@ -95,6 +101,8 @@ namespace eSMP.Services.UserRepo
                     if (u != null)
                     {
                         CreateTokenByUserID(u.UserID);
+                        u.FCM_Firebase = FCM_Firebase;
+                        _context.SaveChanges();
                         var store = _context.Stores.SingleOrDefault(s => s.UserID == u.UserID);
                         int storeID = -1;
                         if (store != null)
@@ -117,6 +125,8 @@ namespace eSMP.Services.UserRepo
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
                             StoreID = storeID,
+                            FCM_Firebase = u.FCM_Firebase,
+                            FirebaseID=u.FirebaseID,
                         };
                         if (!model.IsActive)
                         {
@@ -158,7 +168,7 @@ namespace eSMP.Services.UserRepo
                 return;
             }
         }
-        public Result LoginByEmail(string email, string password)
+        public Result LoginByEmail(string email, string password, string? FCM_Firebase)
         {
             Result result = new Result();
             try
@@ -169,6 +179,8 @@ namespace eSMP.Services.UserRepo
                     if (u != null)
                     {
                         CreateTokenByUserID(u.UserID);
+                        u.FCM_Firebase=FCM_Firebase;
+                        _context.SaveChanges();
                         UserModel model = new UserModel
                         {
                             UserID = u.UserID,
@@ -184,6 +196,8 @@ namespace eSMP.Services.UserRepo
                             Role = GetUserRole(u.RoleID),
                             Image = GetUserImage(u.ImageID),
                             addresses = GetAddresses(u.UserID),
+                            FCM_Firebase = FCM_Firebase,
+                            FirebaseID= u.FirebaseID,
                         };
                         if (!model.IsActive)
                         {
@@ -238,6 +252,8 @@ namespace eSMP.Services.UserRepo
                         new_user.RoleID = 2;
                         new_user.Token = " ";
                         new_user.Image = image;
+                        new_user.FirebaseID=user.FirebaseID;
+                        new_user.FCM_Firebase= user.FCM_Firebase;
 
                         Address address = new Address();
                         address.UserName = user.UserName;
@@ -257,9 +273,8 @@ namespace eSMP.Services.UserRepo
                         _context.User_Addresses.Add(user_Address);
                         _context.SaveChanges();
                         UserModel model = new UserModel();
-                        model = (UserModel)CustomerLogin(user.Phone).Data;
-                        CreateTokenByUserID(model.UserID);
-                        var u = (UserModel)CustomerLogin(user.Phone).Data;
+                        CreateTokenByUserID(user_Address.UserID);
+                        model = GetUserIFByID(user_Address.UserID);
                         result.Success = true;
                         result.Message = "Đăng ký thành công";
                         result.Data = model;
@@ -326,6 +341,8 @@ namespace eSMP.Services.UserRepo
                         new_user.RoleID = 3;
                         new_user.Token = " ";
                         new_user.Image = image;
+                        new_user.FirebaseID = user.FirebaseID;
+                        new_user.FCM_Firebase = user.FCM_Firebase;
 
                         Address address = new Address();
                         address.UserName = user.UserName;
@@ -341,13 +358,13 @@ namespace eSMP.Services.UserRepo
                         User_Address user_Address = new User_Address();
                         user_Address.Address = address;
                         user_Address.User = new_user;
+                        user_Address.IsActive = true;
                         _context.User_Addresses.Add(user_Address);
                         _context.SaveChanges();
 
                         UserModel model = new UserModel();
-                        model = (UserModel)SupplierLogin(user.Phone).Data;
-                        CreateTokenByUserID(model.UserID);
-                        var u = (UserModel)SupplierLogin(user.Phone).Data;
+                        CreateTokenByUserID(user_Address.UserID);
+                        model = GetUserIFByID(user_Address.UserID);
                         result.Success = true;
                         result.Message = "Đăng ký thành công";
                         result.Data = model;
@@ -425,12 +442,16 @@ namespace eSMP.Services.UserRepo
                 return result;
             }
         }
-        public Result GetListUser(int? page)
+        public Result GetListUser(int? page, string? search)
         {
             Result result = new Result();
             try
             {
                 var listuser = _context.Users.AsQueryable();
+                if (search != null)
+                {
+                    listuser = listuser.Where(u => EF.Functions.Collate(u.UserName, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
+                }
                 if (page.HasValue)
                 {
                     listuser = listuser.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
@@ -439,6 +460,12 @@ namespace eSMP.Services.UserRepo
                 if (listuser.Count() > 0)
                     foreach (var user in listuser.ToList())
                     {
+                        var store = _context.Stores.SingleOrDefault(s => s.UserID == user.UserID);
+                        var storeid = -1;
+                        if (store != null)
+                        {
+                            storeid = store.StoreID;
+                        }
                         UserModel model = new UserModel
                         {
                             UserID = user.UserID,
@@ -453,7 +480,10 @@ namespace eSMP.Services.UserRepo
                             addresses = GetAddresses(user.UserID),
                             Image = GetUserImage(user.ImageID),
                             Role = GetUserRole(user.RoleID),
-                            IsActive = user.isActive
+                            IsActive = user.isActive,
+                            StoreID= storeid,
+                            FCM_Firebase=user.FCM_Firebase,
+                            FirebaseID=user.FirebaseID,
                         };
                         r.Add(model);
                     }
@@ -915,6 +945,12 @@ namespace eSMP.Services.UserRepo
             try
             {
                 var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
+                var store = _context.Stores.SingleOrDefault(s => s.UserID == userID);
+                var storeid = -1;
+                if (store != null)
+                {
+                    storeid = store.StoreID;
+                }
                 if (u != null)
                 {
                     UserModel model = new UserModel
@@ -932,6 +968,9 @@ namespace eSMP.Services.UserRepo
                         Role = GetUserRole(u.RoleID),
                         Image = GetUserImage(u.ImageID),
                         addresses = GetAddresses(u.UserID),
+                        StoreID = storeid,
+                        FCM_Firebase = u.FCM_Firebase,
+                        FirebaseID = u.FirebaseID,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -956,6 +995,12 @@ namespace eSMP.Services.UserRepo
             try
             {
                 var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
+                var store = _context.Stores.SingleOrDefault(s => s.UserID == userID);
+                var storeid = -1;
+                if (store != null)
+                {
+                    storeid = store.StoreID;
+                }
                 if (u != null)
                 {
                     UserModel model = new UserModel
@@ -973,6 +1018,9 @@ namespace eSMP.Services.UserRepo
                         Role = GetUserRole(u.RoleID),
                         Image = GetUserImage(u.ImageID),
                         addresses = GetAddresses(u.UserID),
+                        StoreID=storeid,
+                        FCM_Firebase = u.FCM_Firebase,
+                        FirebaseID = u.FirebaseID,
                     };
                     return model;
                 }
@@ -981,6 +1029,62 @@ namespace eSMP.Services.UserRepo
             catch
             {
                 return null;
+            }
+        }
+
+        public Result Logout(int userID)
+        {
+            Result result = new Result();
+            try
+            {
+                var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
+                if (u != null)
+                {
+                    u.FCM_Firebase = null;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = "";
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "UserID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result GetAdminContact()
+        {
+            Result result = new Result();
+            try
+            {
+                var u = _context.Users.FirstOrDefault(u=>u.RoleID==1);
+                if (u != null)
+                {
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = u.FirebaseID;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "UserID không tồn tại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
             }
         }
     }

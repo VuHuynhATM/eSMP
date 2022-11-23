@@ -450,6 +450,7 @@ namespace eSMP.Services.OrderRepo
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             FeeShip = order.FeeShip,
                             Reason = order.Reason,
+                            Pick_Time= order.Pick_Time,
                         };
                         list.Add(model);
                     }
@@ -490,35 +491,71 @@ namespace eSMP.Services.OrderRepo
                         order.FeeShip = order.FeeShip;
                         _context.SaveChanges();
                     }
-                    OrderModel model = new OrderModel
+                    var shiporder = GetShipOrder(order.OrderID);
+                    if (shiporder != null)
                     {
-                        OrderID = order.OrderID,
-                        StoreView = GetStoreViewModel(order.OrderID),
-                        Create_Date = order.Create_Date,
-                        UserID = order.UserID,
-                        OrderStatus = order.OrderStatus,
-                        PriceItem = GetPriceItemOrder(orderID),
-                        Pick_Address = order.Pick_Address,
-                        Pick_Province = order.Pick_Province,
-                        Pick_District = order.Pick_District,
-                        Pick_Ward = order.Pick_Ward,
-                        Pick_Name = order.Pick_Name,
-                        Pick_Tel = order.Pick_Tel,
-                        Address = order.Address,
-                        District = order.District,
-                        Province = order.Province,
-                        Ward = order.Ward,
-                        Name = order.Name,
-                        Tel = order.Tel,
-                        Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
-                        FeeShip = order.FeeShip,
-                        Reason = order.Reason,
-                    };
-
-                    result.Success = true;
-                    result.Message = "Thành công";
-                    result.Data = model;
-                    return result;
+                        OrderModel model = new OrderModel
+                        {
+                            OrderID = order.OrderID,
+                            StoreView = GetStoreViewModel(order.OrderID),
+                            Create_Date = order.Create_Date,
+                            UserID = order.UserID,
+                            OrderStatus = order.OrderStatus,
+                            PriceItem = GetPriceItemOrder(orderID),
+                            Pick_Address = order.Pick_Address,
+                            Pick_Province = order.Pick_Province,
+                            Pick_District = order.Pick_District,
+                            Pick_Ward = order.Pick_Ward,
+                            Pick_Name = order.Pick_Name,
+                            Pick_Tel = order.Pick_Tel,
+                            Address = order.Address,
+                            District = order.District,
+                            Province = order.Province,
+                            Ward = order.Ward,
+                            Name = order.Name,
+                            Tel = order.Tel,
+                            Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
+                            FeeShip = order.FeeShip,
+                            Reason = order.Reason,
+                            Pick_Time = order.Pick_Time,
+                            ShipOrderID = shiporder.ShipStatusID,
+                        };
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = model;
+                        return result;
+                    }
+                    else
+                    {
+                        OrderModel model = new OrderModel
+                        {
+                            OrderID = order.OrderID,
+                            StoreView = GetStoreViewModel(order.OrderID),
+                            Create_Date = order.Create_Date,
+                            UserID = order.UserID,
+                            OrderStatus = order.OrderStatus,
+                            PriceItem = GetPriceItemOrder(orderID),
+                            Pick_Address = order.Pick_Address,
+                            Pick_Province = order.Pick_Province,
+                            Pick_District = order.Pick_District,
+                            Pick_Ward = order.Pick_Ward,
+                            Pick_Name = order.Pick_Name,
+                            Pick_Tel = order.Pick_Tel,
+                            Address = order.Address,
+                            District = order.District,
+                            Province = order.Province,
+                            Ward = order.Ward,
+                            Name = order.Name,
+                            Tel = order.Tel,
+                            Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
+                            FeeShip = order.FeeShip,
+                        };
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = model;
+                        return result;
+                    }
+                    
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
@@ -556,7 +593,7 @@ namespace eSMP.Services.OrderRepo
                         {
                             order.FeeShip = shipModel.fee.fee;
                             _context.SaveChanges();
-                            result.Data = GetOrderInfo(order.OrderID);
+                            result = GetOrderInfo(order.OrderID);
                             return result;
                         }
                         else
@@ -825,6 +862,17 @@ namespace eSMP.Services.OrderRepo
                         orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date <= dateTo);
                     }
                 }
+                else
+                {
+                    if (dateFrom.HasValue)
+                    {
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date >= dateFrom);
+                    }
+                    if (dateTo.HasValue)
+                    {
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date <= dateTo);
+                    }
+                }
                 orders = orders.OrderByDescending(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date);
                 if (page.HasValue)
                 {
@@ -859,6 +907,7 @@ namespace eSMP.Services.OrderRepo
                             StoreView = GetStoreViewModel(order.OrderID),
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             Reason = order.Reason,
+                            Pick_Time= order.Pick_Time,
                         };
                         list.Add(model);
                     }
@@ -962,6 +1011,7 @@ namespace eSMP.Services.OrderRepo
                 {
                     foreach (var detail in orderDetail.ToList())
                     {
+                        var orderstatus = _context.ShipOrders.SingleOrDefault(so => so.OrderID == detail.OrderID && so.Status_ID == "5");
                         FeedbackViewModel model = new FeedbackViewModel
                         {
                             Comment = detail.Feedback_Title,
@@ -972,6 +1022,7 @@ namespace eSMP.Services.OrderRepo
                             subItemImage = detail.Sub_Item.Image.Path,
                             Sub_itemName = detail.Sub_Item.Sub_ItemName,
                             ImagesFB=GetListImageFB(detail.OrderDetailID),
+                            Delivery_Date=orderstatus.Create_Date,
                             
                         };
                         list.Add(model);

@@ -23,7 +23,7 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result=_userReposity.CustomerLogin(user.Phone);
+                var result=_userReposity.CustomerLogin(user.Phone, user.FCM_Firebase);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
@@ -39,7 +39,7 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result=_userReposity.SupplierLogin(user.Phone);
+                var result=_userReposity.SupplierLogin(user.Phone, user.FCM_Firebase);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
@@ -50,17 +50,34 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
+        [Authorize]
         [Route("adminsign_in")]
         public IActionResult AdminLogin(AdminLogin user)
         {
             try
             {
-                var result=_userReposity.LoginByEmail(user.Email, user.Pasword);
+                var result=_userReposity.LoginByEmail(user.Email, user.Password, user.FCM_Firebase);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
             }
             catch(Exception ex)
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+            }
+        }
+        [HttpPost]
+        [Route("logout")]
+        public IActionResult UserLogout(int userID)
+        {
+            try
+            {
+                var result = _userReposity.Logout(userID);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
@@ -115,11 +132,11 @@ namespace eSMP.Controllers
 
         [HttpGet]
         [Route("get_users")]
-        public IActionResult GetAllUser(int? page)
+        public IActionResult GetAllUser(int? page, string? search)
         {
             try
             {
-                var result = _userReposity.GetListUser(page);
+                var result = _userReposity.GetListUser(page,search);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -319,6 +336,20 @@ namespace eSMP.Controllers
             try
             {
                 var result = _userReposity.GetUserByID(userID);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+            }
+        }
+        [HttpGet]
+        [Route("AdminContact")]
+        public IActionResult AdminContact()
+        {
+            try
+            {
+                var result = _userReposity.GetAdminContact();
                 return Ok(result);
             }
             catch (Exception ex)

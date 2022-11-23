@@ -5,15 +5,15 @@ namespace eSMP.Services.UserRepo
 {
     public interface IUserReposity
     {
-        public Result CustomerLogin(string phone);
-        public Result SupplierLogin(string phone);
+        public Result CustomerLogin(string phone, string? FCM_Firebase);
+        public Result SupplierLogin(string phone, string? FCM_Firebase);
         public Result GetUserByID(int userID);
         public Result CheckRole(string phone);
-        public Result LoginByEmail(string email, string password);
+        public Result LoginByEmail(string email, string password, string? FCM_Firebase);
         public Result RigisterUser(UserRegister user);
         public Result RigisterSupplier(UserRegister user);
         public Result UpdatteUserStatus(int userID, bool isActive);
-        public Result GetListUser(int? page);
+        public Result GetListUser(int? page, string? search);
         public Result SearchUser(string phone, int roleID);
         public Result RemoveUser(int userID);
         public Result GetAddressByID(int userID);
@@ -28,5 +28,7 @@ namespace eSMP.Services.UserRepo
         public Result RefeshToken(int userID, string token);
         public void Updaterole();
         public UserModel GetUserIFByID(int userID);
+        public Result Logout(int userID);
+        public Result GetAdminContact();
     }
 }

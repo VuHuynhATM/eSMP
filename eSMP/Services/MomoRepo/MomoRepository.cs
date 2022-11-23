@@ -1,11 +1,14 @@
 ﻿using eSMP.Models;
+using eSMP.Services.NotificationRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.Services.ShipRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
+using FirebaseAdmin.Messaging;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Notification = eSMP.VModels.Notification;
 
 namespace eSMP.Services.MomoRepo
 {
@@ -14,15 +17,17 @@ namespace eSMP.Services.MomoRepo
         private readonly WebContext _context;
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IOrderReposity> _orderReposity;
+        private readonly Lazy<INotificationReposity> _notification;
         string accessKey = "klm05TvNBzhg7h7j";
         string secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
         string partnerCode = "MOMOBKUN20180529";
 
-        public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity)
+        public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity,Lazy<INotificationReposity> notification)
         {
             _context = context;
             _shipReposity = shipReposity;
             _orderReposity = orderReposity;
+            _notification = notification;
         }
         public DateTime GetVnTime()
         {
@@ -41,7 +46,7 @@ namespace eSMP.Services.MomoRepo
 
             MomoPayRequest request = new MomoPayRequest();
             //https://esmp.page.link/view
-            request.orderInfo = "Thanh Toan";
+            request.orderInfo = "Thanh toan";
             request.partnerCode = partnerCode;
             request.redirectUrl = firebaseReponse.Result.shortLink;
             request.ipnUrl = "http://esmpfree-001-site1.etempurl.com/api/Payment";
@@ -283,16 +288,33 @@ namespace eSMP.Services.MomoRepo
                                     subItem.Amount = subItem.Amount - detail.Amount;
                                     _context.SaveChanges();
                                 }
+                                //tong bao
+                                _notification.Value.CreateNotifiaction(order.UserID, "Dặt hàng thành công", null, order.OrderID, null);
+                                Notification notification = new Notification
+                                {
+                                    title = "Thanhh toán",
+                                    body = "Đơn hàng " + order.OrderID + " thành công",
+                                };
+                                FirebaseNotification firebaseNotification = new FirebaseNotification
+                                {
+                                    notification = notification,
+                                    to = order.User.FCM_Firebase,
+                                };
+                                _notification.Value.PushUserNotificationAsync(firebaseNotification);
                             }
                             else
                             {
                                 //ConfimCancelOrder(order.OrderID);
-                                order.OrderStatusID = 3;
-                                order.FeeShip = shipReponse.order.fee;
-                                order.Create_Date = GetVnTime();
-                                _context.SaveChanges();
-                                RefundOrder(order.OrderID);
-                                _context.orderBuy_Transacsions.Remove(transacsion);
+                                var refund=RefundOrder(order.OrderID, 1);
+                                if (refund.Success)
+                                {
+                                    order.OrderStatusID = 3;
+                                    order.FeeShip = shipReponse.order.fee;
+                                    order.Create_Date = GetVnTime();
+                                    order.Reason = shipReponse.message;
+                                    _context.SaveChanges();
+                                    //_context.orderBuy_Transacsions.Remove(transacsion);
+                                }
                             }
                         }
                     }
@@ -363,7 +385,7 @@ namespace eSMP.Services.MomoRepo
             }
             return contents.Result;
         }
-        public async Task<RefundReponse> refundtransaction(int orderID)
+        public async Task<RefundReponse> refundtransaction(int orderID, double numrefund)
         {
             RefundRequest request = new RefundRequest();
             Guid myuuid = Guid.NewGuid();
@@ -373,7 +395,7 @@ namespace eSMP.Services.MomoRepo
             request.requestId = myuuidAsString;
             request.partnerCode = partnerCode;
             request.lang = "vi";
-            request.amount = Gettotalprice(orderID);
+            request.amount = (long)(Gettotalprice(orderID)* numrefund);
             request.description = "";
             request.transId = ordertransaction.MomoTransactionID;
 
@@ -414,7 +436,7 @@ namespace eSMP.Services.MomoRepo
                     {
                         if (shipReponse.Success)
                         {
-                            var comfim = RefundOrder(orderID);
+                            var comfim = RefundOrder(orderID,1);
                             if (comfim.Success)
                             {
                                 var labelID = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID).LabelID;
@@ -430,6 +452,20 @@ namespace eSMP.Services.MomoRepo
                                 model.Status_ID = "-3";
                                 _context.ShipOrders.Add(model);
                                 _context.SaveChanges();
+                                //thong bao
+                                var store=GetStoreByorderID(orderID);
+                                _notification.Value.CreateNotifiaction(store.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                                Notification notification = new Notification
+                                {
+                                    title = "Huỷ đơn",
+                                    body = "Huỷ đơn hàng " + order.OrderID,
+                                };
+                                FirebaseNotification firebaseNotification = new FirebaseNotification
+                                {
+                                    notification = notification,
+                                    to = store.User.FCM_Firebase,
+                                };
+                                _notification.Value.PushUserNotificationAsync(firebaseNotification);
 
                                 result.Success = true;
                                 result.Message = "Hủy đơn hàng thành công";
@@ -512,6 +548,49 @@ namespace eSMP.Services.MomoRepo
                     system.Asset = system.Asset + orderSystem_Transaction.Price;
                     _context.OrderSystem_Transactions.Add(orderSystem_Transaction);
                     _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = "";
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thất bại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public Result ConfimStoreShipOrder(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
+                var esystem = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+                var orderprivce = _orderReposity.Value.GetPriceItemOrder(orderID);
+                var storeprice = orderprivce*(1-esystem.Refund_Precent);
+                if (confirmReponse.ResultCode == 0)
+                {
+                    //ghi nhan tien ship
+                    //store
+                    var store = GetStoreByorderID(orderID);
+                    var shipprice = GetFeeship(orderID);
+                    OrderStore_Transaction orderStore_Transaction = new OrderStore_Transaction();
+                    orderStore_Transaction.OrderID = orderID;
+                    orderStore_Transaction.StoreID = store.StoreID;
+                    orderStore_Transaction.IsActive = true;
+                    orderStore_Transaction.Price = shipprice+storeprice;
+                    orderStore_Transaction.Create_Date = GetVnTime();
+                    store.Asset = store.Asset + orderStore_Transaction.Price;
+                    _context.OrderStore_Transactions.Add(orderStore_Transaction);
+                    _context.SaveChanges();
+
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = "";
@@ -659,7 +738,33 @@ namespace eSMP.Services.MomoRepo
                         store.AmountActive = payINP.amount;
                         system.Asset=system.Asset+payINP.amount;
                         _context.SaveChanges();
-                        //updateamount
+                        //thong bao
+                        _notification.Value.CreateNotifiaction(store.UserID, "Thanh toán thành công", store.StoreID, null, null);
+                        Notification notification = new Notification
+                        {
+                            title = "Thanh toán",
+                            body = "Thanh toán kich hoạt cửa hàng thành công ",
+                        };
+                        FirebaseNotification firebaseNotification = new FirebaseNotification
+                        {
+                            notification = notification,
+                            to = store.User.FCM_Firebase,
+                        };
+                        _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                        //admin
+                        var u = _context.Users.FirstOrDefault(u => u.RoleID == 1);
+                        _notification.Value.CreateNotifiaction(u.UserID, "Thanh toán thành công", store.StoreID, null, null);
+                        Notification notificationadmin = new Notification
+                        {
+                            title = "Thanh toán",
+                            body = "Thanh toán kich hoạt cửa hàng thành công ",
+                        };
+                        FirebaseNotification firebaseNotificationadmin = new FirebaseNotification
+                        {
+                            notification = notification,
+                            to = u.FCM_Firebase,
+                        };
+                        _notification.Value.PushUserNotificationAsync(firebaseNotificationadmin);
                     }
                 }
             }
@@ -671,12 +776,12 @@ namespace eSMP.Services.MomoRepo
                 return;
             }
         }
-        public Result RefundOrder(int orderID)
+        public Result RefundOrder(int orderID, double numrefund)
         {
             Result result = new Result();
             try
             {
-                RefundReponse refundReponse = refundtransaction(orderID).Result;
+                RefundReponse refundReponse = refundtransaction(orderID,numrefund).Result;
                 if (refundReponse.resultCode == 0)
                 {
                     result.Success = true;

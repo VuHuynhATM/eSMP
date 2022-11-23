@@ -5,7 +5,7 @@ namespace eSMP.Services.StoreRepo
 {
     public interface IStoreReposity
     {
-        public Result GetAllStore();
+        public Result GetAllStore(string? search);
         public Result CteateStore(StoreRegister store);
         public Result StoreDetail(int storeID);
         public Result GetStorebyuserID(int userID);
@@ -17,5 +17,6 @@ namespace eSMP.Services.StoreRepo
         public Result BlockStore(int storeID);
         public Result UnHiddenStore(int storeID);
         public Result UpdateAddress(int storeID, Address address);
+        public Boolean CheckStore(string firebaseID);
     }
 }

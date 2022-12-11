@@ -1,12 +1,10 @@
 ﻿using eSMP.Models;
 using eSMP.Services.FileRepo;
 using eSMP.Services.ShipRepo;
+using eSMP.Services.StatusRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
-using Firebase.Auth;
-using Microsoft.AspNetCore.Mvc;
 using System.Collections;
-using System.Linq;
 
 namespace eSMP.Services.OrderRepo
 {
@@ -16,15 +14,17 @@ namespace eSMP.Services.OrderRepo
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IStoreReposity> _storeReposity;
         private readonly Lazy<IFileReposity> _fileReposity;
+        private readonly Lazy<IStatusReposity> _statusReposity;
 
         public static int PAGE_SIZE { get; set; } = 25;
 
-        public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IStoreReposity> storeReposity, Lazy<IFileReposity> fileReposity)
+        public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IStoreReposity> storeReposity, Lazy<IFileReposity> fileReposity, Lazy<IStatusReposity> statusReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
             _storeReposity = storeReposity;
             _fileReposity = fileReposity;
+            _statusReposity = statusReposity;
         }
         public DateTime GetVnTime()
         {
@@ -344,10 +344,12 @@ namespace eSMP.Services.OrderRepo
         {
             return _context.Addresss.SingleOrDefault(a => a.AddressID == addressID);
         }
+
         public Item GetItem(int subItemID)
         {
             return _context.Items.SingleOrDefault(i => i.ItemID == _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == subItemID).ItemID);
         }
+
         public StoreViewModel GetStoreViewModel(int orderID)
         {
             try
@@ -362,55 +364,89 @@ namespace eSMP.Services.OrderRepo
                 return null;
             }
         }
+
         public List<OrderDetailModel> GetOrderDetailModels(int orderID, int orderStatusID)
         {
-            List<OrderDetailModel> list = new List<OrderDetailModel>();
-            var listOrderDetails = _context.OrderDetails.Where(od => od.OrderID == _context.Orders.SingleOrDefault(o => o.OrderStatusID == orderStatusID && o.OrderID == orderID).OrderID);
-            if (listOrderDetails.Count() > 0)
+            try
             {
-                foreach (var orderDetail in listOrderDetails.ToList())
+                List<OrderDetailModel> list = new List<OrderDetailModel>();
+                var listOrderDetails = _context.OrderDetails.Where(od => od.OrderID == _context.Orders.SingleOrDefault(o => o.OrderStatusID == orderStatusID && o.OrderID == orderID).OrderID);
+                if (listOrderDetails.Count() > 0)
                 {
-                    var subitem = GetSub_Item(orderDetail.Sub_ItemID);
-                    if (orderStatusID != 2)
+                    foreach (var orderDetail in listOrderDetails.ToList())
                     {
-                        OrderDetailModel model = new OrderDetailModel
+                        var subitem = GetSub_Item(orderDetail.Sub_ItemID);
+                        if (orderStatusID != 2)
                         {
-                            Amount = orderDetail.Amount,
-                            DiscountPurchase = orderDetail.DiscountPurchase,
-                            OrderDetailID = orderDetail.OrderDetailID,
-                            PricePurchase = orderDetail.PricePurchase,
-                            FeedBack_Date = orderDetail.FeedBack_Date,
-                            Feedback_Rate = orderDetail.Feedback_Rate,
-                            Feedback_Title = orderDetail.Feedback_Title,
-                            Feedback_Status = orderDetail.Feedback_Status,
-                            Sub_ItemID = subitem.Sub_ItemID,
-                            Sub_ItemName = subitem.Sub_ItemName,
-                            sub_ItemImage = subitem.Image.Path,
-                            ItemID = subitem.ItemID,
-                            ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
-                        };
-                        list.Add(model);
-                    }
-                    else
-                    {
-                        OrderDetailModel model = new OrderDetailModel
+                            if (orderDetail.Feedback_StatusID != null)
+                            {
+                                OrderDetailModel model = new OrderDetailModel
+                                {
+                                    Amount = orderDetail.Amount,
+                                    DiscountPurchase = orderDetail.DiscountPurchase,
+                                    OrderDetailID = orderDetail.OrderDetailID,
+                                    PricePurchase = orderDetail.PricePurchase,
+                                    FeedBack_Date = orderDetail.FeedBack_Date,
+                                    Feedback_Rate = orderDetail.Feedback_Rate,
+                                    Feedback_Title = orderDetail.Feedback_Title,
+                                    Feedback_Status = _statusReposity.Value.GetfeedbackStatus(orderDetail.Feedback_StatusID.Value),
+                                    Sub_ItemID = subitem.Sub_ItemID,
+                                    Sub_ItemName = subitem.Sub_ItemName,
+                                    sub_ItemImage = subitem.Image.Path,
+                                    ItemID = subitem.ItemID,
+                                    ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
+                                };
+                                list.Add(model);
+                            }
+                            else
+                            {
+                                OrderDetailModel model = new OrderDetailModel
+                                {
+                                    Amount = orderDetail.Amount,
+                                    DiscountPurchase = orderDetail.DiscountPurchase,
+                                    OrderDetailID = orderDetail.OrderDetailID,
+                                    PricePurchase = orderDetail.PricePurchase,
+                                    FeedBack_Date = orderDetail.FeedBack_Date,
+                                    Feedback_Rate = orderDetail.Feedback_Rate,
+                                    Feedback_Title = orderDetail.Feedback_Title,
+                                    Feedback_Status = null,
+                                    Sub_ItemID = subitem.Sub_ItemID,
+                                    Sub_ItemName = subitem.Sub_ItemName,
+                                    sub_ItemImage = subitem.Image.Path,
+                                    ItemID = subitem.ItemID,
+                                    ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
+                                };
+                                list.Add(model);
+                            }
+                            
+                            
+                        }
+                        else
                         {
-                            Amount = orderDetail.Amount,
-                            DiscountPurchase = GetItem(orderDetail.Sub_ItemID).Discount,
-                            OrderDetailID = orderDetail.OrderDetailID,
-                            PricePurchase = subitem.Price,
-                            Sub_ItemID = subitem.Sub_ItemID,
-                            Sub_ItemName = subitem.Sub_ItemName,
-                            sub_ItemImage = subitem.Image.Path,
-                            ItemID = subitem.ItemID,
-                        };
-                        list.Add(model);
-                    }
+                            OrderDetailModel model = new OrderDetailModel
+                            {
+                                Amount = orderDetail.Amount,
+                                DiscountPurchase = GetItem(orderDetail.Sub_ItemID).Discount,
+                                OrderDetailID = orderDetail.OrderDetailID,
+                                PricePurchase = subitem.Price,
+                                Sub_ItemID = subitem.Sub_ItemID,
+                                Sub_ItemName = subitem.Sub_ItemName,
+                                sub_ItemImage = subitem.Image.Path,
+                                ItemID = subitem.ItemID,
+                            };
+                            list.Add(model);
+                        }
 
+                    }
                 }
+                return list;
             }
-            return list;
+            catch
+            {
+                return new List<OrderDetailModel>();
+            }
         }
+
         public Result GetAllOrder(int userID, int? orderStatusID)
         {
             Result result = new Result();
@@ -434,7 +470,7 @@ namespace eSMP.Services.OrderRepo
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
                             PriceItem = GetPriceItemOrder(order.OrderID),
-                            OrderStatus = order.OrderStatus,
+                            OrderStatus = _statusReposity.Value.GetOrderStatus(order.OrderStatusID),
                             Pick_Address = order.Pick_Address,
                             Pick_Province = order.Pick_Province,
                             Pick_District = order.Pick_District,
@@ -500,7 +536,7 @@ namespace eSMP.Services.OrderRepo
                             StoreView = GetStoreViewModel(order.OrderID),
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
-                            OrderStatus = order.OrderStatus,
+                            OrderStatus = _statusReposity.Value.GetOrderStatus(order.OrderStatusID),
                             PriceItem = GetPriceItemOrder(orderID),
                             Pick_Address = order.Pick_Address,
                             Pick_Province = order.Pick_Province,
@@ -519,6 +555,7 @@ namespace eSMP.Services.OrderRepo
                             Reason = order.Reason,
                             Pick_Time = order.Pick_Time,
                             ShipOrderID = shiporder.ShipStatusID,
+                            FirebaseID=order.User.FirebaseID,
                         };
                         result.Success = true;
                         result.Message = "Thành công";
@@ -533,7 +570,7 @@ namespace eSMP.Services.OrderRepo
                             StoreView = GetStoreViewModel(order.OrderID),
                             Create_Date = order.Create_Date,
                             UserID = order.UserID,
-                            OrderStatus = order.OrderStatus,
+                            OrderStatus = _statusReposity.Value.GetOrderStatus(order.OrderStatusID),
                             PriceItem = GetPriceItemOrder(orderID),
                             Pick_Address = order.Pick_Address,
                             Pick_Province = order.Pick_Province,
@@ -703,6 +740,7 @@ namespace eSMP.Services.OrderRepo
             var orderdetai = _context.OrderDetails.Where(od => od.Feedback_Rate != null && od.Sub_ItemID == _context.Sub_Items.FirstOrDefault(si => si.ItemID == itemID).Sub_ItemID);
             return orderdetai.Count();
         }
+
         public Result FeedBaclOrderDetail(FeedBackOrderDetail feedBack)
         {
             Result result = new Result();
@@ -748,23 +786,46 @@ namespace eSMP.Services.OrderRepo
                         }
 
                     }
-                    FeedbackViewModel model = new FeedbackViewModel
+                    if (orderdetail.Feedback_StatusID != null)
                     {
-                        Comment = orderdetail.Feedback_Title,
-                        Create_Date = orderdetail.FeedBack_Date,
-                        Feedback_Status = orderdetail.Feedback_Status,
-                        orderDetaiID = orderdetail.OrderDetailID,
-                        Rate = orderdetail.Feedback_Rate,
-                        subItemImage = orderdetail.Sub_Item.Image.Path,
-                        Sub_itemName = orderdetail.Sub_Item.Sub_ItemName,
-                        ImagesFB = GetListImageFB(orderdetail.OrderDetailID),
+                        FeedbackViewModel model = new FeedbackViewModel
+                        {
+                            Comment = orderdetail.Feedback_Title,
+                            Create_Date = orderdetail.FeedBack_Date,
+                            Feedback_Status = _statusReposity.Value.GetfeedbackStatus(orderdetail.Feedback_StatusID.Value),
+                            orderDetaiID = orderdetail.OrderDetailID,
+                            Rate = orderdetail.Feedback_Rate,
+                            subItemImage = orderdetail.Sub_Item.Image.Path,
+                            Sub_itemName = orderdetail.Sub_Item.Sub_ItemName,
+                            ImagesFB = GetListImageFB(orderdetail.OrderDetailID),
 
-                    };
-                    _context.SaveChanges();
-                    result.Success = true;
-                    result.Message = "Thành công";
-                    result.Data = model;
-                    return result;
+                        };
+                        _context.SaveChanges();
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = model;
+                        return result;
+                    }
+                    else
+                    {
+                        FeedbackViewModel model = new FeedbackViewModel
+                        {
+                            Comment = orderdetail.Feedback_Title,
+                            Create_Date = orderdetail.FeedBack_Date,
+                            Feedback_Status = null,
+                            orderDetaiID = orderdetail.OrderDetailID,
+                            Rate = orderdetail.Feedback_Rate,
+                            subItemImage = orderdetail.Sub_Item.Image.Path,
+                            Sub_itemName = orderdetail.Sub_Item.Sub_ItemName,
+                            ImagesFB = GetListImageFB(orderdetail.OrderDetailID),
+                        };
+                        _context.SaveChanges();
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = model;
+                        return result;
+                    }
+                    
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
@@ -779,6 +840,7 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
+
         public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page)
         {
             Result result = new Result();
@@ -903,11 +965,12 @@ namespace eSMP.Services.OrderRepo
                             Tel = order.Tel,
                             FeeShip = order.FeeShip,
                             OrderShip = GetShipOrder(order.OrderID),
-                            OrderStatus = order.OrderStatus,
+                            OrderStatus = _statusReposity.Value.GetOrderStatus(order.OrderStatusID),
                             StoreView = GetStoreViewModel(order.OrderID),
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             Reason = order.Reason,
                             Pick_Time= order.Pick_Time,
+                            FirebaseID=order.User.FirebaseID,
                         };
                         list.Add(model);
                     }
@@ -929,6 +992,7 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
+
         public bool CancelOrder(int orderID)
         {
             try
@@ -966,6 +1030,7 @@ namespace eSMP.Services.OrderRepo
                 return model;
             }
         }
+
         public List<Image> GetListImageFB(int orderdetailID)
         {
             var listIF = _context.Feedback_Images.Where(fi => fi.OrderDetailID == orderdetailID).ToList();
@@ -978,7 +1043,7 @@ namespace eSMP.Services.OrderRepo
                 }
                 return list;
             }
-            return null;
+            return new List<Image>();
         }
 
         public Result GetlistFeedback(int? page, bool isFeedback, int? userID)
@@ -1012,20 +1077,40 @@ namespace eSMP.Services.OrderRepo
                     foreach (var detail in orderDetail.ToList())
                     {
                         var orderstatus = _context.ShipOrders.SingleOrDefault(so => so.OrderID == detail.OrderID && so.Status_ID == "5");
-                        FeedbackViewModel model = new FeedbackViewModel
+                        if (detail.Feedback_StatusID != null)
                         {
-                            Comment = detail.Feedback_Title,
-                            Create_Date = detail.FeedBack_Date,
-                            Feedback_Status = detail.Feedback_Status,
-                            orderDetaiID = detail.OrderDetailID,
-                            Rate = detail.Feedback_Rate,
-                            subItemImage = detail.Sub_Item.Image.Path,
-                            Sub_itemName = detail.Sub_Item.Sub_ItemName,
-                            ImagesFB=GetListImageFB(detail.OrderDetailID),
-                            Delivery_Date=orderstatus.Create_Date,
-                            
-                        };
-                        list.Add(model);
+                            FeedbackViewModel model = new FeedbackViewModel
+                            {
+                                Comment = detail.Feedback_Title,
+                                Create_Date = detail.FeedBack_Date,
+                                Feedback_Status = _statusReposity.Value.GetfeedbackStatus(detail.Feedback_StatusID.Value),
+                                orderDetaiID = detail.OrderDetailID,
+                                Rate = detail.Feedback_Rate,
+                                subItemImage = detail.Sub_Item.Image.Path,
+                                Sub_itemName = detail.Sub_Item.Sub_ItemName,
+                                ImagesFB = GetListImageFB(detail.OrderDetailID),
+                                Delivery_Date = orderstatus.Create_Date,
+
+                            };
+                            list.Add(model);
+                        }
+                        else
+                        {
+                            FeedbackViewModel model = new FeedbackViewModel
+                            {
+                                Comment = detail.Feedback_Title,
+                                Create_Date = detail.FeedBack_Date,
+                                Feedback_Status = null,
+                                orderDetaiID = detail.OrderDetailID,
+                                Rate = detail.Feedback_Rate,
+                                subItemImage = detail.Sub_Item.Image.Path,
+                                Sub_itemName = detail.Sub_Item.Sub_ItemName,
+                                ImagesFB = GetListImageFB(detail.OrderDetailID),
+                                Delivery_Date = orderstatus.Create_Date,
+
+                            };
+                            list.Add(model);
+                        }
                     }
                 }
                 result.Success = true;
@@ -1051,24 +1136,48 @@ namespace eSMP.Services.OrderRepo
                 if (orderDetail != null)
                 {
                     var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderDetail.OrderID);
-                    FeedbackDetailModel mode = new FeedbackDetailModel
+                    if (orderDetail.Feedback_StatusID != null)
                     {
-                        UserID = order.UserID,
-                        UserName = order.User.UserName,
-                        Useravatar = order.User.Image.Path,
-                        orderDetaiID = orderDetail.OrderDetailID,
-                        Comment = orderDetail.Feedback_Title,
-                        Create_Date = orderDetail.FeedBack_Date,
-                        Feedback_Status = orderDetail.Feedback_Status,
-                        Rate = orderDetail.Feedback_Rate,
-                        subItemImage = orderDetail.Sub_Item.Image.Path,
-                        Sub_itemName = orderDetail.Sub_Item.Sub_ItemName,
-                        ImagesFB = GetListImageFB(orderDetailID),
-                    };
-                    result.Success = true;
-                    result.Message = "Thành công";
-                    result.Data = mode;
-                    return result;
+                        FeedbackDetailModel mode = new FeedbackDetailModel
+                        {
+                            UserID = order.UserID,
+                            UserName = order.User.UserName,
+                            Useravatar = order.User.Image.Path,
+                            orderDetaiID = orderDetail.OrderDetailID,
+                            Comment = orderDetail.Feedback_Title,
+                            Create_Date = orderDetail.FeedBack_Date,
+                            Feedback_Status = _statusReposity.Value.GetfeedbackStatus(orderDetail.Feedback_StatusID.Value),
+                            Rate = orderDetail.Feedback_Rate,
+                            subItemImage = orderDetail.Sub_Item.Image.Path,
+                            Sub_itemName = orderDetail.Sub_Item.Sub_ItemName,
+                            ImagesFB = GetListImageFB(orderDetailID),
+                        };
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = mode;
+                        return result;
+                    }
+                    else
+                    {
+                        FeedbackDetailModel mode = new FeedbackDetailModel
+                        {
+                            UserID = order.UserID,
+                            UserName = order.User.UserName,
+                            Useravatar = order.User.Image.Path,
+                            orderDetaiID = orderDetail.OrderDetailID,
+                            Comment = orderDetail.Feedback_Title,
+                            Create_Date = orderDetail.FeedBack_Date,
+                            Feedback_Status = null,
+                            Rate = orderDetail.Feedback_Rate,
+                            subItemImage = orderDetail.Sub_Item.Image.Path,
+                            Sub_itemName = orderDetail.Sub_Item.Sub_ItemName,
+                            ImagesFB = GetListImageFB(orderDetailID),
+                        };
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = mode;
+                        return result;
+                    }
                 }
                 result.Success = false;
                 result.Message = "Đơn hàng chưa được đánhh giá";
@@ -1112,6 +1221,7 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
+
         public Result BlockFeedback(int orderDetailID)
         {
             Result result = new Result();
@@ -1166,6 +1276,53 @@ namespace eSMP.Services.OrderRepo
                 result.Data = "";
                 return result;
             }
+        }
+
+        public int GetUserIDByOrderID(int orderID)
+        {
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                return order.UserID;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        public int GetSuppilerIDByOrderID(int orderID)
+        {
+            try
+            {
+                var orderdetail = _context.OrderDetails.FirstOrDefault(od => od.OrderID == orderID);
+                var store = GetStoreBySubItemID(orderdetail.Sub_ItemID);
+                return store.User.UserID;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        public int GetUserIDByOrderDetailID(int orderDetailID)
+        {
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => _context.OrderDetails.FirstOrDefault(od=>od.OrderDetailID==orderDetailID).OrderID==o.OrderID);
+                return order.UserID;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        public int GetSuppilerIDByOrderDetailID(int orderDetailID)
+        {
+            var orderdetail = _context.OrderDetails.FirstOrDefault(od => od.OrderDetailID == orderDetailID);
+            var store = GetStoreBySubItemID(orderdetail.Sub_ItemID);
+            return store.User.UserID;
         }
     }
 }

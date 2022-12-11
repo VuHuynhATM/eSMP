@@ -20,8 +20,6 @@ namespace eSMP.Models
         public int OrderID { get; set; }//Fk
         [ForeignKey("OrderID")]
         public virtual Order Order { get; set; }
-        public int? Feedback_StatusID { get; set; }//Fk
-        [ForeignKey("Feedback_StatusID")]
-        public virtual Feedback_Status? Feedback_Status { get; set; }
+        public int? Feedback_StatusID { get; set; }
     }
 }

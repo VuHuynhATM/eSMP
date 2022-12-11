@@ -28,7 +28,7 @@ namespace eSMP.Services.BrandRepo
             try
             {
                 List<BrandModel> list = new List<BrandModel>();
-                var listBrand = _context.Brands.ToList();
+                var listBrand = _context.Brands.Where(b=>b.IsActive).ToList();
                 foreach (var brand in listBrand)
                 {
                     BrandModel brandModel = new BrandModel
@@ -147,7 +147,7 @@ namespace eSMP.Services.BrandRepo
             {
                 List<BrandModel> list = new List<BrandModel>();
                 var listModelitem = _context.Model_Items.Where(mi => mi.ItemID == ItemID).ToList();
-                var listBrand=_context.Brands.Where(b=>_context.Brand_Models.FirstOrDefault(bm=>bm.BrandID==b.BrandID&& _context.Model_Items.FirstOrDefault(mi=>mi.Brand_ModelID==bm.Brand_ModelID&& mi.ItemID==ItemID)!=null)!=null).ToList();
+                var listBrand = _context.Brands.Where(b => _context.Brand_Models.FirstOrDefault(bm => bm.BrandID == b.BrandID && _context.Model_Items.FirstOrDefault(mi => mi.Brand_ModelID == bm.Brand_ModelID && mi.ItemID == ItemID) != null) != null).ToList();
                 foreach (var brand in listBrand)
                 {
                     BrandModel brandModel = new BrandModel
@@ -193,7 +193,183 @@ namespace eSMP.Services.BrandRepo
                 result.Data = "";
                 return result;
             }
+        }
 
+        public Result CreateBrand(string brand_Name)
+        {
+            Result result = new Result();
+            try
+            {
+                Brand brand = new Brand();
+                brand.Name = brand_Name;
+                brand.IsActive = true;
+                _context.Brands.Add(brand);
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = brand;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result CreateMotorcycle(int brandID, string moto_Name)
+        {
+            Result result = new Result();
+            try
+            {
+                Brand_Model moto = new Brand_Model();
+                moto.Name = moto_Name;
+                moto.BrandID = brandID;
+                moto.IsActive = true;
+                _context.Brand_Models.Add(moto);
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = moto;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result RemoveMotorcycle(int motorcycleID)
+        {
+            Result result = new Result();
+            try
+            {
+                var moto =_context.Brand_Models.SingleOrDefault(m=>m.Brand_ModelID == motorcycleID);
+                if (moto != null)
+                {
+                    moto.IsActive = false;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = moto;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "Tên phương tiện không tồn tại";
+                    result.Data = "";
+                    return result;
+                }
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result RemoveBrand(int brandID)
+        {
+            Result result = new Result();
+            try
+            {
+                var brand = _context.Brands.SingleOrDefault(b => b.BrandID == brandID);
+                if (brand != null)
+                {
+                    brand.IsActive = false;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = brand;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "Hãng phương tiện không tồn tại";
+                    result.Data = "";
+                    return result;
+                }
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result ActiveMotorcycle(int motorcycleID)
+        {
+            Result result = new Result();
+            try
+            {
+                var moto = _context.Brand_Models.SingleOrDefault(m => m.Brand_ModelID == motorcycleID);
+                if (moto != null)
+                {
+                    moto.IsActive = true;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = moto;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "Tên phương tiện không tồn tại";
+                    result.Data = "";
+                    return result;
+                }
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result ActiveBrand(int brandID)
+        {
+            Result result = new Result();
+            try
+            {
+                var brand = _context.Brands.SingleOrDefault(b => b.BrandID == brandID);
+                if (brand != null)
+                {
+                    brand.IsActive = true;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = brand;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "Hãng phương tiện không tồn tại";
+                    result.Data = "";
+                    return result;
+                }
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
         }
     }
 }

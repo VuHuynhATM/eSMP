@@ -1,8 +1,14 @@
 ﻿using eSMP.Models;
 using eSMP.Services.MomoRepo;
+using eSMP.Services.OrderRepo;
+using eSMP.Services.StoreRepo;
+using eSMP.Services.UserRepo;
 using eSMP.VModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Security.Claims;
 
 namespace eSMP.Controllers
 {
@@ -12,11 +18,19 @@ namespace eSMP.Controllers
     {
         private readonly IMomoReposity _momoReposity;
         private readonly WebContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IStoreReposity _storeReposity;
+        private readonly IOrderReposity _orderReposity;
+        private readonly IUserReposity _userReposity;
 
-        public PaymentController(IMomoReposity momoReposity, WebContext context)
+        public PaymentController(IMomoReposity momoReposity, WebContext context, IHttpContextAccessor httpContextAccessor, IStoreReposity storeReposity, IOrderReposity orderReposity, IUserReposity userReposity)
         {
             _momoReposity = momoReposity;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+            _storeReposity = storeReposity;
+            _orderReposity = orderReposity;
+            _userReposity = userReposity;
         }
         [HttpPost]
         public IActionResult ipnUrl(MomoPayINP payINP)
@@ -27,11 +41,22 @@ namespace eSMP.Controllers
             return Ok();
         }
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
         [Route("momopay")]
         public IActionResult PayOrder(int orderID)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userIdOfOrder = _orderReposity.GetUserIDByOrderID(orderID);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (userId != userIdOfOrder + "")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                }
                 return Ok(_momoReposity.GetPayUrl(orderID));
             }
             catch
@@ -40,12 +65,35 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("cancel_order")]
         public IActionResult CancelOrder(int orderID, string reason)
         {
             try
             {
-                return Ok(_momoReposity.CancelOrder(orderID,reason));
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var roleid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var userIdOfOrder = _orderReposity.GetUserIDByOrderID(orderID);
+                var supplierIDOfOrder = _orderReposity.GetSuppilerIDByOrderID(orderID);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (roleid == "2")
+                {
+                    if (userId != userIdOfOrder + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                    }
+                }
+                else if (roleid == "3")
+                {
+                    if (userId != supplierIDOfOrder + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", });
+                    }
+                }
+                return Ok(_momoReposity.CancelOrder(orderID, reason));
             }
             catch
             {
@@ -66,11 +114,22 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
         [Route("momo_store_pay")]
         public IActionResult PayStore(int storeID)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var supplierStoreID= _storeReposity.GetStore(int.Parse(userId)).StoreID;
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (supplierStoreID != storeID)
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", });
+                }
                 return Ok(_momoReposity.GetStorePayUrl(storeID));
             }
             catch

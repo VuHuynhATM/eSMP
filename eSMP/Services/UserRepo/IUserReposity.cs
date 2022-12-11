@@ -30,5 +30,6 @@ namespace eSMP.Services.UserRepo
         public UserModel GetUserIFByID(int userID);
         public Result Logout(int userID);
         public Result GetAdminContact();
+        public Boolean CheckUser(int userID);
     }
 }

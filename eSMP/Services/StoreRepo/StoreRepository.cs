@@ -1,10 +1,9 @@
-﻿using Castle.Core.Internal;
-using eSMP.Models;
+﻿using eSMP.Models;
 using eSMP.Services.FileRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.Services.ShipRepo;
+using eSMP.Services.StatusRepo;
 using eSMP.VModels;
-using Firebase.Auth;
 using Microsoft.EntityFrameworkCore;
 using User = eSMP.Models.User;
 
@@ -16,13 +15,15 @@ namespace eSMP.Services.StoreRepo
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IOrderReposity> _orderReposity;
         private readonly Lazy<IFileReposity> _fileReposity;
+        private readonly Lazy<IStatusReposity> _statusReposity;
 
-        public StoreRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<IFileReposity> fileReposity)
+        public StoreRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<IFileReposity> fileReposity, Lazy<IStatusReposity> statusReposity)
         {
             _context = context;
             _shipReposity = shipReposity;
             _orderReposity = orderReposity;
             _fileReposity = fileReposity;
+            _statusReposity= statusReposity;
         }
         public DateTime GetVnTime()
         {
@@ -125,7 +126,7 @@ namespace eSMP.Services.StoreRepo
                     Pick_date = store.Pick_date,
                     Address =store.Address,
                     Image = GetImage(store.ImageID),
-                    Store_Status = GetStatus(store.Store_StatusID),
+                    Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                     UserID = store.UserID,
                     Asset=store.Asset,
                     Actice_Date = store.Actice_Date,
@@ -147,20 +148,6 @@ namespace eSMP.Services.StoreRepo
 
                 if (store != null)
                     return store.Address;
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        public Store_Status GetStatus(int statusID)
-        {
-            try
-            {
-                var status = _context.Store_Statuses.SingleOrDefault(s => s.Store_StatusID == statusID);
-                if (status != null)
-                    return status;
                 return null;
             }
             catch
@@ -216,7 +203,7 @@ namespace eSMP.Services.StoreRepo
                         Pick_date = store.Pick_date,
                         Address = store.Address,
                         Image = GetImage(store.ImageID),
-                        Store_Status = GetStatus(store.Store_StatusID),
+                        Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                         UserID = store.UserID,
                         Asset=store.Asset,
                         Actice_Date = store.Actice_Date,    
@@ -260,7 +247,7 @@ namespace eSMP.Services.StoreRepo
                         Pick_date = store.Pick_date,
                         Address = store.Address,
                         Image = GetImage(store.ImageID),
-                        Store_Status = GetStatus(store.Store_StatusID),
+                        Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                         UserID = store.UserID,
                         Asset= store.Asset,
                         Actice_Date = store.Actice_Date,
@@ -560,7 +547,7 @@ namespace eSMP.Services.StoreRepo
                         Pick_date = store.Pick_date,
                         Address = store.Address,
                         Image = GetImage(store.ImageID),
-                        Store_Status = GetStatus(store.Store_StatusID),
+                        Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                         UserID = store.UserID,
                         Asset=store.Asset,
                         MomoTransactionID=store.MomoTransactionID,
@@ -588,12 +575,29 @@ namespace eSMP.Services.StoreRepo
             }
         }
 
-        public bool CheckStore(string firebaseID)
+        public bool CheckStoreFirebase(string firebaseID)
         {
             Result result = new Result();
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.User.FirebaseID == firebaseID && s.Store_StatusID==1);
+                if (store != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool CheckStoreActive(int userID)
+        {
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => s.User.isActive && s.Store_StatusID == 1 && s.UserID==userID);
                 if (store != null)
                 {
                     return true;

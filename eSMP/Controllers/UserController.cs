@@ -1,9 +1,12 @@
 ﻿using eSMP.Models;
+using eSMP.Services.StoreRepo;
 using eSMP.Services.UserRepo;
 using eSMP.VModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
+using System.Security.Claims;
 
 namespace eSMP.Controllers
 {
@@ -13,38 +16,43 @@ namespace eSMP.Controllers
     {
         private readonly IUserReposity _userReposity;
 
-        public userController(IUserReposity userReposity)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public userController(IUserReposity userReposity, IHttpContextAccessor httpContextAccessor)
         {
             _userReposity = userReposity;
+            _httpContextAccessor = httpContextAccessor;
         }
         [HttpPost]
+        [Authorize]
         [Route("customersign_in")]
         public IActionResult CustomerLogin(UserLogin user)
         {
             try
             {
-                var result=_userReposity.CustomerLogin(user.Phone, user.FCM_Firebase);
+                var result = _userReposity.CustomerLogin(user.Phone, user.FCM_Firebase);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
+        [Authorize]
         [Route("suppliersign_in")]
         public IActionResult SuplierLogin(UserLogin user)
         {
             try
             {
-                var result=_userReposity.SupplierLogin(user.Phone, user.FCM_Firebase);
+                var result = _userReposity.SupplierLogin(user.Phone, user.FCM_Firebase);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
@@ -56,17 +64,18 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result=_userReposity.LoginByEmail(user.Email, user.Password, user.FCM_Firebase);
+                var result = _userReposity.LoginByEmail(user.Email, user.Password, user.FCM_Firebase);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
+        [Authorize]
         [Route("logout")]
         public IActionResult UserLogout(int userID)
         {
@@ -83,22 +92,24 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
+        [Authorize]
         [Route("user_register")]
         public IActionResult UserRegister(UserRegister user)
         {
             try
             {
-                var result=_userReposity.RigisterUser(user);
+                var result = _userReposity.RigisterUser(user);
                 if (result == null)
                     return BadRequest();
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
         [HttpPost]
+        [Authorize]
         [Route("supplier_register")]
         public IActionResult SupplierRegister(UserRegister user)
         {
@@ -121,22 +132,23 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result=_userReposity.CheckRole(phone);
+                var result = _userReposity.CheckRole(phone);
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
             }
         }
 
         [HttpGet]
+        [Authorize]
         [Route("get_users")]
         public IActionResult GetAllUser(int? page, string? search)
         {
             try
             {
-                var result = _userReposity.GetListUser(page,search);
+                var result = _userReposity.GetListUser(page, search);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -146,13 +158,13 @@ namespace eSMP.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("Search_user")]
         public IActionResult SearchUser(string phone, int roleID)
         {
             try
             {
-                var result = _userReposity.SearchUser(phone,roleID);
+                var result = _userReposity.SearchUser(phone, roleID);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -161,11 +173,17 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("Update_user_status")]
         public IActionResult UpdateUserStatus(int UserID, Boolean isActive)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
                 var result = _userReposity.UpdatteUserStatus(UserID, isActive);
                 return Ok(result);
             }
@@ -175,11 +193,17 @@ namespace eSMP.Controllers
             }
         }
         [HttpDelete]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("remove_user")]
         public IActionResult RemoveUser(int UserID)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
                 var result = _userReposity.RemoveUser(UserID);
                 return Ok(result);
             }
@@ -189,11 +213,25 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("add_address")]
         public IActionResult AddAddress(UserAddAddress address)
         {
             try
             {
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (role != "1")
+                {
+                    if (userId != address.UserID + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                    }
+                }
                 var result = _userReposity.AddAddress(address);
                 return Ok(result);
             }
@@ -203,11 +241,17 @@ namespace eSMP.Controllers
             }
         }
         [HttpDelete]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("remove_address")]
         public IActionResult RemoveAddress(int addressID)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
                 var result = _userReposity.RemoveAddress(addressID);
                 return Ok(result);
             }
@@ -217,11 +261,17 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("edt_address")]
         public IActionResult EditAddress(Address address)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
                 var result = _userReposity.UpdateAddress(address);
                 return Ok(result);
             }
@@ -231,11 +281,21 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("edit_name")]
         public IActionResult EditName(EditName name)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (userId != name.UserID + "")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                }
                 var result = _userReposity.UpdateName(name);
                 return Ok(result);
             }
@@ -245,12 +305,25 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "Customer, Supplier")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2, 3")]
         [Route("edit_email")]
         public IActionResult EditEmail(EditEmail email)
         {
             try
             {
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (role != "1")
+                {
+                    if (userId != email.UserID + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                    }
+                }
                 var result = _userReposity.UpdateEmail(email);
                 return Ok(result);
             }
@@ -260,11 +333,21 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("edit_gender")]
         public IActionResult EditGender(EditGender gender)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (userId != gender.UserID + "")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                }
                 var result = _userReposity.UpdateGender(gender);
                 return Ok(result);
             }
@@ -274,11 +357,21 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("edit_birth")]
         public IActionResult EditBirth([FromForm] EditBirth birth)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (userId != birth.UserID + "")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                }
                 var result = _userReposity.UpdateBirth(birth);
                 return Ok(result);
             }
@@ -288,11 +381,21 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("edit_image")]
         public IActionResult EditImage([FromForm] EditImage image)
         {
             try
             {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (userId != image.UserID + "")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                }
                 var result = _userReposity.UpdateImage(image);
                 return Ok(result);
             }
@@ -302,12 +405,22 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("refeshtoken")]
         public IActionResult RefeshToken(int userID, string token)
         {
             try
             {
-                var result = _userReposity.RefeshToken(userID,token);
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (userId != userID + "")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                }
+                var result = _userReposity.RefeshToken(userID, token);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -316,11 +429,25 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("address")]
         public IActionResult GetAddressbyID(int userID)
         {
             try
             {
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (role != "1")
+                {
+                    if (userId != userID + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                    }
+                }
                 var result = _userReposity.GetAddressByID(userID);
                 return Ok(result);
             }
@@ -330,11 +457,25 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("detail")]
         public IActionResult GetUserbyID(int userID)
         {
             try
             {
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                else if (role != "1")
+                {
+                    if (userId != userID + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                    }
+                }
                 var result = _userReposity.GetUserByID(userID);
                 return Ok(result);
             }

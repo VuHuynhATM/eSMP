@@ -22,6 +22,8 @@ using eSMP.Services.ReportSaleRepo;
 using eSMP.Services.ReportRepo;
 using eSMP.Services.FileRepo;
 using eSMP.Services.NotificationRepo;
+using eSMP.Services.AddressRepo;
+using eSMP.Services.StatusRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +49,10 @@ builder.Services.AddScoped<ISaleReportReposity, SaleReportRepository>();
 builder.Services.AddScoped<IReportReposity, ReportRepository>();
 builder.Services.AddScoped<IFileReposity, FileRepository>();
 builder.Services.AddScoped<INotificationReposity, NotificationRepository>();
+builder.Services.AddScoped<IAddressReposity, Addressrepository>();
+builder.Services.AddScoped<IStatusReposity, StatusRepsitory>();
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 
 var dbcontext = new WebContext();

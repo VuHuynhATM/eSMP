@@ -9,9 +9,7 @@ namespace eSMP.Models
         [Key]
         public int OrderID { get; set; }
         public DateTime Create_Date { get; set; }
-        public int OrderStatusID { get; set; }//Fk
-        [ForeignKey("OrderStatusID")]
-        public virtual OrderStatus OrderStatus { get; set; }
+        public int OrderStatusID { get; set; }
         public double FeeShip { get; set; }
         public int UserID { get; set; }//FK
         [ForeignKey("UserID")]

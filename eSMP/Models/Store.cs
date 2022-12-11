@@ -16,9 +16,7 @@ namespace eSMP.Models
         public int AddressID { get; set; }//FK
         [ForeignKey("AddressID")]
         public virtual Address Address { get; set; }
-        public int Store_StatusID { get; set; }//Fk
-        [ForeignKey("Store_StatusID")]
-        public virtual Store_Status Store_Status { get; set; }
+        public int Store_StatusID { get; set; }
         public int UserID { get; set; }//FK
         [ForeignKey("UserID")]
         public virtual User User { get; set; }

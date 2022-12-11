@@ -14,7 +14,7 @@ namespace eSMP.VModels
         public int Pick_date { get; set; }
         public int UserID { get; set; }
         public Address Address { get; set; }
-        public Store_Status Store_Status { get; set; }
+        public Status Store_Status { get; set; }
         public Image Image { get; set; }
         public double Asset { get; set; }
         public long? MomoTransactionID { get; set; }

@@ -1,6 +1,7 @@
 ﻿using eSMP.Models;
 using eSMP.Services.FileRepo;
 using eSMP.Services.OrderRepo;
+using eSMP.Services.StatusRepo;
 using eSMP.VModels;
 using System;
 using System.Linq.Expressions;
@@ -12,12 +13,14 @@ namespace eSMP.Services.StoreAssetRepo
         private readonly WebContext _context;
         private readonly IOrderReposity _orderReposity;
         private readonly IFileReposity _fileReposity;
+        private readonly IStatusReposity _statusReposity;
         private readonly int PAGE_SIZE = 25;
-        public AssetRepository(WebContext context, IOrderReposity orderReposity, IFileReposity fileReposity)
+        public AssetRepository(WebContext context, IOrderReposity orderReposity, IFileReposity fileReposity, IStatusReposity statusReposity)
         {
             _context = context;
             _orderReposity = orderReposity;
             _fileReposity = fileReposity;
+            _statusReposity = statusReposity;
         }
         public Store GetStore(int orderID)
         {
@@ -469,10 +472,6 @@ namespace eSMP.Services.StoreAssetRepo
             }
         }
 
-        public Withdrawal_Status GetWithdrawal_Status(int statusID)
-        {
-            return _context.Withdrawal_Statuses.SingleOrDefault(ws => ws.Withdrawal_StatusID == statusID);
-        }
         public Result GetStoreWithdrawal(int? storeID, int? page, int? statusID)
         {
             Result result = new Result();
@@ -508,7 +507,7 @@ namespace eSMP.Services.StoreAssetRepo
                             Reason = item.Reason,
                             StoreID = item.StoreID,
                             Store_WithdrawalID = item.Store_WithdrawalID,
-                            Withdrawal_Status = GetWithdrawal_Status(item.Withdrawal_StatusID),
+                            Withdrawal_Status = _statusReposity.GetWithdrawalStatus(item.Withdrawal_StatusID),
                         };
                         list.Add(model);
                     }
@@ -724,6 +723,72 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result UpdateCommission_Precent(double commission_Precent)
+        {
+            Result result = new Result();
+            try
+            {
+                var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
+                eSMP.Commission_Precent = commission_Precent;
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = eSMP;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result UpdateAmountActive(double amount_Active)
+        {
+            Result result = new Result();
+            try
+            {
+                var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
+                eSMP.AmountActive = amount_Active;
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = eSMP;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public Result UpdateRefund_Precent(double refund_Precent)
+        {
+            Result result = new Result();
+            try
+            {
+                var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
+                eSMP.Refund_Precent = refund_Precent;
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = eSMP;
                 return result;
             }
             catch

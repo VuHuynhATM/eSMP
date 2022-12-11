@@ -20,8 +20,6 @@ namespace eSMP.Models
         [ForeignKey("Sub_CategoryID")]
         public virtual Sub_Category Sub_Category { get; set; }
         public int Item_StatusID { get; set; }
-        [ForeignKey("Item_StatusID")]
-        public virtual Item_Status Item_Status { get; set; }
 
     }
 }

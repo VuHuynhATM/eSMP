@@ -22,8 +22,6 @@ namespace eSMP.Models
         public DateTime Create_Date { get; set; }
         public string Reason { get; set; }
         public double Price { get; set; }
-        public int Withdrawal_StatusID { get; set; }//Fk
-        [ForeignKey("Withdrawal_StatusID")]
-        public virtual Withdrawal_Status Withdrawal_Status { get; set; }
+        public int Withdrawal_StatusID { get; set; }
     }
 }

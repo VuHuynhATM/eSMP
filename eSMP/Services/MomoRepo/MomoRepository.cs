@@ -309,7 +309,7 @@ namespace eSMP.Services.MomoRepo
                                 if (refund.Success)
                                 {
                                     order.OrderStatusID = 3;
-                                    order.FeeShip = shipReponse.order.fee;
+                                    //order.FeeShip = shipReponse.order.fee;
                                     order.Create_Date = GetVnTime();
                                     order.Reason = shipReponse.message;
                                     _context.SaveChanges();
@@ -645,7 +645,7 @@ namespace eSMP.Services.MomoRepo
             //https://esmp.page.link/view
             request.orderInfo = "Thanh Toan";
             request.partnerCode = partnerCode;
-            request.redirectUrl = "https://esmp.page.link/view";
+            request.redirectUrl = "http://localhost:3000/success";
             request.ipnUrl = "http://esmpfree-001-site1.etempurl.com/api/Payment/store";
             request.amount = (long)system.AmountActive;
             request.orderId = store.StoreID + "-" + myuuidAsString;
@@ -745,10 +745,11 @@ namespace eSMP.Services.MomoRepo
                             title = "Thanh toán",
                             body = "Thanh toán kich hoạt cửa hàng thành công ",
                         };
+                        var user = _context.Users.SingleOrDefault(u => u.UserID == store.UserID);
                         FirebaseNotification firebaseNotification = new FirebaseNotification
                         {
                             notification = notification,
-                            to = store.User.FCM_Firebase,
+                            to = user.FCM_Firebase,
                         };
                         _notification.Value.PushUserNotificationAsync(firebaseNotification);
                         //admin
@@ -761,7 +762,7 @@ namespace eSMP.Services.MomoRepo
                         };
                         FirebaseNotification firebaseNotificationadmin = new FirebaseNotification
                         {
-                            notification = notification,
+                            notification = notificationadmin,
                             to = u.FCM_Firebase,
                         };
                         _notification.Value.PushUserNotificationAsync(firebaseNotificationadmin);

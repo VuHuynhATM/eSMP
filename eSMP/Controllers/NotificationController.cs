@@ -26,5 +26,17 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
         }
+        [HttpPost]
+        public IActionResult pushhhNotification(FirebaseNotification request)
+        {
+            try
+            {
+                return Ok(_notification.PushUserNotificationAsync(request));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+            }
+        }
     }
 }

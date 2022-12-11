@@ -71,19 +71,7 @@ namespace eSMP.Services.ShipRepo
                 shipOrder.Reason_code= reason_code;
                 _context.ShipOrders.Add(shipOrder);
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
-                //thhong bao
-                _notification.Value.CreateNotifiaction(order.UserID, shipOrder.ShipStatus.Status_Name, null, orderID, null);
-                Notification notification = new Notification
-                {
-                    title = "Cập nhập đơn hàng " + orderID,
-                    body = "Đơn hàng " + orderID + " đang trong trạng thái: " + shipOrder.ShipStatus.Status_Name,
-                };
-                FirebaseNotification firebaseNotification = new FirebaseNotification
-                {
-                    notification = notification,
-                    to = order.User.FCM_Firebase,
-                };
-                _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                
                 //giao hang thanh cong
                 if (status_id == 5)
                 {
@@ -116,6 +104,26 @@ namespace eSMP.Services.ShipRepo
                     var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
                 }
                 _context.SaveChanges();
+                //thhong bao
+                var statustext = "";
+                var status = _context.ShipStatuses.SingleOrDefault(s => s.Status_ID == status_id+"");
+                if (status != null)
+                {
+                    statustext=status.Status_Name;
+                }
+                _notification.Value.CreateNotifiaction(order.UserID, "cập nhập trạng thái đơn hàng: "+ statustext, null, orderID, null);
+                Notification notification = new Notification
+                {
+                    title = "Cập nhập đơn hàng " + orderID,
+                    body = "Đơn hàng " + orderID + " đang trong trạng thái: " + shipOrder.ShipStatus.Status_Name,
+                };
+                var user = _context.Users.SingleOrDefault(u => u.UserID == order.UserID);
+                FirebaseNotification firebaseNotification = new FirebaseNotification
+                {
+                    notification = notification,
+                    to = user.FCM_Firebase,
+                };
+                _notification.Value.PushUserNotificationAsync(firebaseNotification);
                 return true;
             }
             catch (Exception ex)

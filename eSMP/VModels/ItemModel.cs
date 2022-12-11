@@ -28,7 +28,7 @@ namespace eSMP.VModels
         public int Num_Sold { get; set; }
         public DateTime Create_date { get; set; }
         public int Sub_CategoryID { get; set; }
-        public Item_Status Item_Status { get; set; }
+        public Status Item_Status { get; set; }
         public List<Image> List_Image { get; set; }
         public List<SpecificationTagModel> Specification_Tag { get; set; }
         public StoreViewModel Store { get; set; }
@@ -49,7 +49,7 @@ namespace eSMP.VModels
         public int Amount { get; set; }
         public Image Image { get; set; }
         public double Price { get; set; }
-        public SubItem_Status SubItem_Status { get; set; }
+        public Status SubItem_Status { get; set; }
     }
     public class Sub_ItemRegister
     {

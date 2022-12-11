@@ -9,7 +9,7 @@ namespace eSMP.VModels
         public int OrderID { get; set; }
         public StoreViewModel StoreView { get; set; }
         public DateTime Create_Date { get; set; }
-        public OrderStatus OrderStatus { get; set; }
+        public Status OrderStatus { get; set; }
         public int UserID { get; set; }
         public double PriceItem { get; set; }
         public double FeeShip { get; set; }
@@ -29,13 +29,14 @@ namespace eSMP.VModels
         public string? Reason { get; set; }
         public string? Pick_Time { get; set; }
         public string? ShipOrderID { get; set; }
+        public string? FirebaseID { get; set; }
     }
     public class OrderModelView
     {
         public int OrderID { get; set; }
         public StoreViewModel StoreView { get; set; }
         public DateTime Create_Date { get; set; }
-        public OrderStatus OrderStatus { get; set; }
+        public Status OrderStatus { get; set; }
         public int UserID { get; set; }
         public double PriceItem { get; set; }
         public double FeeShip { get; set; }
@@ -55,6 +56,7 @@ namespace eSMP.VModels
         public ShipViewModel OrderShip{ get; set; }
         public string? Reason { get; set; }
         public string? Pick_Time { get; set; }
+        public string? FirebaseID { get; set; }
 
     }
     public class OrderDetailModel
@@ -70,7 +72,7 @@ namespace eSMP.VModels
         public string Sub_ItemName { get; set; }
         public string sub_ItemImage { get; set; }
         public int ItemID { get; set; }
-        public Feedback_Status? Feedback_Status { get; set; }
+        public Status? Feedback_Status { get; set; }
         public List<Image>? ListImageFb { get; set; } 
 
     }

@@ -1041,6 +1041,7 @@ namespace eSMP.Services.UserRepo
                 if (u != null)
                 {
                     u.FCM_Firebase = null;
+                    u.Token = "";
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -1085,6 +1086,23 @@ namespace eSMP.Services.UserRepo
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
                 return result;
+            }
+        }
+
+        public bool CheckUser(int userID)
+        {
+            try
+            {
+                var u = _context.Users.FirstOrDefault(u => u.UserID == userID && u.isActive);
+                if (u != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

@@ -1,15 +1,14 @@
-﻿using eSMP.Models;
+﻿using Castle.Core.Internal;
+using eSMP.Models;
 using eSMP.Services.BrandRepo;
 using eSMP.Services.FileRepo;
 using eSMP.Services.SpecificationRepo;
+using eSMP.Services.StatusRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.Services.UserRepo;
 using eSMP.VModels;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Runtime.InteropServices;
-using System.Text.Json.Nodes;
 
 namespace eSMP.Services.ItemRepo
 {
@@ -21,10 +20,11 @@ namespace eSMP.Services.ItemRepo
         private readonly IUserReposity _userReposity;
         private readonly IBrandReposity _brandReposity;
         private readonly IFileReposity _fileReposity;
+        private readonly IStatusReposity _statusReposity;
 
         public static int PAGE_SIZE { get; set; } = 25;
 
-        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity, IFileReposity fileReposity)
+        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity, IFileReposity fileReposity,IStatusReposity statusReposity)
         {
             _context = context;
             _storeReposity = storeReposity;
@@ -32,6 +32,7 @@ namespace eSMP.Services.ItemRepo
             _userReposity = userReposity;
             _brandReposity = brandReposity;
             _fileReposity = fileReposity;
+            _statusReposity = statusReposity;
         }
         public DateTime GetVnTime()
         {
@@ -63,6 +64,20 @@ namespace eSMP.Services.ItemRepo
                 IEnumerable<int> listModel = JsonConvert.DeserializeObject<IEnumerable<int>>(item.ListModel);
                 int index = 0;
                 var listSubImage = item.List_SubItem_Image;
+                if (listSubImage.IsNullOrEmpty())
+                {
+                    result.Success = false;
+                    result.Message = "Hình ảnh các loại sản phẩm trống";
+                    result.Data = "";
+                    return result;
+                }
+                if (listsub.IsNullOrEmpty())
+                {
+                    result.Success = false;
+                    result.Message = "Các loại sản phẩm trống";
+                    result.Data = "";
+                    return result;
+                }
                 foreach (var itemsub in listsub)
                 {
                     Guid myuuid = Guid.NewGuid();
@@ -89,6 +104,13 @@ namespace eSMP.Services.ItemRepo
                 }
 
                 var listImage = item.List_Image;
+                if (listImage.IsNullOrEmpty())
+                {
+                    result.Success = false;
+                    result.Message = "Hình ảnh sản phẩm trống";
+                    result.Data = "";
+                    return result;
+                }
                 foreach (var image in listImage)
                 {
                     Guid myuuid = Guid.NewGuid();
@@ -108,7 +130,13 @@ namespace eSMP.Services.ItemRepo
 
                     _context.Item_Images.Add(item_Image);
                 }
-
+                if (listSpec.IsNullOrEmpty())
+                {
+                    result.Success = false;
+                    result.Message = "thông tin sản phẩm trống";
+                    result.Data = "";
+                    return result;
+                }
                 foreach (var specitication in listSpec)
                 {
                     Specification_Value specification_Value = new Specification_Value();
@@ -118,7 +146,13 @@ namespace eSMP.Services.ItemRepo
                     specification_Value.IsActive = true;
                     _context.Specification_Values.Add(specification_Value);
                 }
-
+                if (listModel.IsNullOrEmpty())
+                {
+                    result.Success = false;
+                    result.Message = "thông số sản phẩm trống";
+                    result.Data = "";
+                    return result;
+                }
                 foreach (var model in listModel)
                 {
                     Model_Item model_Item = new Model_Item();
@@ -318,7 +352,7 @@ namespace eSMP.Services.ItemRepo
                     {
                         Sub_ItemID = item.Sub_ItemID,
                         Amount = item.Amount,
-                        SubItem_Status = item.SubItem_Status,
+                        SubItem_Status = _statusReposity.GetSubItemStatus(item.SubItem_StatusID),
                         Price = item.Price,
                         Sub_ItemName = item.Sub_ItemName,
                         Image = item.Image,
@@ -395,7 +429,7 @@ namespace eSMP.Services.ItemRepo
                         Store = _storeReposity.GetStoreModel(item.StoreID),
                         Specification_Tag = _specificationReposity.GetSpecificationsForItem(item.ItemID),
                         List_Image = GetItemImage(item.ItemID),
-                        Item_Status = item.Item_Status,
+                        Item_Status = _statusReposity.GetItemStatus(item.Item_StatusID),
                         ListSubItem = GetListSubItem(item.ItemID),
                         ListModel = _brandReposity.GetModelForItem(item.ItemID),
                         Num_Sold = GetNumSold(item.ItemID),
@@ -1315,6 +1349,32 @@ namespace eSMP.Services.ItemRepo
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
                 return result;
+            }
+        }
+
+        public int GetSupplierIDByItemID(int itemID)
+        {
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s=> _context.Items.SingleOrDefault(i => i.ItemID == itemID).StoreID==s.StoreID);
+                return store.UserID;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        public int GetSupplierIDBySubItemID(int SubItemID)
+        {
+            try
+            {
+                var store = _context.Stores.SingleOrDefault(s => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==SubItemID).ItemID==i.ItemID).StoreID == s.StoreID);
+                return store.UserID;
+            }
+            catch
+            {
+                return -1;
             }
         }
     }

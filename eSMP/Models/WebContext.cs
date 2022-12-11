@@ -12,10 +12,8 @@ namespace eSMP.Models
         public DbSet<Image> Images { get; set; }
         public DbSet<Address> Addresss { get; set; }
         public DbSet<Store> Stores { get; set; }
-        public DbSet<Store_Status> Store_Statuses { get; set; }
         public DbSet<Category> Categorys { get; set; }
         public DbSet<Sub_Category> SubCategories { get; set; }
-        public DbSet<Item_Status> Item_Statuses { get; set; }
         public DbSet<Specification> Specification { get; set; }
         public DbSet<Specification_Value> Specification_Values { get; set; }
         public DbSet<Sub_Item> Sub_Items { get; set; }
@@ -25,25 +23,21 @@ namespace eSMP.Models
         public DbSet<Brand>Brands { get; set; }
         public DbSet<Brand_Model> Brand_Models { get; set; }
         public DbSet<Model_Item> Model_Items { get; set; }
-        public DbSet<SubItem_Status> subItem_Statuses { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
-        public DbSet<Feedback_Status> Feedback_Statuses { get; set; }
         public DbSet<Feedback_Image> Feedback_Images { get; set; }  
         public DbSet<OrderBuy_Transacsion> orderBuy_Transacsions { get; set; }
         public DbSet<ShipStatus> ShipStatuses { get; set; }
         public DbSet<ShipOrder> ShipOrders { get; set; }
-        public DbSet<OrderStatus> OrderStatuses { get; set; }
         public DbSet<OrderStore_Transaction> OrderStore_Transactions { get; set; }
         public DbSet<OrderSystem_Transaction> OrderSystem_Transactions { get; set; }
         public DbSet<eSMP_System> eSMP_Systems { get; set; }
         public DbSet<System_Withdrawal> System_Withdrawals { get; set; }
-        public DbSet<Withdrawal_Status> Withdrawal_Statuses { get; set; }
         public DbSet<Store_Withdrawal> Store_Withdrawals { get; set; }
         public DbSet<BankSupport> BankSupports { get; set; }
         public DbSet<Report> Reports { get; set; }
-        public DbSet<ReportStatus> ReportStatuses { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<AddressVn> addressVns { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -87,10 +81,6 @@ namespace eSMP.Models
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Item_Image>()
                 .HasOne(e => e.Item)
-                .WithMany()
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Sub_Item>()
-                .HasOne(e => e.SubItem_Status)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Sub_Item>()

@@ -19,5 +19,8 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetStoreReveneuForChart(int storeID,int? year);
         public Result GetSystemReveneuForChart(int? year, string Cate);
         public Result GetStoreSystemReveneu(int? page, DateTime? From, DateTime? To);
+        public Result UpdateCommission_Precent(double commission_Precent);
+        public Result UpdateAmountActive(double amount_Active);
+        public Result UpdateRefund_Precent(double refund_Precent);
     }
 }

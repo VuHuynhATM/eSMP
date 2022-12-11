@@ -8,9 +8,7 @@ namespace eSMP.VModels
     {
         public IFormFile File { get; set; }
         public string Context { get; set; }
-        public DateTime Create_Date { get; set; }
         public double Price { get; set; }
-        public Boolean IsActive { get; set; }
     }
     public class SystemWithdrawalView
     {
@@ -73,6 +71,6 @@ namespace eSMP.VModels
         public DateTime Create_Date { get; set; }
         public string Reason { get; set; }
         public double Price { get; set; }
-        public Withdrawal_Status Withdrawal_Status { get; set; }
+        public Status Withdrawal_Status { get; set; }
     }
 }

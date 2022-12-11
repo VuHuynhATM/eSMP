@@ -10,9 +10,7 @@ namespace eSMP.Models
         public int ReportID { get; set; }
         public string Text { get; set; }
         public DateTime Create_Date { get; set; }
-        public int ReportStatusID { get; set; }//FK
-        [ForeignKey("ReportStatusID")]
-        public virtual ReportStatus ReportStatus { get; set; }
+        public int ReportStatusID { get; set; }
         public int UserID { get; set; }//FK
         [ForeignKey("UserID")]
         public virtual User User { get; set; }

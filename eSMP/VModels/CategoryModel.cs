@@ -9,7 +9,7 @@ namespace eSMP.VModels
         public int CategoryID { get; set; }
         public string Name { get; set; }
         public Boolean IsActive { get; set; }
-        public List<Sub_CategoryModel> listSub { get; set; }
+        public List<Sub_CategoryModel>? listSub { get; set; }
 
     }
     public class Sub_CategoryModel

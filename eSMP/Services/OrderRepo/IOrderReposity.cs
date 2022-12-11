@@ -22,5 +22,9 @@ namespace eSMP.Services.OrderRepo
         public Result HiddenFeedback(int orderDetailID);
         public Result BlockFeedback(int orderDetailID);
         public Result CheckPay(int orderID);
+        public int GetUserIDByOrderID(int orderID);
+        public int GetSuppilerIDByOrderID(int orderID);
+        public int GetUserIDByOrderDetailID(int orderDetailID);
+        public int GetSuppilerIDByOrderDetailID(int orderDetailID);
     }
 }

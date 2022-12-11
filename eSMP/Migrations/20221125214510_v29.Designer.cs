@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20221125214510_v29")]
+    partial class v29
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,7 +80,7 @@ namespace eSMP.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("levelVN")
+                    b.Property<string>("level")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -247,6 +249,26 @@ namespace eSMP.Migrations
                     b.ToTable("Feedback_Image");
                 });
 
+            modelBuilder.Entity("eSMP.Models.Feedback_Status", b =>
+                {
+                    b.Property<int>("Feedback_StatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Feedback_StatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Feedback_StatusID");
+
+                    b.ToTable("Feedback_Status");
+                });
+
             modelBuilder.Entity("eSMP.Models.Image", b =>
                 {
                     b.Property<int>("ImageID")
@@ -310,6 +332,8 @@ namespace eSMP.Migrations
 
                     b.HasKey("ItemID");
 
+                    b.HasIndex("Item_StatusID");
+
                     b.HasIndex("StoreID");
 
                     b.HasIndex("Sub_CategoryID");
@@ -339,6 +363,26 @@ namespace eSMP.Migrations
                         .IsUnique();
 
                     b.ToTable("Item_Image");
+                });
+
+            modelBuilder.Entity("eSMP.Models.Item_Status", b =>
+                {
+                    b.Property<int>("Item_StatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Item_StatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Item_StatusID");
+
+                    b.ToTable("ItemStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.Model_Item", b =>
@@ -487,6 +531,8 @@ namespace eSMP.Migrations
 
                     b.HasKey("OrderID");
 
+                    b.HasIndex("OrderStatusID");
+
                     b.HasIndex("UserID");
 
                     b.ToTable("Order");
@@ -564,11 +610,33 @@ namespace eSMP.Migrations
 
                     b.HasKey("OrderDetailID");
 
+                    b.HasIndex("Feedback_StatusID");
+
                     b.HasIndex("OrderID");
 
                     b.HasIndex("Sub_ItemID");
 
                     b.ToTable("OrderDetail");
+                });
+
+            modelBuilder.Entity("eSMP.Models.OrderStatus", b =>
+                {
+                    b.Property<int>("OrderStatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderStatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("OrderStatusID");
+
+                    b.ToTable("OrderStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.OrderStore_Transaction", b =>
@@ -672,11 +740,33 @@ namespace eSMP.Migrations
 
                     b.HasIndex("OrderDetaiID");
 
+                    b.HasIndex("ReportStatusID");
+
                     b.HasIndex("StoreID");
 
                     b.HasIndex("UserID");
 
                     b.ToTable("Report");
+                });
+
+            modelBuilder.Entity("eSMP.Models.ReportStatus", b =>
+                {
+                    b.Property<int>("ReportStatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportStatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ReportStatusID");
+
+                    b.ToTable("ReportStatus");
                 });
 
             modelBuilder.Entity("eSMP.Models.Role", b =>
@@ -859,10 +949,32 @@ namespace eSMP.Migrations
 
                     b.HasIndex("ImageID");
 
+                    b.HasIndex("Store_StatusID");
+
                     b.HasIndex("UserID")
                         .IsUnique();
 
                     b.ToTable("Store");
+                });
+
+            modelBuilder.Entity("eSMP.Models.Store_Status", b =>
+                {
+                    b.Property<int>("Store_StatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Store_StatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Store_StatusID");
+
+                    b.ToTable("Store_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.Store_Withdrawal", b =>
@@ -910,6 +1022,8 @@ namespace eSMP.Migrations
                     b.HasIndex("ImageID");
 
                     b.HasIndex("StoreID");
+
+                    b.HasIndex("Withdrawal_StatusID");
 
                     b.ToTable("Store_Withdrawal");
                 });
@@ -972,6 +1086,8 @@ namespace eSMP.Migrations
 
                     b.HasIndex("ItemID");
 
+                    b.HasIndex("SubItem_StatusID");
+
                     b.ToTable("Sub_Item");
                 });
 
@@ -1000,6 +1116,26 @@ namespace eSMP.Migrations
                         .IsUnique();
 
                     b.ToTable("SubCate_Specification");
+                });
+
+            modelBuilder.Entity("eSMP.Models.SubItem_Status", b =>
+                {
+                    b.Property<int>("SubItem_StatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubItem_StatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubItem_StatusID");
+
+                    b.ToTable("SubItem_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.System_Withdrawal", b =>
@@ -1131,6 +1267,26 @@ namespace eSMP.Migrations
                     b.ToTable("User_Address");
                 });
 
+            modelBuilder.Entity("eSMP.Models.Withdrawal_Status", b =>
+                {
+                    b.Property<int>("Withdrawal_StatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Withdrawal_StatusID"), 1L, 1);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Withdrawal_StatusID");
+
+                    b.ToTable("Withdrawal_Status");
+                });
+
             modelBuilder.Entity("eSMP.Models.Brand_Model", b =>
                 {
                     b.HasOne("eSMP.Models.Brand", "Brand")
@@ -1163,6 +1319,12 @@ namespace eSMP.Migrations
 
             modelBuilder.Entity("eSMP.Models.Item", b =>
                 {
+                    b.HasOne("eSMP.Models.Item_Status", "Item_Status")
+                        .WithMany()
+                        .HasForeignKey("Item_StatusID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("eSMP.Models.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreID")
@@ -1174,6 +1336,8 @@ namespace eSMP.Migrations
                         .HasForeignKey("Sub_CategoryID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Item_Status");
 
                     b.Navigation("Store");
 
@@ -1249,11 +1413,19 @@ namespace eSMP.Migrations
 
             modelBuilder.Entity("eSMP.Models.Order", b =>
                 {
+                    b.HasOne("eSMP.Models.OrderStatus", "OrderStatus")
+                        .WithMany()
+                        .HasForeignKey("OrderStatusID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("eSMP.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("OrderStatus");
 
                     b.Navigation("User");
                 });
@@ -1271,6 +1443,10 @@ namespace eSMP.Migrations
 
             modelBuilder.Entity("eSMP.Models.OrderDetail", b =>
                 {
+                    b.HasOne("eSMP.Models.Feedback_Status", "Feedback_Status")
+                        .WithMany()
+                        .HasForeignKey("Feedback_StatusID");
+
                     b.HasOne("eSMP.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderID")
@@ -1282,6 +1458,8 @@ namespace eSMP.Migrations
                         .HasForeignKey("Sub_ItemID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Feedback_Status");
 
                     b.Navigation("Order");
 
@@ -1338,6 +1516,12 @@ namespace eSMP.Migrations
                         .HasForeignKey("OrderDetaiID")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("eSMP.Models.ReportStatus", "ReportStatus")
+                        .WithMany()
+                        .HasForeignKey("ReportStatusID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("eSMP.Models.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreID")
@@ -1352,6 +1536,8 @@ namespace eSMP.Migrations
                     b.Navigation("Item");
 
                     b.Navigation("OrderDetail");
+
+                    b.Navigation("ReportStatus");
 
                     b.Navigation("Store");
 
@@ -1410,6 +1596,12 @@ namespace eSMP.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("eSMP.Models.Store_Status", "Store_Status")
+                        .WithMany()
+                        .HasForeignKey("Store_StatusID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("eSMP.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
@@ -1419,6 +1611,8 @@ namespace eSMP.Migrations
                     b.Navigation("Address");
 
                     b.Navigation("Image");
+
+                    b.Navigation("Store_Status");
 
                     b.Navigation("User");
                 });
@@ -1441,11 +1635,19 @@ namespace eSMP.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("eSMP.Models.Withdrawal_Status", "Withdrawal_Status")
+                        .WithMany()
+                        .HasForeignKey("Withdrawal_StatusID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("BankSupport");
 
                     b.Navigation("Image");
 
                     b.Navigation("Store");
+
+                    b.Navigation("Withdrawal_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.Sub_Category", b =>
@@ -1473,9 +1675,17 @@ namespace eSMP.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("eSMP.Models.SubItem_Status", "SubItem_Status")
+                        .WithMany()
+                        .HasForeignKey("SubItem_StatusID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Image");
 
                     b.Navigation("Item");
+
+                    b.Navigation("SubItem_Status");
                 });
 
             modelBuilder.Entity("eSMP.Models.SubCate_Specification", b =>

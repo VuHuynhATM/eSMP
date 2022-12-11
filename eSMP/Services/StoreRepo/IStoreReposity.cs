@@ -17,6 +17,9 @@ namespace eSMP.Services.StoreRepo
         public Result BlockStore(int storeID);
         public Result UnHiddenStore(int storeID);
         public Result UpdateAddress(int storeID, Address address);
-        public Boolean CheckStore(string firebaseID);
+        public Boolean CheckStoreFirebase(string firebaseID);
+        public StoreModel GetStore(int userID);
+        public Boolean CheckStoreActive(int userID);
+
     }
 }

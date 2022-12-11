@@ -30,7 +30,7 @@ namespace eSMP.VModels
         public double? Rate { get; set; }
         public string? Comment { get; set; }
         public DateTime? Create_Date { get; set; }
-        public ReportStatus ReportStatus { get; set; }
+        public Status ReportStatus { get; set; }
     }
     public class ItemReportModel
     {
@@ -40,7 +40,7 @@ namespace eSMP.VModels
         public Image ItemImage { get; set; }
         public int ItemID { get; set; }
         public string ItemName { get; set; }
-        public ReportStatus ReportStatus { get; set; }
+        public Status ReportStatus { get; set; }
     }
     public class StoreReportModel
     {
@@ -50,6 +50,6 @@ namespace eSMP.VModels
         public Image StoreImage { get; set; }
         public int StoreID { get; set; }
         public string StoreName { get; set; }
-        public ReportStatus ReportStatus { get; set; }
+        public Status ReportStatus { get; set; }
     }
 }

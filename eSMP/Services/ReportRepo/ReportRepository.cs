@@ -1,4 +1,5 @@
 ﻿using eSMP.Models;
+using eSMP.Services.StatusRepo;
 using eSMP.VModels;
 using System.Collections;
 
@@ -7,11 +8,13 @@ namespace eSMP.Services.ReportRepo
     public class ReportRepository : IReportReposity
     {
         private readonly WebContext _context;
+        private readonly IStatusReposity _statusReposity;
         public static int PAGE_SIZE { get; set; } = 25;
 
-        public ReportRepository(WebContext context)
+        public ReportRepository(WebContext context, IStatusReposity statusReposity)
         {
             _context = context;
+            _statusReposity = statusReposity;
         }
 
         public DateTime GetVnTime()
@@ -206,7 +209,7 @@ namespace eSMP.Services.ReportRepo
                             ReportID = report.ReportID,
                             Rate = report.OrderDetail.Feedback_Rate,
                             ImagesFB = GetListImageFB(report.OrderDetaiID.Value),
-                            ReportStatus=report.ReportStatus,
+                            ReportStatus=_statusReposity.GetReportStatus(report.ReportStatusID),
                         };
                         list.Add(mode);
                     }
@@ -238,7 +241,7 @@ namespace eSMP.Services.ReportRepo
                             StoreImage = item.Store.Image,
                             StoreName = item.Store.StoreName,
                             UserID = item.UserID,
-                            ReportStatus=item.ReportStatus,
+                            ReportStatus= _statusReposity.GetReportStatus(item.ReportStatusID),
                         };
                         list.Add(model);
                     }
@@ -270,7 +273,7 @@ namespace eSMP.Services.ReportRepo
                             ItemName = item.Item.Name,
                             ReportID = item.ReportID,
                             Text = item.Text,
-                            ReportStatus = item.ReportStatus,
+                            ReportStatus = _statusReposity.GetReportStatus(item.ReportStatusID),
                         };
                         list.Add(model);
                     }

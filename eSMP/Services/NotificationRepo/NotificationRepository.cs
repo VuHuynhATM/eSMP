@@ -9,7 +9,7 @@ namespace eSMP.Services.NotificationRepo
 {
     public class NotificationRepository:INotificationReposity
     {
-        public static string TOKEN = "key=AAAAoDgJlCQ:APA91bEteTyEFMRfc_ly8aU1DAWEBdAsSU_QUWm2djkaqNDm7nEaDFUVxp5DeGOSkF3FKRhwjBGLvjGQnOobw4levIE-bovbeva2tHRMItW8TH-9tRzb9I754oxNaSBzHhVQGEOcN0uH";
+        public static string TOKEN = "AAAAoDgJlCQ:APA91bEteTyEFMRfc_ly8aU1DAWEBdAsSU_QUWm2djkaqNDm7nEaDFUVxp5DeGOSkF3FKRhwjBGLvjGQnOobw4levIE-bovbeva2tHRMItW8TH-9tRzb9I754oxNaSBzHhVQGEOcN0uH";
         private readonly WebContext _context;
 
         public NotificationRepository(WebContext context)
@@ -87,13 +87,20 @@ namespace eSMP.Services.NotificationRepo
 
         public async Task<NotificationReponse> PushUserNotificationAsync(FirebaseNotification request)
         {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Authorization", TOKEN);
-            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
-
-            var quickPayResponse = await client.PostAsync("https://fcm.googleapis.com/fcm/send", httpContent);
-            var contents = quickPayResponse.Content.ReadFromJsonAsync<NotificationReponse>();
-            return contents.Result;
+            try
+            {
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " +TOKEN);
+                StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+                var ghtkreponde = await client.PostAsync("https://fcm.googleapis.com/fcm/send", httpContent);
+                var contents = ghtkreponde.Content.ReadAsStringAsync().Result;
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+            
         }
 
     }

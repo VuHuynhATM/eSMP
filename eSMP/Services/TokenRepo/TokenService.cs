@@ -23,8 +23,8 @@ namespace eSMP.Services.TokenRepo
             var claims = new[]
            {
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, getRoleName(user.RoleID)),
-                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.Role, user.RoleID+""),
+                new Claim(ClaimTypes.NameIdentifier, user.UserID+"")
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -32,21 +32,6 @@ namespace eSMP.Services.TokenRepo
             var tokenDescriptor = new JwtSecurityToken(issuer: issuer, audience: issuer, claims, expires: DateTime.Now.AddMinutes(1440), signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
-        public string getRoleName(int RoleID)
-        {
-            try
-            {
-                var role = _context.Roles.SingleOrDefault(r => r.RoleID == RoleID);
-                if (role == null)
-                {
-                    return null;
-                }
-                return role.RoleName;
-            }
-            catch
-            {
-                return null;
-            }
-        }
+       
     }
 }

@@ -144,27 +144,11 @@ namespace eSMP.Controllers
         [HttpGet]
         [Authorize]
         [Route("get_users")]
-        public IActionResult GetAllUser(int? page, string? search)
+        public IActionResult GetAllUser(int? page, string? search, int? roleID, bool? isActive)
         {
             try
             {
-                var result = _userReposity.GetListUser(page, search);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
-        [Route("Search_user")]
-        public IActionResult SearchUser(string phone, int roleID)
-        {
-            try
-            {
-                var result = _userReposity.SearchUser(phone, roleID);
+                var result = _userReposity.GetListUser(page, search, roleID, isActive);
                 return Ok(result);
             }
             catch (Exception ex)

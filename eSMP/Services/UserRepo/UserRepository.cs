@@ -442,7 +442,7 @@ namespace eSMP.Services.UserRepo
                 return result;
             }
         }
-        public Result GetListUser(int? page, string? search)
+        public Result GetListUser(int? page, string? search, int? roleID, bool? isActive)
         {
             Result result = new Result();
             try
@@ -451,6 +451,14 @@ namespace eSMP.Services.UserRepo
                 if (search != null)
                 {
                     listuser = listuser.Where(u => EF.Functions.Collate(u.UserName, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
+                }
+                if (roleID.HasValue)
+                {
+                    listuser = listuser.Where(u => u.isActive == isActive);
+                }
+                if (isActive.HasValue)
+                {
+                    listuser = listuser.Where(u => u.RoleID == roleID);
                 }
                 if (page.HasValue)
                 {
@@ -499,35 +507,6 @@ namespace eSMP.Services.UserRepo
                 result.Data = "";
                 return result;
             }
-        }
-        public Result SearchUser(string phone, int roleID)
-        {
-            Result result = new Result();
-            if (!string.IsNullOrEmpty(phone))
-            {
-                try
-                {
-                    var user = _context.Users.SingleOrDefault(u => u.Phone == phone && u.RoleID == roleID);
-                    if (user != null)
-                    {
-                        result.Success = true;
-                        result.Message = "thành công";
-                        result.Data = user;
-                        return result;
-                    }
-                }
-                catch
-                {
-                    result.Success = false;
-                    result.Message = "Lỗi hệ thống";
-                    result.Data = "";
-                    return result;
-                }
-            }
-            result.Success = false;
-            result.Message = "User không tồn tại";
-            result.Data = "";
-            return result;
         }
         public Image GetUserImage(int imageID)
         {

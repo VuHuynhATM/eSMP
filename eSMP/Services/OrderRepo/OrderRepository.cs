@@ -4,6 +4,7 @@ using eSMP.Services.ShipRepo;
 using eSMP.Services.StatusRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
+using Microsoft.EntityFrameworkCore;
 using System.Collections;
 
 namespace eSMP.Services.OrderRepo
@@ -841,7 +842,7 @@ namespace eSMP.Services.OrderRepo
             }
         }
 
-        public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page)
+        public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page, string? userName)
         {
             Result result = new Result();
             try
@@ -856,6 +857,10 @@ namespace eSMP.Services.OrderRepo
                 if (storeID.HasValue)
                 {
                     orders = orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == storeID) != null) != null);
+                }
+                if (userName!=null)
+                {
+                    orders = orders.Where(o => EF.Functions.Collate(o.User.UserName, "SQL_Latin1_General_CP1_CI_AI").Contains(userName));
                 }
                 if (shipOrderStatus.HasValue)
                 {

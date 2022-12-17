@@ -13,8 +13,7 @@ namespace eSMP.Services.UserRepo
         public Result RigisterUser(UserRegister user);
         public Result RigisterSupplier(UserRegister user);
         public Result UpdatteUserStatus(int userID, bool isActive);
-        public Result GetListUser(int? page, string? search);
-        public Result SearchUser(string phone, int roleID);
+        public Result GetListUser(int? page, string? search, int? roleID, bool? isActive);
         public Result RemoveUser(int userID);
         public Result GetAddressByID(int userID);
         public Result AddAddress(UserAddAddress address);

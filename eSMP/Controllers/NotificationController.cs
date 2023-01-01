@@ -23,7 +23,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpPost]
@@ -35,7 +35,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
     }

@@ -46,6 +46,7 @@ namespace eSMP.Services.ItemRepo
         public Result CreateItem(ItemRegister item)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 Item newItem = new Item();
@@ -69,6 +70,7 @@ namespace eSMP.Services.ItemRepo
                     result.Success = false;
                     result.Message = "Hình ảnh các loại sản phẩm trống";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 if (listsub.IsNullOrEmpty())
@@ -76,6 +78,7 @@ namespace eSMP.Services.ItemRepo
                     result.Success = false;
                     result.Message = "Các loại sản phẩm trống";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 foreach (var itemsub in listsub)
@@ -109,6 +112,7 @@ namespace eSMP.Services.ItemRepo
                     result.Success = false;
                     result.Message = "Hình ảnh sản phẩm trống";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 foreach (var image in listImage)
@@ -135,6 +139,7 @@ namespace eSMP.Services.ItemRepo
                     result.Success = false;
                     result.Message = "thông tin sản phẩm trống";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 foreach (var specitication in listSpec)
@@ -151,6 +156,7 @@ namespace eSMP.Services.ItemRepo
                     result.Success = false;
                     result.Message = "thông số sản phẩm trống";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 foreach (var model in listModel)
@@ -165,6 +171,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = true;
                 result.Message = "thành Công";
                 result.Data = newItem.ItemID;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -172,6 +179,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -213,6 +221,7 @@ namespace eSMP.Services.ItemRepo
         public Result GetItemWithStatusID(int? statusID, int? page)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listItem = _context.Items.AsQueryable();
@@ -226,6 +235,11 @@ namespace eSMP.Services.ItemRepo
 
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listItem.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 if (listItem != null)
@@ -253,11 +267,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = listmodel;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Chưa tồn tại item";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -265,6 +281,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -272,6 +289,7 @@ namespace eSMP.Services.ItemRepo
         public Result GetItemWithStatusIDS(int storeID, int? statusID, int? page)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listItem = _context.Items.AsQueryable();
@@ -286,6 +304,11 @@ namespace eSMP.Services.ItemRepo
 
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listItem.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 if (listItem != null)
@@ -310,11 +333,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = listmodel;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Chưa tồn tại item";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -322,6 +347,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -410,6 +436,7 @@ namespace eSMP.Services.ItemRepo
         public Result GetItemDetail(int itemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
@@ -439,11 +466,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = model;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Chưa tồn tại item";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -451,6 +480,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -458,6 +488,7 @@ namespace eSMP.Services.ItemRepo
         public Result RemoveItem(int itemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
@@ -483,11 +514,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Xoá Thành Công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Chưa tồn tại item";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -502,6 +535,7 @@ namespace eSMP.Services.ItemRepo
         public Result SearchItem(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listItem = _context.Items.AsQueryable();
@@ -632,6 +666,11 @@ namespace eSMP.Services.ItemRepo
                 //Paging
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listItem.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
 
                 }
@@ -656,6 +695,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = listmodel;
+                result.TotalPage = numpage;
                 return result;
             }
             catch (Exception ex)
@@ -663,6 +703,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = ex;
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -670,6 +711,7 @@ namespace eSMP.Services.ItemRepo
         public Result UpdatesubItem(SubItemUpdate subItem)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var si = _context.Sub_Items.SingleOrDefault(i => i.Sub_ItemID == subItem.SubItemID);
@@ -681,11 +723,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Cập nhập thành công";
                     result.Data = si;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "subItemID không hợp lệ";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -693,6 +737,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -700,6 +745,7 @@ namespace eSMP.Services.ItemRepo
         public Result AddsubItem(Sub_ItemRegister subItem)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == subItem.itemID);
@@ -728,11 +774,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = false;
                     result.Message = "Thêm thành công";
                     result.Data = si;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "ItemID không hợp lệ";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -740,6 +788,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -747,6 +796,7 @@ namespace eSMP.Services.ItemRepo
         public Result ActivesubItem(int subitemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
@@ -757,11 +807,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Active thành công";
                     result.Data = subitem;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "SubItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -769,6 +821,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -776,6 +829,7 @@ namespace eSMP.Services.ItemRepo
         public Result ActiveItem(int itemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
@@ -796,11 +850,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Active thành công";
                     result.Data = item;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "ItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -808,6 +864,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -815,6 +872,7 @@ namespace eSMP.Services.ItemRepo
         public Result BlocksubItem(int subitemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
@@ -825,11 +883,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Khoá thành công";
                     result.Data = subitem;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "SubItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -837,6 +897,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -844,6 +905,7 @@ namespace eSMP.Services.ItemRepo
         public Result BlockItem(int itemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
@@ -854,11 +916,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Khoá thành công";
                     result.Data = item;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "ItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -866,6 +930,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -873,6 +938,7 @@ namespace eSMP.Services.ItemRepo
         public Result HiddensubItem(int subitemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
@@ -884,6 +950,7 @@ namespace eSMP.Services.ItemRepo
                         result.Success = false;
                         result.Message = "Không thể ẩn sản phẩm cuối cùng";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                     if (subitem.SubItem_StatusID == 2)
@@ -891,6 +958,7 @@ namespace eSMP.Services.ItemRepo
                         result.Success = false;
                         result.Message = "Sản phẩm hiện bị khoá";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                     subitem.SubItem_StatusID = 4;
@@ -898,11 +966,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Ẩn thành công";
                     result.Data = subitem;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "SubItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -910,6 +980,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -917,6 +988,7 @@ namespace eSMP.Services.ItemRepo
         public Result HiddenItem(int itemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
@@ -927,6 +999,7 @@ namespace eSMP.Services.ItemRepo
                         result.Success = false;
                         result.Message = "Sản phẩm hiện bị khoá";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                     item.Item_StatusID = 4;
@@ -934,11 +1007,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Ẩn thành công";
                     result.Data = item;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "ItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -946,6 +1021,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -953,6 +1029,7 @@ namespace eSMP.Services.ItemRepo
         public Result UnHiddensubItem(int subitemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
@@ -963,6 +1040,7 @@ namespace eSMP.Services.ItemRepo
                         result.Success = false;
                         result.Message = "SubItem hiện bị khoá";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                     subitem.SubItem_StatusID = 1;
@@ -970,11 +1048,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Huỷ ẩn thành công";
                     result.Data = subitem;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "SubItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -982,6 +1062,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -989,6 +1070,7 @@ namespace eSMP.Services.ItemRepo
         public Result UnHiddenItem(int itemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
@@ -999,6 +1081,7 @@ namespace eSMP.Services.ItemRepo
                         result.Success = false;
                         result.Message = "SubItem hiện bị khoá";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                     item.Item_StatusID = 1;
@@ -1006,11 +1089,13 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Huỷ ẩn thành công";
                     result.Data = item;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "ItemID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1018,6 +1103,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1025,6 +1111,7 @@ namespace eSMP.Services.ItemRepo
         public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, bool? isSupplier)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listItem = _context.Items.AsQueryable();
@@ -1158,6 +1245,11 @@ namespace eSMP.Services.ItemRepo
 
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listItem.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listItem = listItem.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
 
@@ -1181,6 +1273,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = listmodel;
+                result.TotalPage = numpage;
                 return result;
             }
             catch (Exception ex)
@@ -1188,6 +1281,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1195,6 +1289,7 @@ namespace eSMP.Services.ItemRepo
         public Result UpdateBrandModel(int itemID, int[] brandmodelIDs)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 foreach (var branmodelid in brandmodelIDs)
@@ -1223,6 +1318,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1230,6 +1326,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1237,6 +1334,7 @@ namespace eSMP.Services.ItemRepo
         public Result RemoveBrandModel(int itemID, int[] brandmodelIDs)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 foreach (var branmodelid in brandmodelIDs)
@@ -1251,6 +1349,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1258,6 +1357,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1278,6 +1378,7 @@ namespace eSMP.Services.ItemRepo
         public Result UpdateDiscount(int itemID, double dícsount)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
@@ -1286,6 +1387,7 @@ namespace eSMP.Services.ItemRepo
                     result.Success = false;
                     result.Message = "sản phhẩm không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -1294,6 +1396,7 @@ namespace eSMP.Services.ItemRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = dícsount;
+                    result.TotalPage = numpage;
                     return result;
                 }            
             }
@@ -1302,6 +1405,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1309,12 +1413,18 @@ namespace eSMP.Services.ItemRepo
         public Result GetListFeedback(int itemID, int? page)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == itemID).AsQueryable();
                 if (page.HasValue)
                 {
-                    listorderdetail=listorderdetail.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                    numpage = (int)Math.Ceiling((double)listorderdetail.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
+                    listorderdetail =listorderdetail.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 var list = new List<FeedBackModel>();
                 if (listorderdetail.Count() > 0)
@@ -1341,6 +1451,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1348,6 +1459,7 @@ namespace eSMP.Services.ItemRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

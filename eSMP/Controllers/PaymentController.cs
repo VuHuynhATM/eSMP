@@ -51,11 +51,11 @@ namespace eSMP.Controllers
                 var userIdOfOrder = _orderReposity.GetUserIDByOrderID(orderID);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 else if (userId != userIdOfOrder + "")
                 {
-                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
                 }
                 return Ok(_momoReposity.GetPayUrl(orderID));
             }
@@ -77,20 +77,20 @@ namespace eSMP.Controllers
                 var supplierIDOfOrder = _orderReposity.GetSuppilerIDByOrderID(orderID);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 else if (roleid == "2")
                 {
                     if (userId != userIdOfOrder + "")
                     {
-                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
                     }
                 }
                 else if (roleid == "3")
                 {
                     if (userId != supplierIDOfOrder + "")
                     {
-                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", });
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", TotalPage = 1 });
                     }
                 }
                 return Ok(_momoReposity.CancelOrder(orderID, reason));
@@ -124,11 +124,11 @@ namespace eSMP.Controllers
                 var supplierStoreID= _storeReposity.GetStore(int.Parse(userId)).StoreID;
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 else if (supplierStoreID != storeID)
                 {
-                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", });
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", TotalPage = 1 });
                 }
                 return Ok(_momoReposity.GetStorePayUrl(storeID));
             }

@@ -42,7 +42,7 @@ namespace eSMP.Controllers
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1});
             }
         }
         [HttpGet]
@@ -54,13 +54,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.GetSystemInfo());
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpGet]
@@ -73,13 +73,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" ,TotalPage = 1 });
                 }
                 return Ok(_assetReposity.GetALlSystemWitdrawl(page, From, To));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpGet]
@@ -92,13 +92,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" , TotalPage = 1 });
                 }
                 return Ok(_assetReposity.GetALlReveneu(page, From, To, orderID));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpGet]
@@ -112,25 +112,25 @@ namespace eSMP.Controllers
                 var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" , TotalPage = 1 });
                 }
                 if (role == "3")
                 {
                     var store = _storeReposity.GetStore(int.Parse(userId));
                     if (store == null)
                     {
-                        return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", });
+                        return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", TotalPage = 1 });
                     }
                     if (store.StoreID != storeID)
                     {
-                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác ", Data = "", });
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác ", Data = "", TotalPage = 1 });
                     }
                 }
                 return Ok(_assetReposity.GetStoreReveneu(storeID, page, From, To, orderID));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpPost]
@@ -145,21 +145,21 @@ namespace eSMP.Controllers
                 var store = _storeReposity.GetStore(int.Parse(userId));
                 if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" , TotalPage = 1 });
                 }
                 else if (store == null)
                 {
-                    return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", });
+                    return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", TotalPage = 1 });
                 }
                 if (store.StoreID != request.StoreID)
                 {
-                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin cửa hàng khác", Data = "", });
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin cửa hàng khác", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.CreateStoreWithdrawal(request));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpPut]
@@ -172,13 +172,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" , TotalPage = 1 });
                 }
                 return Ok(_assetReposity.ProcessStoreWithdrawal(storeWithdrawalID));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpPut]
@@ -191,13 +191,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" , TotalPage = 1 });
                 }
                 return Ok(_assetReposity.CancelStoreWithdrawal(storeWithdrawalID, reason));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpPut]
@@ -210,13 +210,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.SuccessStoreWithdrawal(request));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1});
             }
         }
         [HttpGet]
@@ -230,29 +230,29 @@ namespace eSMP.Controllers
                 var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 else if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 else if (role == "3")
                 {
                     var store = _storeReposity.GetStore(int.Parse(userId));
                     if (store == null)
                     {
-                        return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", });
+                        return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", TotalPage = 1 });
                     }
                     if (store.StoreID != storeID)
                     {
-                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin cửa hàng khác", Data = "", });
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin cửa hàng khác", Data = "", TotalPage = 1 });
                     }
                 }
                 return Ok(_assetReposity.GetStoreWithdrawal(storeID, page, statusID));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpGet]
@@ -279,21 +279,21 @@ namespace eSMP.Controllers
                 var store = _storeReposity.GetStore(int.Parse(userId));
                 if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 else if (store == null)
                 {
-                    return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", });
+                    return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", TotalPage = 1 });
                 }
                 if (store.StoreID != storeID)
                 {
-                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin cửa hàng khác", Data = "", });
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin cửa hàng khác", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.GetStoreReveneuForChart(storeID, year));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpGet]
@@ -306,13 +306,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.GetSystemReveneuForChart(year, cate));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpGet]
@@ -325,13 +325,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.GetStoreSystemReveneu(page, From, To));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
 
@@ -345,13 +345,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.UpdateCommission_Precent(commission_Precent));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
         [HttpPut]
@@ -364,13 +364,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.UpdateAmountActive(amountActive));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
 
@@ -384,13 +384,13 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_assetReposity.UpdateRefund_Precent(refund_Precent));
             }
             catch
             {
-                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
     }

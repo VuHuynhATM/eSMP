@@ -252,6 +252,7 @@ namespace eSMP.Services.ShipRepo
         public Result GetShipstatus(int orderID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID!=2);
@@ -284,12 +285,14 @@ namespace eSMP.Services.ShipRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data=model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
                 result.Success = false;
-                result.Message = "Đơn hàng không tồn tại, hoặc đơn hàng không tồn tại";
+                result.Message = "Đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -297,6 +300,7 @@ namespace eSMP.Services.ShipRepo
                 result.Success = false;
                 result.Message = "lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -316,6 +320,7 @@ namespace eSMP.Services.ShipRepo
         public Result CancelOrder(int orderID)
         {
             Result result=new Result();
+            int numpage = 1;
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
@@ -325,11 +330,13 @@ namespace eSMP.Services.ShipRepo
                     result.Success = reponse.success;
                     result.Message = reponse.message;
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Mã Đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -337,6 +344,7 @@ namespace eSMP.Services.ShipRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             

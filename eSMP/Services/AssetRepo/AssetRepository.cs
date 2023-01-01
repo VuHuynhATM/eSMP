@@ -112,6 +112,7 @@ namespace eSMP.Services.StoreAssetRepo
                     result.Success = false;
                     result.Message = "Tài khoản hhienej khhongo đủ số dư";
                     result.Data = "";
+                    result.TotalPage = 1;
                     return result;
                 }
                 systemeSMP.Asset = systemeSMP.Asset - request.Price;
@@ -119,6 +120,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
             catch
@@ -126,12 +128,14 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }
         public Result GetALlSystemWitdrawl(int? page, DateTime? From, DateTime? To)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listWithdrawal = _context.System_Withdrawals.AsQueryable();
@@ -146,6 +150,11 @@ namespace eSMP.Services.StoreAssetRepo
                 listWithdrawal = listWithdrawal.OrderByDescending(sw => sw.Create_Date);
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listWithdrawal.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listWithdrawal = listWithdrawal.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 listWithdrawal = listWithdrawal.Where(sw => sw.SystemID == 1);
@@ -169,6 +178,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -176,6 +186,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }
@@ -186,6 +197,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetALlReveneu(int? page, DateTime? From, DateTime? To, int? orderID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listReveneu = _context.OrderSystem_Transactions.AsQueryable();
@@ -204,6 +216,11 @@ namespace eSMP.Services.StoreAssetRepo
                 listReveneu = listReveneu.OrderByDescending(ost => ost.Create_Date);
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listReveneu.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listReveneu = listReveneu.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 listReveneu = listReveneu.Where(ot => ot.SystemID == 1);
@@ -235,6 +252,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -242,12 +260,14 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }
         public Result GetSystemInfo()
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var eSMp = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
@@ -261,6 +281,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -268,6 +289,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetStoreReveneu(int storeID, int? page, DateTime? From, DateTime? To, int? orderID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listReveneu = _context.OrderStore_Transactions.AsQueryable();
@@ -287,6 +309,11 @@ namespace eSMP.Services.StoreAssetRepo
                 listReveneu = listReveneu.OrderByDescending(ost => ost.Create_Date);
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listReveneu.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listReveneu = listReveneu.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
 
@@ -310,6 +337,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -317,6 +345,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -324,6 +353,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result CreateStoreWithdrawal(StoreWithdrawalRequest request)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == request.StoreID);
@@ -351,12 +381,14 @@ namespace eSMP.Services.StoreAssetRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = withdrawal;
+                    result.TotalPage = numpage;
                     return result;
                 }
 
                 result.Success = false;
                 result.Message = "Cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -364,6 +396,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -371,6 +404,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result ProcessStoreWithdrawal(int storeWithhdrawalID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
 
@@ -387,6 +421,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Yêu cầu rút tiền không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -394,6 +429,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -401,6 +437,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result CancelStoreWithdrawal(int storeWithhdrawalID, string reason)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
 
@@ -413,11 +450,13 @@ namespace eSMP.Services.StoreAssetRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = storeWitdrawal;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Yêu cầu rút tiền không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -425,6 +464,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -432,6 +472,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result SuccessStoreWithdrawal(StoreWithdrawalSuccessRequest request)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
 
@@ -455,12 +496,14 @@ namespace eSMP.Services.StoreAssetRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";
+                    result.TotalPage = numpage;
                     result.Data = storeWitdrawal;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Yêu cầu rút tiền không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -468,6 +511,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -475,6 +519,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetStoreWithdrawal(int? storeID, int? page, int? statusID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
 
@@ -489,6 +534,12 @@ namespace eSMP.Services.StoreAssetRepo
                 }
                 if (page.HasValue)
                 {
+
+                    numpage = (int)Math.Ceiling((double)storeWitdrawal.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     storeWitdrawal = storeWitdrawal.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 List<Store_WithdrawalModel> list = new List<Store_WithdrawalModel>();
@@ -515,6 +566,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -522,6 +574,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -529,6 +582,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetBankSupport()
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
 
@@ -545,6 +599,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -552,6 +607,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -559,6 +615,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetStoreReveneuForChart(int storeID, int? year)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 List<ChartModel> list=new List<ChartModel>();
@@ -593,6 +650,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -600,12 +658,14 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result GetSystemReveneuForChart(int? year, string Cate)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 List<ChartModel> list = new List<ChartModel>();
@@ -674,6 +734,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -681,6 +742,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -688,6 +750,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result GetStoreSystemReveneu(int? page, DateTime? From, DateTime? To)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listReveneu = _context.Stores.AsQueryable();
@@ -702,6 +765,11 @@ namespace eSMP.Services.StoreAssetRepo
                 listReveneu = listReveneu.OrderByDescending(ost => ost.Actice_Date.Value);
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listReveneu.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listReveneu = listReveneu.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 listReveneu = listReveneu.Where(ot => ot.Store_StatusID == 1);
@@ -723,6 +791,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -730,6 +799,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -737,6 +807,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result UpdateCommission_Precent(double commission_Precent)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
@@ -745,6 +816,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = eSMP;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -752,6 +824,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -759,6 +832,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result UpdateAmountActive(double amount_Active)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
@@ -767,6 +841,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = eSMP;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -774,6 +849,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -781,6 +857,7 @@ namespace eSMP.Services.StoreAssetRepo
         public Result UpdateRefund_Precent(double refund_Precent)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
@@ -789,6 +866,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = eSMP;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -796,6 +874,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

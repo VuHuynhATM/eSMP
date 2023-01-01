@@ -59,7 +59,7 @@ namespace eSMP.Controllers
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!_userReposity.CheckUser(int.Parse(userId)))
             {
-                return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
             }
             return Ok(_shipReposity.GetShipstatus(orderID));
         }

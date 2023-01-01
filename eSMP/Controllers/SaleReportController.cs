@@ -36,7 +36,7 @@ namespace eSMP.Controllers
                 {
                     if (store.StoreID != storeID)
                     {
-                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", });
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
                     }
                 }
             }

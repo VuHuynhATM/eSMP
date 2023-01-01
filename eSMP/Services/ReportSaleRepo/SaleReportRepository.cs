@@ -17,6 +17,7 @@ namespace eSMP.Services.ReportSaleRepo
         public Result GetListHotItem(int? storeID, int? month, int? year, bool hot)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listItem = _context.Items.AsQueryable();
@@ -65,6 +66,7 @@ namespace eSMP.Services.ReportSaleRepo
                 result.Success = true;
                 result.Message = "Thhành công";
                 result.Data =list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -72,6 +74,7 @@ namespace eSMP.Services.ReportSaleRepo
                 result.Success = false;
                 result.Message = "Lỗi hhệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

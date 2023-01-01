@@ -44,6 +44,7 @@ namespace eSMP.Services.CategoryRepo
         public Result GetAllCategory()
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var list = _context.Categorys.Where(c => c.IsActive).ToList();
@@ -61,13 +62,11 @@ namespace eSMP.Services.CategoryRepo
                         };
                         r.Add(model);
                     }
-                    result.Success = true;
-                    result.Message = "Thành Công";
-                    result.Data = r;
                 }
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = r;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -75,6 +74,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -102,6 +102,7 @@ namespace eSMP.Services.CategoryRepo
         public Result GetSubCategory(int categoryID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 if (!CategoryisExist(categoryID))
@@ -109,6 +110,7 @@ namespace eSMP.Services.CategoryRepo
                     result.Success = false;
                     result.Message = "Category không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
 
                 }
@@ -117,13 +119,11 @@ namespace eSMP.Services.CategoryRepo
                 if (sub != null)
                 {
                     r = GetSub_Categories(categoryID);
-                    result.Success = true;
-                    result.Message = "Thành Công";
-                    result.Data = r;
                 }
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = r;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -131,6 +131,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -138,6 +139,7 @@ namespace eSMP.Services.CategoryRepo
         public Result RemoveCategory(int categoryID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var cate = _context.Categorys.SingleOrDefault(s => s.CategoryID == categoryID);
@@ -149,6 +151,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = cate;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -156,6 +159,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -163,6 +167,7 @@ namespace eSMP.Services.CategoryRepo
         public Result RemoveSubCategory(int subCategoryID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var subcate = _context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == subCategoryID);
@@ -174,6 +179,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = subcate;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -181,6 +187,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -188,6 +195,7 @@ namespace eSMP.Services.CategoryRepo
         public Result ActiveCategory(int categoryID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var cate = _context.Categorys.SingleOrDefault(s => s.CategoryID == categoryID);
@@ -199,6 +207,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = cate;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -206,6 +215,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -213,6 +223,7 @@ namespace eSMP.Services.CategoryRepo
         public Result ActiveSubCategory(int subCategoryID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var subcate = _context.SubCategories.SingleOrDefault(s => s.Sub_CategoryID == subCategoryID);
@@ -224,6 +235,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = subcate;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -231,6 +243,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -238,6 +251,7 @@ namespace eSMP.Services.CategoryRepo
         public Result CreateCategory(string category_Name)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 Category category = new Category();
@@ -248,6 +262,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = category;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -255,6 +270,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -262,6 +278,7 @@ namespace eSMP.Services.CategoryRepo
         public Result CreateSubCategory(int categoryID, string subCategory_Name)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 Sub_Category category = new Sub_Category();
@@ -273,6 +290,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = true;
                 result.Message = "Thành Công";
                 result.Data = category;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -280,6 +298,7 @@ namespace eSMP.Services.CategoryRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

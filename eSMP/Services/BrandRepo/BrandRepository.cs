@@ -25,6 +25,7 @@ namespace eSMP.Services.BrandRepo
         public Result GetAllBrand()
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 List<BrandModel> list = new List<BrandModel>();
@@ -43,6 +44,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
 
             }
@@ -51,6 +53,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -86,6 +89,7 @@ namespace eSMP.Services.BrandRepo
         public Result GetBrandModel(int BrandID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listBrandModel = _context.Brand_Models.Where(b => b.BrandID == BrandID).ToList();
@@ -106,6 +110,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
 
             }
@@ -114,6 +119,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -170,6 +176,7 @@ namespace eSMP.Services.BrandRepo
         public Result GetBrandModelForItem(int ItemID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
 
@@ -179,11 +186,13 @@ namespace eSMP.Services.BrandRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = list;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Không có dữ liệu";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -191,6 +200,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -198,6 +208,7 @@ namespace eSMP.Services.BrandRepo
         public Result CreateBrand(string brand_Name)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 Brand brand = new Brand();
@@ -208,6 +219,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = brand;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -215,6 +227,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -222,6 +235,7 @@ namespace eSMP.Services.BrandRepo
         public Result CreateMotorcycle(int brandID, string moto_Name)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 Brand_Model moto = new Brand_Model();
@@ -233,6 +247,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = moto;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -240,6 +255,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -247,6 +263,7 @@ namespace eSMP.Services.BrandRepo
         public Result RemoveMotorcycle(int motorcycleID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var moto =_context.Brand_Models.SingleOrDefault(m=>m.Brand_ModelID == motorcycleID);
@@ -257,6 +274,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = moto;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -264,6 +282,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = false;
                     result.Message = "Tên phương tiện không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
@@ -272,6 +291,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -279,6 +299,7 @@ namespace eSMP.Services.BrandRepo
         public Result RemoveBrand(int brandID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var brand = _context.Brands.SingleOrDefault(b => b.BrandID == brandID);
@@ -289,6 +310,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = brand;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -296,6 +318,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = false;
                     result.Message = "Hãng phương tiện không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
@@ -304,6 +327,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -311,6 +335,7 @@ namespace eSMP.Services.BrandRepo
         public Result ActiveMotorcycle(int motorcycleID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var moto = _context.Brand_Models.SingleOrDefault(m => m.Brand_ModelID == motorcycleID);
@@ -321,6 +346,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = moto;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -328,6 +354,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = false;
                     result.Message = "Tên phương tiện không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
@@ -336,6 +363,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -343,6 +371,7 @@ namespace eSMP.Services.BrandRepo
         public Result ActiveBrand(int brandID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var brand = _context.Brands.SingleOrDefault(b => b.BrandID == brandID);
@@ -353,6 +382,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = brand;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -360,6 +390,7 @@ namespace eSMP.Services.BrandRepo
                     result.Success = false;
                     result.Message = "Hãng phương tiện không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
@@ -368,6 +399,7 @@ namespace eSMP.Services.BrandRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

@@ -5,7 +5,7 @@ namespace eSMP.Services.StoreRepo
 {
     public interface IStoreReposity
     {
-        public Result GetAllStore(string? search);
+        public Result GetAllStore(string? search, int? page);
         public Result CteateStore(StoreRegister store);
         public Result StoreDetail(int storeID);
         public Result GetStorebyuserID(int userID);

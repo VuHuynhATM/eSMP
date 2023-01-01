@@ -37,7 +37,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
         [HttpPost]
@@ -54,7 +54,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
         [HttpPost]
@@ -71,7 +71,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
         [HttpPost]
@@ -88,7 +88,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
         [HttpPost]
@@ -105,7 +105,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
         [HttpPost]
@@ -122,7 +122,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
 
@@ -137,7 +137,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
 
@@ -153,7 +153,7 @@ namespace eSMP.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
         [HttpPut]
@@ -166,14 +166,14 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 var result = _userReposity.UpdatteUserStatus(UserID, isActive);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message });
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
         [HttpDelete]

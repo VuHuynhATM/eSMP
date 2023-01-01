@@ -53,6 +53,7 @@ namespace eSMP.Services.OrderRepo
         public Result AddOrderDetail(OrderDetailAdd orderDetail)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var item = GetItem(orderDetail.Sub_ItemID);
@@ -81,6 +82,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thêm vào giỏ hàng thành công";
                         result.Data = order.OrderID;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     else
@@ -88,6 +90,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = false;
                         result.Message = "Số lượng sản phẩm không đủ";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
 
@@ -123,6 +126,7 @@ namespace eSMP.Services.OrderRepo
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
                             result.Data = order.OrderID;
+                            result.TotalPage = numpage;
                             return result;
                         }
                         else
@@ -130,6 +134,7 @@ namespace eSMP.Services.OrderRepo
                             result.Success = false;
                             result.Message = "Số lượng sản phẩm không đủ";
                             result.Data = "";
+                            result.TotalPage = numpage;
                             return result;
                         }
                     }
@@ -180,6 +185,7 @@ namespace eSMP.Services.OrderRepo
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
                             result.Data = o.OrderID;
+                            result.TotalPage = numpage;
                             return result;
                         }
                         else
@@ -187,6 +193,7 @@ namespace eSMP.Services.OrderRepo
                             result.Success = false;
                             result.Message = "Số lượng sản phẩm không đủ";
                             result.Data = "";
+                            result.TotalPage = numpage;
                             return result;
                         }
                     }
@@ -197,6 +204,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Thêm vào giỏ hàng thất bại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -283,6 +291,7 @@ namespace eSMP.Services.OrderRepo
         public Result DeleteOrder(int orderID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listOrderDetail = _context.OrderDetails.Where(od => od.OrderID == orderID && _context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID == 2).ToList();
@@ -299,6 +308,7 @@ namespace eSMP.Services.OrderRepo
                     result.Success = false;
                     result.Message = "Xoá không thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 _context.Orders.Remove(order);
@@ -306,6 +316,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = true;
                 result.Message = "Xoá thành công";
                 result.Data = order;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -313,12 +324,14 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result DeleteOrderDetail(int orderDetailID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID).OrderStatusID == 2);
@@ -327,6 +340,7 @@ namespace eSMP.Services.OrderRepo
                     result.Success = false;
                     result.Message = "Xoá không thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 _context.OrderDetails.Remove(orderDetail);
@@ -338,6 +352,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -451,6 +466,7 @@ namespace eSMP.Services.OrderRepo
         public Result GetAllOrder(int userID, int? orderStatusID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 List<OrderModel> list = new List<OrderModel>();
@@ -494,11 +510,13 @@ namespace eSMP.Services.OrderRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = list;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Chưa có sản phảm trong giỏ hàng";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -506,6 +524,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -513,6 +532,7 @@ namespace eSMP.Services.OrderRepo
         public Result GetOrderInfo(int orderID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
@@ -561,6 +581,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     else
@@ -591,6 +612,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     
@@ -598,6 +620,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -605,6 +628,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -612,6 +636,7 @@ namespace eSMP.Services.OrderRepo
         public Result UpdateOrderAddress(int orderID, int AddressID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
@@ -639,6 +664,7 @@ namespace eSMP.Services.OrderRepo
                             result.Success = false;
                             result.Message = "Địa chỉ nằm ngoài vùng hoạt động giao hàng";
                             result.Data = "";
+                            result.TotalPage = numpage;
                             return result;
                         }
                     }
@@ -647,6 +673,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = false;
                         result.Message = "Địa chỉ không Hợp lệ";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
 
@@ -654,6 +681,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -661,6 +689,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -668,6 +697,7 @@ namespace eSMP.Services.OrderRepo
         public Result UpdateAmountOrderDetail(int orderDetailID, int amount)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orderdetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID);
@@ -680,16 +710,19 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data = orderdetail.Amount;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     result.Success = false;
                     result.Message = "Sản phẩm không đủ số lượng";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -697,6 +730,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -745,6 +779,7 @@ namespace eSMP.Services.OrderRepo
         public Result FeedBaclOrderDetail(FeedBackOrderDetail feedBack)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orderdetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == feedBack.OrderDetaiID);
@@ -805,6 +840,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     else
@@ -824,6 +860,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     
@@ -831,6 +868,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -838,6 +876,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -845,6 +884,7 @@ namespace eSMP.Services.OrderRepo
         public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page, string? userName)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orders = _context.Orders.AsQueryable();
@@ -943,6 +983,11 @@ namespace eSMP.Services.OrderRepo
                 orders = orders.OrderByDescending(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date);
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)orders.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     orders = orders.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 if (orders.Count() > 0)
@@ -982,11 +1027,13 @@ namespace eSMP.Services.OrderRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = list;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = new ArrayList();
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -994,6 +1041,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1054,6 +1102,7 @@ namespace eSMP.Services.OrderRepo
         public Result GetlistFeedback(int? page, bool isFeedback, int? userID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orderDetail = _context.OrderDetails.AsQueryable();
@@ -1073,6 +1122,11 @@ namespace eSMP.Services.OrderRepo
 
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)orderDetail.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     orderDetail = orderDetail.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 List<FeedbackViewModel> list = new List<FeedbackViewModel>();
@@ -1121,6 +1175,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1128,6 +1183,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1135,6 +1191,7 @@ namespace eSMP.Services.OrderRepo
         public Result GetFeedbackDetail(int orderDetailID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null);
@@ -1160,6 +1217,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data = mode;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     else
@@ -1181,12 +1239,14 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Thành công";
                         result.Data = mode;
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
                 result.Success = false;
                 result.Message = "Đơn hàng chưa được đánhh giá";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1194,6 +1254,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1201,6 +1262,7 @@ namespace eSMP.Services.OrderRepo
         public Result HiddenFeedback(int orderDetailID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null && od.Feedback_StatusID != 2);
@@ -1211,11 +1273,13 @@ namespace eSMP.Services.OrderRepo
                     result.Success = true;
                     result.Message = "Ẩn đánh giá thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Đơn hàng chưa được đánhh giá";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1223,6 +1287,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1230,6 +1295,7 @@ namespace eSMP.Services.OrderRepo
         public Result BlockFeedback(int orderDetailID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null);
@@ -1240,11 +1306,13 @@ namespace eSMP.Services.OrderRepo
                     result.Success = true;
                     result.Message = "Ẩn đánh giá thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Đơn hàng chưa được đánhh giá";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1252,6 +1320,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1259,6 +1328,7 @@ namespace eSMP.Services.OrderRepo
         public Result CheckPay(int orderID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1);
@@ -1267,11 +1337,13 @@ namespace eSMP.Services.OrderRepo
                     result.Success = true;
                     result.Message = "Thanh toán thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Thanh toán thất bại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1279,6 +1351,7 @@ namespace eSMP.Services.OrderRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

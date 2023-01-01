@@ -11,7 +11,7 @@ namespace eSMP.Services.NotificationRepo
     {
         public static string TOKEN = "AAAAoDgJlCQ:APA91bEteTyEFMRfc_ly8aU1DAWEBdAsSU_QUWm2djkaqNDm7nEaDFUVxp5DeGOSkF3FKRhwjBGLvjGQnOobw4levIE-bovbeva2tHRMItW8TH-9tRzb9I754oxNaSBzHhVQGEOcN0uH";
         private readonly WebContext _context;
-
+        public static int PAGE_SIZE { get; set; } = 25;
         public NotificationRepository(WebContext context)
         {
             _context = context;
@@ -52,9 +52,19 @@ namespace eSMP.Services.NotificationRepo
         public Result GetListNotification(int userID, int? page)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listNotification=_context.Notifications.Where(n=>n.UserID==userID);
+                if (page.HasValue)
+                {
+                    numpage = (int)Math.Ceiling((double)listNotification.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
+                    listNotification = listNotification.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
                 List<NotificationModel> list = new List<NotificationModel>();
                 foreach (var notification in listNotification.ToList())
                 {
@@ -74,6 +84,7 @@ namespace eSMP.Services.NotificationRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -81,6 +92,7 @@ namespace eSMP.Services.NotificationRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

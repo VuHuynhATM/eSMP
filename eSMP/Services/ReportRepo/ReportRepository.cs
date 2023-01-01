@@ -29,6 +29,7 @@ namespace eSMP.Services.ReportRepo
         public Result ReportFeedback(ReportFeedbackRequest request)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == request.UserID);
@@ -39,6 +40,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = false;
                     result.Message = "Bạn đã báo cáo đánh giá này rồi";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 if (orderDetail != null && user != null)
@@ -56,6 +58,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = true;
                     result.Message = "Báo cáo đánh giá thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -63,6 +66,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = false;
                     result.Message = "Bình luận hoặc người báo cáo không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
@@ -71,6 +75,7 @@ namespace eSMP.Services.ReportRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -78,6 +83,8 @@ namespace eSMP.Services.ReportRepo
         public Result ReportItem(ReportItemRequest request)
         {
             Result result = new Result();
+            int numpage = 1;
+
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == request.UserID);
@@ -88,6 +95,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = false;
                     result.Message = "Bạn đã báo cáo sản phẩm này rồi";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 if (item != null && user != null)
@@ -105,6 +113,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = true;
                     result.Message = "Báo cáo sản phẩm thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -112,6 +121,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = false;
                     result.Message = "Sản phẩm hoặc người báo cáo không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
@@ -120,6 +130,7 @@ namespace eSMP.Services.ReportRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -127,6 +138,7 @@ namespace eSMP.Services.ReportRepo
         public Result ReportStore(ReportStoreRequest request)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == request.UserID);
@@ -137,6 +149,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = false;
                     result.Message = "Bạn đã báo cáo cửa hàng này rồi";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 if (store != null && user != null)
@@ -154,6 +167,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = true;
                     result.Message = "Báo cáo sản phẩm thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else
@@ -161,6 +175,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = false;
                     result.Message = "Sản phẩm hoặc người báo cáo không tồn tại";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
@@ -169,12 +184,14 @@ namespace eSMP.Services.ReportRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result GetListReport(int? page, int reportType, int? reportStatusID, int? storeID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listReport = _context.Reports.AsQueryable();
@@ -194,6 +211,11 @@ namespace eSMP.Services.ReportRepo
                     }
                     if (page.HasValue)
                     {
+                        numpage = (int)Math.Ceiling((double)listReport.Count() / (double)PAGE_SIZE);
+                        if (numpage == 0)
+                        {
+                            numpage = 1;
+                        }
                         listReport = listReport.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                     }
                     List<FeedbackReportModel> list = new List<FeedbackReportModel>();
@@ -216,6 +238,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = list;
+                    result.TotalPage = numpage;
                     return result;
 
                 }
@@ -228,6 +251,11 @@ namespace eSMP.Services.ReportRepo
                     }
                     if (page.HasValue)
                     {
+                        numpage = (int)Math.Ceiling((double)listReport.Count() / (double)PAGE_SIZE);
+                        if (numpage == 0)
+                        {
+                            numpage = 1;
+                        }
                         listReport = listReport.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                     }
                     List<StoreReportModel> list = new List<StoreReportModel>();
@@ -248,6 +276,7 @@ namespace eSMP.Services.ReportRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = list;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 else if(reportType == 3)
@@ -259,6 +288,11 @@ namespace eSMP.Services.ReportRepo
                     }
                     if (page.HasValue)
                     {
+                        numpage = (int)Math.Ceiling((double)listReport.Count() / (double)PAGE_SIZE);
+                        if (numpage == 0)
+                        {
+                            numpage = 1;
+                        }
                         listReport = listReport.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                     }
                     List<ItemReportModel> list = new List<ItemReportModel>();
@@ -280,11 +314,13 @@ namespace eSMP.Services.ReportRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = list;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = new ArrayList();
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -292,6 +328,7 @@ namespace eSMP.Services.ReportRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

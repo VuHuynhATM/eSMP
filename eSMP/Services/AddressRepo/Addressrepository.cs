@@ -46,6 +46,7 @@ namespace eSMP.Services.AddressRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = 1;
                 return result;
             }
             catch
@@ -53,6 +54,7 @@ namespace eSMP.Services.AddressRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }
@@ -90,6 +92,7 @@ namespace eSMP.Services.AddressRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = 1;
                 return result;
             }
             catch
@@ -97,6 +100,7 @@ namespace eSMP.Services.AddressRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }
@@ -134,6 +138,7 @@ namespace eSMP.Services.AddressRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = 1;
                 return result;
             }
             catch
@@ -141,6 +146,7 @@ namespace eSMP.Services.AddressRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }

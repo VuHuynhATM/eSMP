@@ -17,6 +17,8 @@ namespace eSMP.Services.StoreRepo
         private readonly Lazy<IFileReposity> _fileReposity;
         private readonly Lazy<IStatusReposity> _statusReposity;
 
+        public static int PAGE_SIZE { get; set; } = 25;
+
         public StoreRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<IFileReposity> fileReposity, Lazy<IStatusReposity> statusReposity)
         {
             _context = context;
@@ -40,6 +42,7 @@ namespace eSMP.Services.StoreRepo
         public Result CteateStore(StoreRegister store)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 if (CheckStore(store.UserID))
@@ -47,6 +50,7 @@ namespace eSMP.Services.StoreRepo
                     result.Success = false;
                     result.Message = "Nhà cung cấp đã có cửa hàng";
                     result.Data = GetStore(store.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 if (store != null)
@@ -95,11 +99,13 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Tạo cửa hàng thành công";
                     result.Data = GetStore(store.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Kiểm tra lại thông tin cửa hàng";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -107,6 +113,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thông";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -180,9 +187,10 @@ namespace eSMP.Services.StoreRepo
                 return false;
             }
         }
-        public Result GetAllStore(string? search)
+        public Result GetAllStore(string? search, int? page)
         {
             Result result = new Result();
+            int numpage = 1;
             List<StoreModel> list = new List<StoreModel>();
             try
             {
@@ -190,6 +198,15 @@ namespace eSMP.Services.StoreRepo
                 if (search != null)
                 {
                     listStore = listStore.Where(s => EF.Functions.Collate(s.StoreName, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
+                }
+                if (page.HasValue)
+                {
+                    numpage = (int)Math.Ceiling((double)listStore.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
+                    listStore = listStore.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 foreach (var store in listStore.ToList())
                 {
@@ -217,6 +234,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = list;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -224,6 +242,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
 
@@ -232,6 +251,7 @@ namespace eSMP.Services.StoreRepo
         public Result StoreDetail(int storeID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
@@ -259,11 +279,13 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = model;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -271,6 +293,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -278,6 +301,7 @@ namespace eSMP.Services.StoreRepo
         public Result StoreUpdateInfo(StoreUpdateInfo info)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == info.StoreID);
@@ -291,11 +315,13 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Chỉnh sửa cửa hàng thành công";
                     result.Data = GetStore(store.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -303,6 +329,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -335,6 +362,7 @@ namespace eSMP.Services.StoreRepo
         public Result ActiveStore(int storeID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
@@ -345,12 +373,14 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Kích hoạt cửa hàng thành công";
                     result.Data = store;
+                    result.TotalPage = numpage;
                     return result;
 
                 }
                 result.Success = false;
                 result.Message = "cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -358,6 +388,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -365,6 +396,7 @@ namespace eSMP.Services.StoreRepo
         public Result HiddenStore(int storeID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
@@ -375,6 +407,7 @@ namespace eSMP.Services.StoreRepo
                         result.Success = false;
                         result.Message = "Cửa hàng hiện bị khoá";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                     store.Store_StatusID = 4;
@@ -382,12 +415,14 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Ẩn của hàng thành công";
                     result.Data = store;
+                    result.TotalPage = numpage;
                     return result;
 
                 }
                 result.Success = false;
                 result.Message = "cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -395,6 +430,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -402,6 +438,7 @@ namespace eSMP.Services.StoreRepo
         public Result BlockStore(int storeID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
@@ -412,12 +449,14 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Khoá cửa hàng thành công";
                     result.Data = store;
+                    result.TotalPage = numpage;
                     return result;
 
                 }
                 result.Success = false;
                 result.Message = "cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -425,6 +464,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -432,6 +472,7 @@ namespace eSMP.Services.StoreRepo
         public Result UnHiddenStore(int storeID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
@@ -442,6 +483,7 @@ namespace eSMP.Services.StoreRepo
                         result.Success = false;
                         result.Message = "Cửa hàng hiện bị khoá";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                     store.Store_StatusID = 1;
@@ -449,12 +491,14 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Huỷ ẩn cửa hàng thành công";
                     result.Data = store;
+                    result.TotalPage = numpage;
                     return result;
 
                 }
                 result.Success = false;
                 result.Message = "cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -462,6 +506,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -469,6 +514,7 @@ namespace eSMP.Services.StoreRepo
         public Result UpdateAddress(int storeID, Address address)
         {
             Result result=new Result();
+            int numpage = 1;
             try
             {
                 var addressUpdate = _context.Addresss.SingleOrDefault(a => a.AddressID == address.AddressID);
@@ -487,11 +533,13 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = addressUpdate;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Không tìm thấy địa chỉ";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -499,6 +547,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -532,6 +581,7 @@ namespace eSMP.Services.StoreRepo
         public Result GetStorebyuserID(int userID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.UserID == userID);
@@ -559,11 +609,13 @@ namespace eSMP.Services.StoreRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = model;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Cửa hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -571,6 +623,7 @@ namespace eSMP.Services.StoreRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

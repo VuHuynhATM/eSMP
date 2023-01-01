@@ -21,6 +21,7 @@ namespace eSMP.Services.SpecificationRepo
         public Result GetAllSpecification()
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var list = _context.Specification.ToList();
@@ -30,11 +31,13 @@ namespace eSMP.Services.SpecificationRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = list;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = true;
                 result.Message = "Chưa có thông số";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -42,6 +45,7 @@ namespace eSMP.Services.SpecificationRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -64,6 +68,7 @@ namespace eSMP.Services.SpecificationRepo
         public Result GetSpecificationsBySubCate(int subCategoryID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listSpe = _context.SubCate_Specifications.Where(c => c.Sub_CategoryID == subCategoryID).ToList();
@@ -78,11 +83,13 @@ namespace eSMP.Services.SpecificationRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = specifications;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Chưa có thông số kĩ thuật";
                 result.Data = new List<Specification>();
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -90,6 +97,7 @@ namespace eSMP.Services.SpecificationRepo
                 result.Success = false;
                 result.Message = "Lỗi Hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -127,6 +135,7 @@ namespace eSMP.Services.SpecificationRepo
         public Result CreateSpecification(string specification_Name)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 Specification specification = new Specification();
@@ -137,6 +146,7 @@ namespace eSMP.Services.SpecificationRepo
                 result.Success = true;
                 result.Message = "Chưa có thông số";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -144,6 +154,7 @@ namespace eSMP.Services.SpecificationRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -151,6 +162,7 @@ namespace eSMP.Services.SpecificationRepo
         public Result AddSpecification(int sub_CategoryID, int[] specificationIDs)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 foreach (int item in specificationIDs)
@@ -176,6 +188,7 @@ namespace eSMP.Services.SpecificationRepo
                 result.Success = true;
                 result.Message = "Chưa có thông số";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -183,6 +196,7 @@ namespace eSMP.Services.SpecificationRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -203,9 +217,10 @@ namespace eSMP.Services.SpecificationRepo
             }
         }
 
-        public Result ReomoveSpecification(int sub_CategoryID, int[] specificationIDs)
+        public Result ReomoveCateSpecification(int sub_CategoryID, int[] specificationIDs)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 foreach (int item in specificationIDs)
@@ -218,8 +233,9 @@ namespace eSMP.Services.SpecificationRepo
                 }
                 _context.SaveChanges();
                 result.Success = true;
-                result.Message = "Chưa có thông số";
+                result.Message = "Thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -227,6 +243,35 @@ namespace eSMP.Services.SpecificationRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+        }
+
+        public Result ReomoveSpecification(int specificationID)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                    var spe = _context.Specification.SingleOrDefault(s=>s.SpecificationID==specificationID);
+                    if (spe != null)
+                    {
+                        spe.IsActive = false;
+                    }
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành Công";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

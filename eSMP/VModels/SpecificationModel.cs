@@ -31,4 +31,9 @@ namespace eSMP.VModels
         public int SpecificationID { get; set; }
         public string Value { get; set; }
     }
+    public class CateSpecification_Request
+    {
+        public int sub_CategoryID { get; set; }
+        public int[] specificationIDs { get; set; }
+    }
 }

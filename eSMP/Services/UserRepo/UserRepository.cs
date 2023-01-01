@@ -36,6 +36,7 @@ namespace eSMP.Services.UserRepo
         public Result CustomerLogin(string phone, string? FCM_Firebase)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 if (CheckRole(phone).Success)
@@ -69,17 +70,20 @@ namespace eSMP.Services.UserRepo
                             result.Success = false;
                             result.Message = "Tài khoản hiện bị khoá";
                             result.Data = "";
+                            result.TotalPage = numpage;
                             return result;
                         }
                         result.Success = true;
                         result.Message = "Đăng nhập thành Công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
                 result.Success = false;
                 result.Message = "Nhập sai số điện thoại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -87,12 +91,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result SupplierLogin(string phone, string? FCM_Firebase)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 if (CheckRole(phone).Success)
@@ -133,17 +139,20 @@ namespace eSMP.Services.UserRepo
                             result.Success = false;
                             result.Message = "Tài khoản hiện bị khoá";
                             result.Data = "";
+                            result.TotalPage = numpage;
                             return result;
                         }
                         result.Success = true;
                         result.Message = "Đăng nhập thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
                 result.Success = false;
                 result.Message = "Nhập sai số điện thoại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -151,6 +160,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -171,6 +181,7 @@ namespace eSMP.Services.UserRepo
         public Result LoginByEmail(string email, string password, string? FCM_Firebase)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
@@ -204,17 +215,20 @@ namespace eSMP.Services.UserRepo
                             result.Success = false;
                             result.Message = "Tài khoản hiện bị khoá";
                             result.Data = "";
+                            result.TotalPage = numpage;
                             return result;
                         }
                         result.Success = true;
                         result.Message = "Đăng nhập thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
                 result.Success = false;
                 result.Message = "Nhập sai email hoặc password";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -222,12 +236,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result RigisterUser(UserRegister user)
         {
             Result result = new Result();
+            int numpage = 1; 
             if (!CheckRole(user.Phone).Success)
             {
                 if (user != null)
@@ -278,6 +294,7 @@ namespace eSMP.Services.UserRepo
                         result.Success = true;
                         result.Message = "Đăng ký thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     catch
@@ -285,6 +302,7 @@ namespace eSMP.Services.UserRepo
                         result.Success = false;
                         result.Message = "Lỗi hệ thông";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
@@ -292,11 +310,13 @@ namespace eSMP.Services.UserRepo
             result.Success = false;
             result.Message = "Số điện thoại đã được sử dụng";
             result.Data = "";
+            result.TotalPage = numpage;
             return result;
         }
         public Result CheckRole(string phone)
         {
             Result result = new Result();
+            int numpage = 1;
             if (!string.IsNullOrEmpty(phone))
             {
                 var user = _context.Users.SingleOrDefault(u => u.Phone == phone);
@@ -305,18 +325,21 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Số điện thoại đã được kích hoạt";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
             result.Success = false;
             result.Message = "Số điện thoại chưa được kích hoạt";
             result.Data = "";
+            result.TotalPage = numpage;
             return result;
 
         }
         public Result RigisterSupplier(UserRegister user)
         {
             Result result = new Result();
+            int numpage = 1;
             if (!CheckRole(user.Phone).Success)
             {
                 if (user != null)
@@ -368,6 +391,7 @@ namespace eSMP.Services.UserRepo
                         result.Success = true;
                         result.Message = "Đăng ký thành công";
                         result.Data = model;
+                        result.TotalPage = numpage;
                         return result;
                     }
                     catch
@@ -375,6 +399,7 @@ namespace eSMP.Services.UserRepo
                         result.Success = false;
                         result.Message = "Lỗi hệ thông";
                         result.Data = "";
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
@@ -382,6 +407,7 @@ namespace eSMP.Services.UserRepo
             result.Success = false;
             result.Message = "Số điện thoại đã được sử dụng";
             result.Data = "";
+            result.TotalPage = numpage;
             return result;
         }
         public List<Address> GetAddresses(int userID)
@@ -416,6 +442,7 @@ namespace eSMP.Services.UserRepo
         public Result UpdatteUserStatus(int userID, bool iaActive)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == userID);
@@ -427,11 +454,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "update thành công";
                     result.Data = user;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "user không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -439,12 +468,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result GetListUser(int? page, string? search, int? roleID, bool? isActive)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listuser = _context.Users.AsQueryable();
@@ -462,6 +493,11 @@ namespace eSMP.Services.UserRepo
                 }
                 if (page.HasValue)
                 {
+                    numpage = (int)Math.Ceiling((double)listuser.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
                     listuser = listuser.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 var r = new List<UserModel>();
@@ -498,6 +534,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = true;
                 result.Message = "thành công";
                 result.Data = r;
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -505,6 +542,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -529,6 +567,7 @@ namespace eSMP.Services.UserRepo
         public Result RemoveUser(int userID)
         {
             Result result = new Result();
+            int numpage = 1;
             if (userID != null)
             {
                 try
@@ -548,6 +587,7 @@ namespace eSMP.Services.UserRepo
                         result.Success = true;
                         result.Message = "Remove user thành công";
                         result.Data = user;
+                        result.TotalPage = numpage;
                         return result;
                     }
                 }
@@ -556,17 +596,20 @@ namespace eSMP.Services.UserRepo
                     result.Success = false;
                     result.Message = "Lỗi hệ thống";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
             }
             result.Success = false;
             result.Message = "User không tồn tại";
             result.Data = "";
+            result.TotalPage = numpage;
             return result;
         }
         public Result AddAddress(UserAddAddress address)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == address.UserID);
@@ -592,11 +635,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thêm địa chỉ thành công";
                     result.Data = GetAddresses(address.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "User không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -604,12 +649,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result UpdateAddress(Address address)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var addressUpdate = _context.Addresss.SingleOrDefault(a => a.AddressID == address.AddressID);
@@ -628,11 +675,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Sửa địa chỉ thành công";
                     result.Data = addressUpdate;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "địa chỉ không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -640,12 +689,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result UpdateName(EditName name)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == name.UserID);
@@ -656,11 +707,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
                     result.Data = GetUserIFByID(user.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Thay đổi không thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -668,12 +721,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result UpdateEmail(EditEmail email)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == email.UserID);
@@ -684,11 +739,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
                     result.Data = GetUserIFByID(user.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Thay đổi không thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -696,12 +753,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result UpdateBirth(EditBirth birth)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == birth.UserID);
@@ -712,11 +771,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
                     result.Data = GetUserIFByID(user.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Thay đổi không thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -724,12 +785,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result UpdateGender(EditGender gender)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == gender.UserID);
@@ -740,11 +803,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thay đổi thành công";
                     result.Data = GetUserIFByID(user.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Thay đổi không thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -752,12 +817,14 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
         public Result UpdateImage(EditImage image)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == image.UserID);
@@ -785,6 +852,7 @@ namespace eSMP.Services.UserRepo
                                 result.Success = true;
                                 result.Message = "Thay đổi thành công";
                                 result.Data = GetUserIFByID(user.UserID);
+                                result.TotalPage = numpage;
                                 return result;
                             }
                         }
@@ -797,6 +865,7 @@ namespace eSMP.Services.UserRepo
                             result.Success = true;
                             result.Message = "Thay đổi thành công";
                             result.Data = GetUserIFByID(user.UserID);
+                            result.TotalPage = numpage;
                             return result;
                         }
                     }
@@ -804,6 +873,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Tài khoản không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -811,6 +881,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -818,6 +889,7 @@ namespace eSMP.Services.UserRepo
         public Result RefeshToken(int userID, string token)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserID == userID && u.Token == token);
@@ -827,11 +899,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Gia hạn thành công";
                     result.Data = GetUserIFByID(user.UserID);
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "Gia hạn không thành công";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -839,6 +913,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -846,6 +921,7 @@ namespace eSMP.Services.UserRepo
         public Result RemoveAddress(int addressID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var address = _context.Addresss.SingleOrDefault(a => a.AddressID == addressID);
@@ -856,11 +932,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Xoá địa chỉ thành công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "địa chỉ không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -868,6 +946,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -894,6 +973,7 @@ namespace eSMP.Services.UserRepo
         public Result GetAddressByID(int userID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var listaddress = GetAddresses(userID);
@@ -902,11 +982,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = listaddress;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "UserID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -914,6 +996,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -921,6 +1004,7 @@ namespace eSMP.Services.UserRepo
         public Result GetUserByID(int userID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
@@ -954,11 +1038,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = model;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "UserID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -966,6 +1052,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1014,6 +1101,7 @@ namespace eSMP.Services.UserRepo
         public Result Logout(int userID)
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var u = _context.Users.SingleOrDefault(user => user.UserID == userID);
@@ -1025,11 +1113,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = "";
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "UserID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1037,6 +1127,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }
@@ -1044,6 +1135,7 @@ namespace eSMP.Services.UserRepo
         public Result GetAdminContact()
         {
             Result result = new Result();
+            int numpage = 1;
             try
             {
                 var u = _context.Users.FirstOrDefault(u=>u.RoleID==1);
@@ -1052,11 +1144,13 @@ namespace eSMP.Services.UserRepo
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = u.FirebaseID;
+                    result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
                 result.Message = "UserID không tồn tại";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
             catch
@@ -1064,6 +1158,7 @@ namespace eSMP.Services.UserRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = numpage;
                 return result;
             }
         }

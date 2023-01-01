@@ -62,7 +62,7 @@ namespace eSMP.Controllers
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 var result = _specificationReposity.CreateSpecification(specification_Name);
                 return Ok(result);
@@ -76,7 +76,7 @@ namespace eSMP.Controllers
         [HttpPost]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("add_specification")]
-        public IActionResult AddSpecification(int sub_CategoryID, int[] specificationID)
+        public IActionResult AddSpecification(CateSpecification_Request request)
         {
             try
             {
@@ -85,7 +85,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
                 }
-                var result = _specificationReposity.AddSpecification(sub_CategoryID, specificationID);
+                var result = _specificationReposity.AddSpecification(request.sub_CategoryID, request.specificationIDs);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -95,8 +95,8 @@ namespace eSMP.Controllers
         }
         [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
-        [Route("add_specification")]
-        public IActionResult ReomoveSpecification(int sub_CategoryID, int[] specificationIDs)
+        [Route("remove_category_specification")]
+        public IActionResult ReomoveCateSpecification(CateSpecification_Request request)
         {
             try
             {
@@ -105,7 +105,27 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
                 }
-                var result = _specificationReposity.ReomoveSpecification(sub_CategoryID, specificationIDs);
+                var result = _specificationReposity.ReomoveCateSpecification(request.sub_CategoryID, request.specificationIDs);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
+        [Route("remove_specification")]
+        public IActionResult ReomoveSpecification(int specificationID)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                var result = _specificationReposity.ReomoveSpecification(specificationID);
                 return Ok(result);
             }
             catch (Exception ex)

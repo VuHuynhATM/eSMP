@@ -15,7 +15,7 @@ namespace eSMP.Services.UserRepo
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
         private readonly IFileReposity _fileReposity;
-        private int PAGE_SIZE = 25;
+        private int PAGE_SIZE = 10;
 
         public UserRepository(WebContext context, IConfiguration configuration, ITokenService tokenService, IFileReposity fileReposity)
         {
@@ -483,11 +483,11 @@ namespace eSMP.Services.UserRepo
                 {
                     listuser = listuser.Where(u => EF.Functions.Collate(u.UserName, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
                 }
-                if (roleID.HasValue)
+                if (isActive.HasValue)
                 {
                     listuser = listuser.Where(u => u.isActive == isActive);
                 }
-                if (isActive.HasValue)
+                if (roleID.HasValue)
                 {
                     listuser = listuser.Where(u => u.RoleID == roleID);
                 }

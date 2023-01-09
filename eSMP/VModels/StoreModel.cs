@@ -22,6 +22,12 @@ namespace eSMP.VModels
         public double? Actice_Amount { get; set; }
         public string? FirebaseID { get; set; }
         public string? FCM_Firebase { get; set; }
+        public int TotalActiveItem { get; set; }
+        public int TotalBlockItem { get; set; }
+        public int TotalWatingItem { get; set; }
+        public int TotalOrder { get; set; }
+        public int TotalCancelOrder { get; set; }
+        public double TotalRating { get; set; }
     }
     public class StoreViewModel
     {

@@ -270,10 +270,36 @@ namespace eSMP.Services.StoreAssetRepo
             int numpage = 1;
             try
             {
+                Systeminfo systeminfo = new Systeminfo();
                 var eSMp = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
+                var cus = _context.Users.Where(u => u.RoleID == 2);
+                var sup = _context.Users.Where(u => u.RoleID == 3);
+                var item = _context.Items.Where(i => i.Item_StatusID == 1&& i.Store.Store_StatusID==1);
+                if(eSMp != null)
+                {
+                    systeminfo.SystemID = eSMp.SystemID;
+                    systeminfo.AmountActive = eSMp.AmountActive;
+                    systeminfo.Refund_Precent = eSMp.Refund_Precent;
+                    systeminfo.Commission_Precent = eSMp.Commission_Precent;
+                    systeminfo.IsActive = eSMp.IsActive;
+                    systeminfo.Asset=eSMp.Asset;
+                }
+                if(cus != null)
+                {
+                    systeminfo.TotalCustomer = cus.Count();
+                }
+                if(sup != null)
+                {
+                    systeminfo.TotalSupplier = sup.Count();
+                }
+                if(item != null)
+                {
+                    systeminfo.TotalItem = item.Count();
+                }
                 result.Success = true;
                 result.Message = "Thành công";
-                result.Data = eSMp;
+                result.Data = systeminfo;
+                result.TotalPage = numpage;
                 return result;
             }
             catch

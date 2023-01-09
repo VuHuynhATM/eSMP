@@ -141,6 +141,12 @@ namespace eSMP.Services.StoreRepo
                     Actice_Amount=store.AmountActive,
                     FirebaseID=store.User.FirebaseID,
                     FCM_Firebase=store.User.FCM_Firebase,
+                    TotalActiveItem = GetTotalItemActive(store.StoreID),
+                    TotalBlockItem = GetTotalItemBlock(store.StoreID),
+                    TotalWatingItem = GetTotalItemWatting(store.StoreID),
+                    TotalOrder = GetTotalOrder(store.StoreID),
+                    TotalCancelOrder = GetTotalCancelOrder(store.StoreID),
+                    TotalRating = GetTotalRating(store.StoreID),
                 };
                 return model;
             }
@@ -275,6 +281,12 @@ namespace eSMP.Services.StoreRepo
                         Actice_Amount = store.AmountActive,
                         FirebaseID=store.User.FirebaseID,
                         FCM_Firebase=store.User.FCM_Firebase,
+                        TotalActiveItem=GetTotalItemActive(storeID),
+                        TotalBlockItem=GetTotalItemBlock(storeID),
+                        TotalWatingItem=GetTotalItemWatting(storeID),
+                        TotalOrder=GetTotalOrder(storeID),
+                        TotalCancelOrder=GetTotalCancelOrder(storeID),
+                        TotalRating=GetTotalRating(storeID),
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -660,6 +672,97 @@ namespace eSMP.Services.StoreRepo
             catch
             {
                 return false;
+            }
+        }
+
+        public double GetTotalRating(int storeID)
+        {
+            try
+            {
+                double present = 0;
+                var listFeedback = _context.OrderDetails.Where(od => od.Feedback_StatusID != null && od.Sub_Item.Item.StoreID == storeID);
+                if (listFeedback.Count() > 0)
+                {
+                    double rate = 0;
+                    foreach (var feedback in listFeedback.ToList())
+                    {
+                        rate = rate + feedback.Feedback_Rate.Value;
+                    }
+                    present = rate/listFeedback.Count();
+                }
+                return present;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+        public int GetTotalOrder(int storeID)
+        {
+            try
+            {
+                double num = 0;
+                var listorder=_context.Orders.Where(o=>_context.OrderDetails.FirstOrDefault(od=>od.OrderID==o.OrderID && od.Sub_Item.Item.StoreID==storeID)!=null && o.OrderStatusID!=2);
+                return listorder.Count();
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+        public int GetTotalCancelOrder(int storeID)
+        {
+            try
+            {
+                double num = 0;
+                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.FirstOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID && _context.Items.SingleOrDefault(i=>i.ItemID==si.ItemID && i.StoreID==storeID)!=null)!=null) != null && o.OrderStatusID != 3);;
+                return listorder.Count();
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+        public int GetTotalItemActive(int storeID)
+        {
+            try
+            {
+                int num = 0;
+                var listItem = _context.Items.Where(i=>i.StoreID==storeID && i.Item_StatusID!=2 && i.Item_StatusID != 3);
+                num = listItem.Count();
+                return num;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+        public int GetTotalItemWatting(int storeID)
+        {
+            try
+            {
+                int num = 0;
+                var listItem = _context.Items.Where(i => i.StoreID == storeID && i.Item_StatusID == 3);
+                num = listItem.Count();
+                return num;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+        public int GetTotalItemBlock(int storeID)
+        {
+            try
+            {
+                int num = 0;
+                var listItem = _context.Items.Where(i => i.StoreID == storeID && i.Item_StatusID == 2);
+                num = listItem.Count();
+                return num;
+            }
+            catch
+            {
+                return 0;
             }
         }
     }

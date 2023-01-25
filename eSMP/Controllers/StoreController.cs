@@ -26,7 +26,7 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
-        public IActionResult GetAllStore(string? search, int? page)
+        public IActionResult GetAllStore(string? search, int? page, int? statusID)
         {
             try
             {
@@ -35,7 +35,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
-                var result = _storeReposity.GetAllStore(search,page);
+                var result = _storeReposity.GetAllStore(search,page,statusID);
                 return Ok(result);
             }
             catch (Exception ex)

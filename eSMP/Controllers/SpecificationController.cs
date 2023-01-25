@@ -54,7 +54,6 @@ namespace eSMP.Controllers
 
         [HttpPost]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
-        [Route("sub_category")]
         public IActionResult CreateSpecification(string specification_Name)
         {
             try
@@ -126,6 +125,26 @@ namespace eSMP.Controllers
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
                 }
                 var result = _specificationReposity.ReomoveSpecification(specificationID);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
+        [Route("active_specification")]
+        public IActionResult ActiveSpecification(int specificationID)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                var result = _specificationReposity.ActiveSpecification(specificationID);
                 return Ok(result);
             }
             catch (Exception ex)

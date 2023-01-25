@@ -18,7 +18,7 @@ namespace eSMP.Services.CategoryRepo
         {
             try
             {
-                List<Sub_Category> sub_categories = _context.SubCategories.Where(c => c.CategoryID == categoryID && c.IsActive).ToList();
+                List<Sub_Category> sub_categories = _context.SubCategories.Where(c => c.CategoryID == categoryID).ToList();
                 List<Sub_CategoryModel> list = new List<Sub_CategoryModel>();
                 if (sub_categories.Count > 0)
                 {
@@ -47,7 +47,7 @@ namespace eSMP.Services.CategoryRepo
             int numpage = 1;
             try
             {
-                var list = _context.Categorys.Where(c => c.IsActive).ToList();
+                var list = _context.Categorys.ToList();
                 var r = new List<CategoryModel>();
                 if (list.Count > 0)
                 {
@@ -254,16 +254,28 @@ namespace eSMP.Services.CategoryRepo
             int numpage = 1;
             try
             {
-                Category category = new Category();
-                category.Name = category_Name;
-                category.IsActive = true;
-                _context.Categorys.Add(category);
-                _context.SaveChanges();
-                result.Success = true;
-                result.Message = "Thành Công";
-                result.Data = category;
-                result.TotalPage = numpage;
-                return result;
+                var cate = _context.Categorys.SingleOrDefault(c => c.Name == category_Name);
+                if (cate == null)
+                {
+                    Category category = new Category();
+                    category.Name = category_Name;
+                    category.IsActive = true;
+                    _context.Categorys.Add(category);
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = category;
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "Loại phụ tùng đã tồn tại";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
             }
             catch
             {
@@ -281,17 +293,29 @@ namespace eSMP.Services.CategoryRepo
             int numpage = 1;
             try
             {
-                Sub_Category category = new Sub_Category();
-                category.Sub_categoryName = subCategory_Name;
-                category.CategoryID = categoryID;
-                category.IsActive = true;
-                _context.SubCategories.Add(category);
-                _context.SaveChanges();
-                result.Success = true;
-                result.Message = "Thành Công";
-                result.Data = category;
-                result.TotalPage = numpage;
-                return result;
+                var subcate=_context.SubCategories.SingleOrDefault(c => c.CategoryID == categoryID&& c.Sub_categoryName==subCategory_Name);
+                if (subcate == null)
+                {
+                    Sub_Category category = new Sub_Category();
+                    category.Sub_categoryName = subCategory_Name;
+                    category.CategoryID = categoryID;
+                    category.IsActive = true;
+                    _context.SubCategories.Add(category);
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = category;
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "đã tồn tại phân loại này trong loại phụ tùng";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
             }
             catch
             {

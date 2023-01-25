@@ -29,6 +29,7 @@ namespace eSMP.VModels
     public class FeedbackDetailModel
     {
         public string UserName { get; set; }
+        public int ItemID { get; set; }
         public string Useravatar { get; set; }
         public int UserID { get; set; }
         public int orderDetaiID { get; set; }

@@ -299,7 +299,7 @@ namespace eSMP.Controllers
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("system_chart_reveneu")]
-        public IActionResult GetSystemChart(int? year, string cate)
+        public IActionResult GetSystemChart(int? year)
         {
             try
             {
@@ -308,7 +308,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
-                return Ok(_assetReposity.GetSystemReveneuForChart(year, cate));
+                return Ok(_assetReposity.GetSystemReveneuForChart(year));
             }
             catch
             {

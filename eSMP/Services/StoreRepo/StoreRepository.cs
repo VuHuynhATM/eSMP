@@ -17,7 +17,7 @@ namespace eSMP.Services.StoreRepo
         private readonly Lazy<IFileReposity> _fileReposity;
         private readonly Lazy<IStatusReposity> _statusReposity;
 
-        public static int PAGE_SIZE { get; set; } = 25;
+        public static int PAGE_SIZE { get; set; } = 10;
 
         public StoreRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<IFileReposity> fileReposity, Lazy<IStatusReposity> statusReposity)
         {
@@ -193,7 +193,7 @@ namespace eSMP.Services.StoreRepo
                 return false;
             }
         }
-        public Result GetAllStore(string? search, int? page)
+        public Result GetAllStore(string? search, int? page, int? statusID)
         {
             Result result = new Result();
             int numpage = 1;
@@ -204,6 +204,10 @@ namespace eSMP.Services.StoreRepo
                 if (search != null)
                 {
                     listStore = listStore.Where(s => EF.Functions.Collate(s.StoreName, "SQL_Latin1_General_CP1_CI_AI").Contains(search));
+                }
+                if (statusID.HasValue)
+                {
+                    listStore = listStore.Where(s => s.Store_StatusID == statusID);
                 }
                 if (page.HasValue)
                 {

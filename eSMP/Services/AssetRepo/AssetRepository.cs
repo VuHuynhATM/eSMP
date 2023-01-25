@@ -28,7 +28,7 @@ namespace eSMP.Services.StoreAssetRepo
         }
         public long GetMomoTransaction(int orderID)
         {
-            return _context.orderBuy_Transacsions.SingleOrDefault(obt=>obt.OrderID==orderID).MomoTransactionID;
+            return _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID).MomoTransactionID;
         }
         public DateTime GetVnTime()
         {
@@ -42,7 +42,7 @@ namespace eSMP.Services.StoreAssetRepo
         {
             try
             {
-                
+
 
                 var esmpSystem = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == OrderID && o.OrderStatusID == 1 && _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID.Equals("5"));
@@ -87,7 +87,7 @@ namespace eSMP.Services.StoreAssetRepo
             {
                 Guid myuuid = Guid.NewGuid();
                 string myuuidAsString = myuuid.ToString();
-                var filename = "eSMP1"  + myuuidAsString;
+                var filename = "eSMP1" + myuuidAsString;
                 string path = _fileReposity.UploadFile(request.File, filename).Result;
 
                 Image image = new Image();
@@ -241,10 +241,10 @@ namespace eSMP.Services.StoreAssetRepo
                                 OrderID = item.OrderStore_Transaction.OrderID,
                                 OrderStore_TransactionID = item.OrderStore_TransactionID,
                                 Price = item.OrderStore_Transaction.Price,
-                                MomoTransaction=GetMomoTransaction(item.OrderStore_Transaction.OrderID)
+                                MomoTransaction = GetMomoTransaction(item.OrderStore_Transaction.OrderID)
                             },
                             Price = item.Price,
-                            StoreID=GetStore(item.OrderStore_Transaction.OrderID).StoreID,
+                            StoreID = GetStore(item.OrderStore_Transaction.OrderID).StoreID,
                         };
                         list.Add(model);
                     }
@@ -274,27 +274,32 @@ namespace eSMP.Services.StoreAssetRepo
                 var eSMp = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
                 var cus = _context.Users.Where(u => u.RoleID == 2);
                 var sup = _context.Users.Where(u => u.RoleID == 3);
-                var item = _context.Items.Where(i => i.Item_StatusID == 1&& i.Store.Store_StatusID==1);
-                if(eSMp != null)
+                var item = _context.Items.Where(i => i.Item_StatusID == 1 && i.Store.Store_StatusID == 1);
+                var order = _context.Orders.Where(o => o.OrderStatusID == 1);
+                if (eSMp != null)
                 {
                     systeminfo.SystemID = eSMp.SystemID;
                     systeminfo.AmountActive = eSMp.AmountActive;
                     systeminfo.Refund_Precent = eSMp.Refund_Precent;
                     systeminfo.Commission_Precent = eSMp.Commission_Precent;
                     systeminfo.IsActive = eSMp.IsActive;
-                    systeminfo.Asset=eSMp.Asset;
+                    systeminfo.Asset = eSMp.Asset;
                 }
-                if(cus != null)
+                if (cus != null)
                 {
                     systeminfo.TotalCustomer = cus.Count();
                 }
-                if(sup != null)
+                if (sup != null)
                 {
                     systeminfo.TotalSupplier = sup.Count();
                 }
-                if(item != null)
+                if (item != null)
                 {
                     systeminfo.TotalItem = item.Count();
+                }
+                if (order != null)
+                {
+                    systeminfo.TotalOrder = order.Count();
                 }
                 result.Success = true;
                 result.Message = "Thành công";
@@ -330,7 +335,7 @@ namespace eSMP.Services.StoreAssetRepo
                 }
                 if (orderID.HasValue)
                 {
-                    listReveneu = listReveneu.Where(ost => ost.OrderID==orderID);
+                    listReveneu = listReveneu.Where(ost => ost.OrderID == orderID);
                 }
                 listReveneu = listReveneu.OrderByDescending(ost => ost.Create_Date);
                 if (page.HasValue)
@@ -383,7 +388,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == request.StoreID);
-                if ( store!= null)
+                if (store != null)
                 {
                     if (store.Asset < request.Price)
                     {
@@ -467,7 +472,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
 
-                var storeWitdrawal = _context.Store_Withdrawals.SingleOrDefault(stw => stw.Store_WithdrawalID == storeWithhdrawalID && stw.Withdrawal_StatusID!=4);
+                var storeWitdrawal = _context.Store_Withdrawals.SingleOrDefault(stw => stw.Store_WithdrawalID == storeWithhdrawalID && stw.Withdrawal_StatusID != 4);
                 if (storeWitdrawal != null)
                 {
                     storeWitdrawal.Withdrawal_StatusID = 3;
@@ -517,7 +522,7 @@ namespace eSMP.Services.StoreAssetRepo
                     image.Path = path;
                     image.Crete_date = GetVnTime();
 
-                    storeWitdrawal.Image=image;
+                    storeWitdrawal.Image = image;
 
                     _context.SaveChanges();
                     result.Success = true;
@@ -571,13 +576,13 @@ namespace eSMP.Services.StoreAssetRepo
                 List<Store_WithdrawalModel> list = new List<Store_WithdrawalModel>();
                 if (storeWitdrawal.Count() > 0)
                 {
-                    foreach(var item in storeWitdrawal.ToList())
+                    foreach (var item in storeWitdrawal.ToList())
                     {
                         Store_WithdrawalModel model = new Store_WithdrawalModel
                         {
                             Bank = item.BankSupport,
-                            NumBankCart=item.NumBankCart,
-                            OwnerBankCart=item.OwnerBankCart,
+                            NumBankCart = item.NumBankCart,
+                            OwnerBankCart = item.OwnerBankCart,
                             Create_Date = item.Create_Date,
                             Image = item.Image,
                             Price = item.Price,
@@ -612,13 +617,13 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
 
-                var bankSupport = _context.BankSupports.Where(b=>b.IsActive);
+                var bankSupport = _context.BankSupports.Where(b => b.IsActive);
                 List<BankSupport> list = new List<BankSupport>();
                 if (bankSupport.Count() > 0)
                 {
                     foreach (var item in bankSupport.ToList())
                     {
-                        
+
                         list.Add(item);
                     }
                 }
@@ -644,13 +649,13 @@ namespace eSMP.Services.StoreAssetRepo
             int numpage = 1;
             try
             {
-                List<ChartModel> list=new List<ChartModel>();
+                List<ChartStoreModel> list = new List<ChartStoreModel>();
                 if (year.HasValue)
                 {
-                    for(int i = 1; i < 13; i++)
+                    for (int i = 1; i < 13; i++)
                     {
-                        var sumreveneu=_context.OrderStore_Transactions.Where(ost=>ost.StoreID==storeID && ost.Create_Date.Year==year.Value && ost.Create_Date.Month==i && ost.IsActive).Sum(ost=>ost.Price);
-                        ChartModel model = new ChartModel
+                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive).Sum(ost => ost.Price);
+                        ChartStoreModel model = new ChartStoreModel
                         {
                             amount = sumreveneu,
                             time = i,
@@ -660,12 +665,12 @@ namespace eSMP.Services.StoreAssetRepo
                 }
                 else
                 {
-                    var yearStart= _context.OrderStore_Transactions.OrderByDescending(ost => ost.Create_Date.Year).First().Create_Date.Year;
-                    var yearCrrent= GetVnTime().Year;
-                    for (int i = yearStart; i < yearCrrent+1; i++)
+                    var yearStart = _context.OrderStore_Transactions.OrderByDescending(ost => ost.Create_Date.Year).First().Create_Date.Year;
+                    var yearCrrent = GetVnTime().Year;
+                    for (int i = yearStart; i < yearCrrent + 1; i++)
                     {
-                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == i  && ost.IsActive).Sum(ost => ost.Price);
-                        ChartModel model = new ChartModel
+                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == i && ost.IsActive).Sum(ost => ost.Price);
+                        ChartStoreModel model = new ChartStoreModel
                         {
                             amount = sumreveneu,
                             time = i,
@@ -688,73 +693,43 @@ namespace eSMP.Services.StoreAssetRepo
                 return result;
             }
         }
-        public Result GetSystemReveneuForChart(int? year, string Cate)
+        public Result GetSystemReveneuForChart(int? year)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
                 List<ChartModel> list = new List<ChartModel>();
-
-                if (Cate.Equals("store")){
-                    if (year.HasValue)
+                if (year.HasValue)
+                {
+                    for (int i = 1; i < 13; i++)
                     {
-                        for (int i = 1; i < 13; i++)
+                        var sumreveneuod = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive).Sum(ost => ost.Price);
+                        var sumreveneust = _context.Stores.Where(ost => ost.Actice_Date.Value.Year == year.Value && ost.Actice_Date.Value.Month == i && ost.Store_StatusID == 1).Sum(ost => ost.AmountActive);
+                        ChartModel model = new ChartModel
                         {
-                            var sumreveneu = _context.Stores.Where(ost =>ost.Actice_Date.Value.Year == year.Value && ost.Actice_Date.Value.Month == i && ost.Store_StatusID==1).Sum(ost => ost.AmountActive);
-                            ChartModel model = new ChartModel
-                            {
-                                amount = sumreveneu.Value,
-                                time = i,
-                            };
-                            list.Add(model);
-                        }
-                    }
-                    else
-                    {
-                        var yearStart = _context.Stores.OrderByDescending(ost => ost.Actice_Date.Value.Year).First().Actice_Date.Value.Year;
-                        var yearCrrent = GetVnTime().Year;
-                        for (int i = yearStart; i < yearCrrent + 1; i++)
-                        {
-                            var sumreveneu = _context.Stores.Where(ost => ost.Actice_Date.Value.Year == i && ost.Store_StatusID == 1).Sum(ost => ost.AmountActive);
-                            ChartModel model = new ChartModel
-                            {
-                                amount = sumreveneu.Value,
-                                time = i,
-                            };
-                            list.Add(model);
-                        }
+                            amountstore = sumreveneust.Value,
+                            amountOrder = sumreveneuod,
+                            time = i,
+                        };
+                        list.Add(model);
                     }
                 }
                 else
                 {
-                    if (year.HasValue)
+                    var yearStart = _context.Stores.OrderByDescending(ost => ost.Actice_Date.Value.Year).First().Actice_Date.Value.Year;
+                    var yearCrrent = GetVnTime().Year;
+                    for (int i = yearStart; i < yearCrrent + 1; i++)
                     {
-                        for (int i = 1; i < 13; i++)
+                        var sumreveneuod = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == i && ost.IsActive).Sum(ost => ost.Price);
+                        var sumreveneust = _context.Stores.Where(ost => ost.Actice_Date.Value.Year == i && ost.Store_StatusID == 1).Sum(ost => ost.AmountActive);
+                        ChartModel model = new ChartModel
                         {
-                            var sumreveneu = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive).Sum(ost => ost.Price);
-                            ChartModel model = new ChartModel
-                            {
-                                amount = sumreveneu,
-                                time = i,
-                            };
-                            list.Add(model);
-                        }
-                    }
-                    else
-                    {
-                        var yearStart = _context.OrderSystem_Transactions.OrderByDescending(ost => ost.Create_Date.Year).First().Create_Date.Year;
-                        var yearCrrent = GetVnTime().Year;
-                        for (int i = yearStart; i < yearCrrent + 1; i++)
-                        {
-                            var sumreveneu = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == i && ost.IsActive).Sum(ost => ost.Price);
-                            ChartModel model = new ChartModel
-                            {
-                                amount = sumreveneu,
-                                time = i,
-                            };
-                            list.Add(model);
-                        }
+                            amountstore = sumreveneust.Value,
+                            amountOrder = sumreveneuod,
+                            time = i,
+                        };
+                        list.Add(model);
                     }
                 }
                 result.Success = true;
@@ -806,10 +781,10 @@ namespace eSMP.Services.StoreAssetRepo
                     {
                         StoreSystemReveneuView model = new StoreSystemReveneuView
                         {
-                            ActiveDate=item.Actice_Date.Value,
-                            Amount=item.AmountActive.Value,
-                            MomoTransaction=item.MomoTransactionID.Value,
-                            StoreID=item.StoreID,
+                            ActiveDate = item.Actice_Date.Value,
+                            Amount = item.AmountActive.Value,
+                            MomoTransaction = item.MomoTransactionID.Value,
+                            StoreID = item.StoreID,
                         };
                         list.Add(model);
                     }

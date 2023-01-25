@@ -11,6 +11,7 @@
         public int TotalCustomer { get; set; }
         public int TotalSupplier { get; set; }
         public int TotalItem { get; set; }
+        public int TotalOrder { get; set; }
     }
 }
  

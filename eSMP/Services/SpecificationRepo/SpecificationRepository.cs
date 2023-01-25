@@ -105,22 +105,25 @@ namespace eSMP.Services.SpecificationRepo
         {
             try
             {
-                var listSpe = _context.Specification_Values.Where(c => c.ItemID == itemID).ToList();
+                var listSpe = _context.Specification_Values.Where(c => c.ItemID == itemID && c.Specification.IsActive).ToList();
                 List<SpecificationTagModel> result = new List<SpecificationTagModel>();
                 if (listSpe.Count > 0)
                 {
                     foreach (var item in listSpe)
                     {
-                        SpecificationTagModel tag = new SpecificationTagModel
+                        if (item.IsActive)
                         {
-                            ItemID = item.ItemID,
-                            IsActive = item.IsActive,
-                            SpecificationID = item.SpecificationID,
-                            Specification_ValueID = item.Specification_ValueID,
-                            Value = item.Value,
-                            SpecificationName = item.Specification.SpecificationName,
-                        };
-                        result.Add(tag);
+                            SpecificationTagModel tag = new SpecificationTagModel
+                            {
+                                ItemID = item.ItemID,
+                                IsActive = item.IsActive,
+                                SpecificationID = item.SpecificationID,
+                                Specification_ValueID = item.Specification_ValueID,
+                                Value = item.Value,
+                                SpecificationName = item.Specification.SpecificationName,
+                            };
+                            result.Add(tag);
+                        }
                     }
                     return result;
                 }
@@ -186,7 +189,7 @@ namespace eSMP.Services.SpecificationRepo
                 }
                 _context.SaveChanges();
                 result.Success = true;
-                result.Message = "Chưa có thông số";
+                result.Message = "Thêm thông số thành công";
                 result.Data = "";
                 result.TotalPage = numpage;
                 return result;
@@ -259,6 +262,34 @@ namespace eSMP.Services.SpecificationRepo
                     {
                         spe.IsActive = false;
                     }
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành Công";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+        }
+
+        public Result ActiveSpecification(int specificationID)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var spe = _context.Specification.SingleOrDefault(s => s.SpecificationID == specificationID);
+                if (spe != null)
+                {
+                    spe.IsActive = true;
+                }
                 _context.SaveChanges();
                 result.Success = true;
                 result.Message = "Thành Công";

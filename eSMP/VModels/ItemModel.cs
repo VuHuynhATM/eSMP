@@ -26,8 +26,9 @@ namespace eSMP.VModels
         public double MinPrice { get; set; }
         public double Discount { get; set; }
         public int Num_Sold { get; set; }
+        public int Num_Feedback { get; set; }
         public DateTime Create_date { get; set; }
-        public int Sub_CategoryID { get; set; }
+        public string Sub_Category { get; set; }
         public Status Item_Status { get; set; }
         public List<Image> List_Image { get; set; }
         public List<SpecificationTagModel> Specification_Tag { get; set; }

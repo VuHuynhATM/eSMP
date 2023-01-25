@@ -210,7 +210,7 @@ namespace eSMP.Controllers
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("get_order_status")]
-        public IActionResult GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page, string? userName)
+        public IActionResult GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page, string? userName,int? orderID)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace eSMP.Controllers
                         return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", TotalPage = 1 });
                     }
                 }
-                return Ok(_orderReposity.GetOrdersWithShipstatus(userID,storeID,dateFrom,dateTo,shipOrderStatus,page, userName));
+                return Ok(_orderReposity.GetOrdersWithShipstatus(userID,storeID,dateFrom,dateTo,shipOrderStatus,page, userName,orderID));
             }
             catch
             {
@@ -266,7 +266,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("get_feedback_detail")]
         public IActionResult GetFeedbackDetail(int orderDetailID)
         {
@@ -277,10 +277,6 @@ namespace eSMP.Controllers
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
-                }
-                else if (userId != userIdOfOrder + "")
-                {
-                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
                 }
                 return Ok(_orderReposity.GetFeedbackDetail(orderDetailID));
             }

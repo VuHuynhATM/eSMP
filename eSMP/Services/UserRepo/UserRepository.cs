@@ -766,7 +766,11 @@ namespace eSMP.Services.UserRepo
                 var user = _context.Users.SingleOrDefault(u => u.UserID == birth.UserID);
                 if (user != null)
                 {
-                    user.DateOfBirth = birth.UserBirth;
+                    string vnTimeZoneKey = "SE Asia Standard Time";
+                    TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                    DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(birth.UserBirth, vnTimeZone);
+
+                    user.DateOfBirth = VnTime;
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thay đổi thành công";

@@ -29,7 +29,7 @@ namespace eSMP.Services.BrandRepo
             try
             {
                 List<BrandModel> list = new List<BrandModel>();
-                var listBrand = _context.Brands.Where(b=>b.IsActive).ToList();
+                var listBrand = _context.Brands.ToList();
                 foreach (var brand in listBrand)
                 {
                     BrandModel brandModel = new BrandModel
@@ -211,16 +211,29 @@ namespace eSMP.Services.BrandRepo
             int numpage = 1;
             try
             {
-                Brand brand = new Brand();
-                brand.Name = brand_Name;
-                brand.IsActive = true;
-                _context.Brands.Add(brand);
-                _context.SaveChanges();
-                result.Success = true;
-                result.Message = "Thành công";
-                result.Data = brand;
-                result.TotalPage = numpage;
-                return result;
+                var brandcheck = _context.Brands.SingleOrDefault(b => b.Name == brand_Name);
+                if (brandcheck == null)
+                {
+                    Brand brand = new Brand();
+                    brand.Name = brand_Name;
+                    brand.IsActive = true;
+                    _context.Brands.Add(brand);
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = brand;
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "Đã tồn tại hãng xe";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                
             }
             catch
             {
@@ -238,17 +251,30 @@ namespace eSMP.Services.BrandRepo
             int numpage = 1;
             try
             {
-                Brand_Model moto = new Brand_Model();
-                moto.Name = moto_Name;
-                moto.BrandID = brandID;
-                moto.IsActive = true;
-                _context.Brand_Models.Add(moto);
-                _context.SaveChanges();
-                result.Success = true;
-                result.Message = "Thành công";
-                result.Data = moto;
-                result.TotalPage = numpage;
-                return result;
+                var motor = _context.Brand_Models.SingleOrDefault(m => m.BrandID == brandID && m.Name == moto_Name);
+                if(motor == null)
+                {
+                    Brand_Model moto = new Brand_Model();
+                    moto.Name = moto_Name;
+                    moto.BrandID = brandID;
+                    moto.IsActive = true;
+                    _context.Brand_Models.Add(moto);
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = moto;
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "Đã tồn tại phương tiện";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
+               
             }
             catch
             {

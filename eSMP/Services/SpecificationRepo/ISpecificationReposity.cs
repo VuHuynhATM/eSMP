@@ -12,6 +12,7 @@ namespace eSMP.Services.SpecificationRepo
         public Result AddSpecification(int sub_CategoryID, int[] specificationIDs);
         public Result ReomoveCateSpecification(int sub_CategoryID, int[] specificationIDs);
         public Result ReomoveSpecification(int specificationID);
+        public Result ActiveSpecification(int specificationID);
         public List<SpecificationTagModel> GetSpecificationsForItem(int itemID);
     }
 }

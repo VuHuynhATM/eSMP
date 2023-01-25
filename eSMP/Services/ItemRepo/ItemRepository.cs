@@ -22,7 +22,7 @@ namespace eSMP.Services.ItemRepo
         private readonly IFileReposity _fileReposity;
         private readonly IStatusReposity _statusReposity;
 
-        public static int PAGE_SIZE { get; set; } = 25;
+        public static int PAGE_SIZE { get; set; } = 12;
 
         public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity, IFileReposity fileReposity,IStatusReposity statusReposity)
         {
@@ -432,6 +432,11 @@ namespace eSMP.Services.ItemRepo
             }
             return list;
         }
+        public int GetTotalFeedBack(int itemID)
+        {
+            var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == itemID && od.Feedback_StatusID!=null);
+            return listorderdetail.Count();
+        }
 
         public Result GetItemDetail(int itemID)
         {
@@ -452,7 +457,7 @@ namespace eSMP.Services.ItemRepo
                         MinPrice = GetMinPriceForItem(item.ItemID),
                         Discount = item.Discount,
                         Rate = item.Rate,
-                        Sub_CategoryID = item.Sub_CategoryID,
+                        Sub_Category = item.Sub_Category.Sub_categoryName,
                         Store = _storeReposity.GetStoreModel(item.StoreID),
                         Specification_Tag = _specificationReposity.GetSpecificationsForItem(item.ItemID),
                         List_Image = GetItemImage(item.ItemID),
@@ -461,6 +466,7 @@ namespace eSMP.Services.ItemRepo
                         ListModel = _brandReposity.GetModelForItem(item.ItemID),
                         Num_Sold = GetNumSold(item.ItemID),
                         ListFeedBack = GetListFeedBack(itemID),
+                        Num_Feedback= GetTotalFeedBack(itemID),
                     };
 
                     result.Success = true;
@@ -806,7 +812,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Active thành công";
-                    result.Data = subitem;
+                    result.Data =_statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -849,7 +855,7 @@ namespace eSMP.Services.ItemRepo
                     }
                     result.Success = true;
                     result.Message = "Active thành công";
-                    result.Data = item;
+                    result.Data = _statusReposity.GetItemStatus(item.Item_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -882,7 +888,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Khoá thành công";
-                    result.Data = subitem;
+                    result.Data = _statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -915,7 +921,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Khoá thành công";
-                    result.Data = item;
+                    result.Data = _statusReposity.GetItemStatus(item.Item_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -965,7 +971,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Ẩn thành công";
-                    result.Data = subitem;
+                    result.Data = _statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -1006,7 +1012,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Ẩn thành công";
-                    result.Data = item;
+                    result.Data = _statusReposity.GetItemStatus(item.Item_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -1047,7 +1053,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Huỷ ẩn thành công";
-                    result.Data = subitem;
+                    result.Data = _statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -1088,7 +1094,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Huỷ ẩn thành công";
-                    result.Data = item;
+                    result.Data = _statusReposity.GetItemStatus(item.Item_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }

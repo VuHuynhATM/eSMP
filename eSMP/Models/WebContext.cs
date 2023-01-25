@@ -42,8 +42,8 @@ namespace eSMP.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                //optionsBuilder.UseSqlServer("Data Source=SQL5107.site4now.net;Initial Catalog=db_a8ef86_esmp;User Id=db_a8ef86_esmp_admin;Password=Se1234567890");
-                optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=db_a8ef86_esmp;User Id=sa;Password=123456");
+                optionsBuilder.UseSqlServer("Data Source=SQL5107.site4now.net;Initial Catalog=db_a8ef86_esmp;User Id=db_a8ef86_esmp_admin;Password=Se1234567890");
+                //optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=db_a8ef86_esmp;User Id=sa;Password=123456");
                 optionsBuilder.UseLazyLoadingProxies();
             }
         }

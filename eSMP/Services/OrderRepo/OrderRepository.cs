@@ -17,7 +17,7 @@ namespace eSMP.Services.OrderRepo
         private readonly Lazy<IFileReposity> _fileReposity;
         private readonly Lazy<IStatusReposity> _statusReposity;
 
-        public static int PAGE_SIZE { get; set; } = 25;
+        public static int PAGE_SIZE { get; set; } = 6;
 
         public OrderRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IStoreReposity> storeReposity, Lazy<IFileReposity> fileReposity, Lazy<IStatusReposity> statusReposity)
         {
@@ -881,7 +881,7 @@ namespace eSMP.Services.OrderRepo
             }
         }
 
-        public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page, string? userName)
+        public Result GetOrdersWithShipstatus(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page, string? userName, int? orderID)
         {
             Result result = new Result();
             int numpage = 1;
@@ -901,6 +901,10 @@ namespace eSMP.Services.OrderRepo
                 if (userName!=null)
                 {
                     orders = orders.Where(o => EF.Functions.Collate(o.User.UserName, "SQL_Latin1_General_CP1_CI_AI").Contains(userName));
+                }
+                if (orderID.HasValue)
+                {
+                    orders = orders.Where(o => o.OrderID==orderID);
                 }
                 if (shipOrderStatus.HasValue)
                 {
@@ -962,22 +966,38 @@ namespace eSMP.Services.OrderRepo
                     }
                     if (dateFrom.HasValue)
                     {
-                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date >= dateFrom);
+                        string vnTimeZoneKey = "SE Asia Standard Time";
+                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateFrom.Value, vnTimeZone);
+
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date >= VnTime);
                     }
                     if (dateTo.HasValue)
                     {
-                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date <= dateTo);
+                        string vnTimeZoneKey = "SE Asia Standard Time";
+                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTo.Value, vnTimeZone);
+
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date <= VnTime);
                     }
                 }
                 else
                 {
                     if (dateFrom.HasValue)
                     {
-                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date >= dateFrom);
+                        string vnTimeZoneKey = "SE Asia Standard Time";
+                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateFrom.Value, vnTimeZone);
+
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date >= VnTime);
                     }
                     if (dateTo.HasValue)
                     {
-                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date <= dateTo);
+                        string vnTimeZoneKey = "SE Asia Standard Time";
+                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTo.Value, vnTimeZone);
+
+                        orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date <= VnTime);
                     }
                 }
                 orders = orders.OrderByDescending(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Create_Date);
@@ -1203,6 +1223,7 @@ namespace eSMP.Services.OrderRepo
                         FeedbackDetailModel mode = new FeedbackDetailModel
                         {
                             UserID = order.UserID,
+                            ItemID=orderDetail.Sub_Item.ItemID,
                             UserName = order.User.UserName,
                             Useravatar = order.User.Image.Path,
                             orderDetaiID = orderDetail.OrderDetailID,

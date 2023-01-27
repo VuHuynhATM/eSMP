@@ -84,7 +84,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
                 }
-                var result = _specificationReposity.AddSpecification(request.sub_CategoryID, request.specificationIDs);
+                var result = _specificationReposity.AddSpecification(request);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -92,7 +92,7 @@ namespace eSMP.Controllers
                 return BadRequest(ex);
             }
         }
-        [HttpPut]
+        /*[HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("remove_category_specification")]
         public IActionResult ReomoveCateSpecification(CateSpecification_Request request)
@@ -104,14 +104,14 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
                 }
-                var result = _specificationReposity.ReomoveCateSpecification(request.sub_CategoryID, request.specificationIDs);
+                var result = _specificationReposity.ReomoveCateSpecification(request.sub_CategoryID, request.specificationIDsRemove);
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex);
             }
-        }
+        }*/
         [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("remove_specification")]

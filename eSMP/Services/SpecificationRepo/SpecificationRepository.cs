@@ -49,46 +49,20 @@ namespace eSMP.Services.SpecificationRepo
                 return result;
             }
         }
-        public Specification GetSpecificationByID(int specificationID)
-        {
-            try
-            {
-                var spec = _context.Specification.SingleOrDefault(s => s.SpecificationID == specificationID);
-                if (spec != null)
-                {
-                    return spec;
-                }
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
         public Result GetSpecificationsBySubCate(int subCategoryID)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
-                var listSpe = _context.SubCate_Specifications.Where(c => c.Sub_CategoryID == subCategoryID).ToList();
-                List<Specification> specifications = new List<Specification>();
-                if (listSpe.Count > 0)
-                {
-                    foreach (var item in listSpe)
-                    {
-                        var spe = GetSpecificationByID(item.SpecificationID);
-                        specifications.Add(spe);
-                    }
-                    result.Success = true;
-                    result.Message = "Thành Công";
-                    result.Data = specifications;
-                    result.TotalPage = numpage;
-                    return result;
-                }
-                result.Success = false;
-                result.Message = "Chưa có thông số kĩ thuật";
-                result.Data = new List<Specification>();
+                var listIsSpe = _context.Specification.Where(s => _context.SubCate_Specifications.SingleOrDefault(ss => ss.IsActive && ss.Sub_CategoryID == subCategoryID && ss.SpecificationID == s.SpecificationID) != null && s.IsActive && s.SpecificationID != 2).ToList();
+                var listSpe = _context.Specification.Where(s => s.IsActive && s.SpecificationID != 2).ToList();
+                CateSpecification_Reponse reponse = new CateSpecification_Reponse();
+                reponse.ispecs = listIsSpe;
+                reponse.nonpecs = listSpe;
+                result.Success = true;
+                result.Message = "Thành Công";
+                result.Data = reponse;
                 result.TotalPage = numpage;
                 return result;
             }
@@ -162,29 +136,34 @@ namespace eSMP.Services.SpecificationRepo
             }
         }
 
-        public Result AddSpecification(int sub_CategoryID, int[] specificationIDs)
+        public Result AddSpecification(CateSpecification_Request request)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
-                foreach (int item in specificationIDs)
+                foreach (int item in request.specificationIDsaAdd)
                 {
-                    if (CheckSpec(item, sub_CategoryID))
+                    var subCate_spe = _context.SubCate_Specifications.SingleOrDefault(ss => ss.SpecificationID == item && ss.Sub_CategoryID == request.sub_CategoryID && !ss.IsActive);
+                    if (subCate_spe != null)
                     {
-                        var subCate_spe = _context.SubCate_Specifications.SingleOrDefault(ss => ss.SpecificationID == item && ss.Sub_CategoryID == sub_CategoryID && !ss.IsActive);
-                        if (subCate_spe != null)
-                        {
-                            subCate_spe.IsActive = true;
-                        }
-                        else
-                        {
-                            SubCate_Specification specification = new SubCate_Specification();
-                            specification.SpecificationID = item;
-                            specification.Sub_CategoryID = sub_CategoryID;
-                            specification.IsActive = true;
-                            _context.SubCate_Specifications.Add(specification);
-                        }
+                        subCate_spe.IsActive = true;
+                    }
+                    else
+                    {
+                        SubCate_Specification specification = new SubCate_Specification();
+                        specification.SpecificationID = item;
+                        specification.Sub_CategoryID = request.sub_CategoryID;
+                        specification.IsActive = true;
+                        _context.SubCate_Specifications.Add(specification);
+                    }
+                }
+                foreach (int itemremove in request.specificationIDsRemove)
+                {
+                    var subCate_speremove = _context.SubCate_Specifications.SingleOrDefault(ss => ss.SpecificationID == itemremove && ss.Sub_CategoryID == request.sub_CategoryID && ss.IsActive);
+                    if (subCate_speremove != null)
+                    {
+                        subCate_speremove.IsActive = false;
                     }
                 }
                 _context.SaveChanges();
@@ -257,11 +236,11 @@ namespace eSMP.Services.SpecificationRepo
             int numpage = 1;
             try
             {
-                    var spe = _context.Specification.SingleOrDefault(s=>s.SpecificationID==specificationID);
-                    if (spe != null)
-                    {
-                        spe.IsActive = false;
-                    }
+                var spe = _context.Specification.SingleOrDefault(s => s.SpecificationID == specificationID);
+                if (spe != null)
+                {
+                    spe.IsActive = false;
+                }
                 _context.SaveChanges();
                 result.Success = true;
                 result.Message = "Thành Công";

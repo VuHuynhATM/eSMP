@@ -34,6 +34,12 @@ namespace eSMP.VModels
     public class CateSpecification_Request
     {
         public int sub_CategoryID { get; set; }
-        public int[] specificationIDs { get; set; }
+        public int[] specificationIDsaAdd { get; set; }
+        public int[] specificationIDsRemove { get; set; }
+    }
+    public class CateSpecification_Reponse
+    {
+        public List<Specification> ispecs { get; set; }
+        public List<Specification> nonpecs { get; set; }
     }
 }

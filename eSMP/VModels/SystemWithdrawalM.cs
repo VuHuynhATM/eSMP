@@ -30,6 +30,7 @@ namespace eSMP.VModels
     }
     public class StoreSystemReveneuView
     {
+        public string StoreName { get; set; }
         public long MomoTransaction { get; set; }
         public int StoreID { get; set; }
         public DateTime ActiveDate { get; set; }

@@ -188,7 +188,7 @@ namespace eSMP.Services.ReportRepo
                 return result;
             }
         }
-        public Result GetListReport(int? page, int reportType, int? reportStatusID, int? storeID)
+        public Result GetListReport(int? page, int reportType, int? reportStatusID, int? storeID, int? userID)
         {
             Result result = new Result();
             int numpage = 1;
@@ -205,6 +205,10 @@ namespace eSMP.Services.ReportRepo
                 if (reportType == 1)
                 {
                     listReport = listReport.Where(r => r.OrderDetaiID != null);
+                    if (userID.HasValue)
+                    {
+                        listReport = listReport.Where(r => r.UserID == userID);
+                    }
                     if (storeID.HasValue)
                     {
                         listReport = listReport.Where(r => _context.Items.SingleOrDefault(i => i.ItemID == r.OrderDetail.Sub_Item.ItemID && i.StoreID == storeID) != null);
@@ -245,6 +249,10 @@ namespace eSMP.Services.ReportRepo
                 else if (reportType == 2)
                 {
                     listReport = listReport.Where(r => r.StoreID != null);
+                    if (userID.HasValue)
+                    {
+                        listReport = listReport.Where(r => r.UserID == userID);
+                    }
                     if (storeID.HasValue)
                     {
                         listReport = listReport.Where(r => _context.Items.SingleOrDefault(i =>i.StoreID == storeID) != null);
@@ -270,6 +278,7 @@ namespace eSMP.Services.ReportRepo
                             StoreName = item.Store.StoreName,
                             UserID = item.UserID,
                             ReportStatus= _statusReposity.GetReportStatus(item.ReportStatusID),
+                            Create_Date=item.Create_Date,
                         };
                         list.Add(model);
                     }
@@ -282,6 +291,10 @@ namespace eSMP.Services.ReportRepo
                 else if(reportType == 3)
                 {
                     listReport = listReport.Where(r => r.ItemID != null);
+                    if (userID.HasValue)
+                    {
+                        listReport = listReport.Where(r => r.UserID == userID);
+                    }
                     if (storeID.HasValue)
                     {
                         listReport = listReport.Where(r => _context.Items.SingleOrDefault(i => i.ItemID == r.ItemID && i.StoreID == storeID) != null);
@@ -308,6 +321,7 @@ namespace eSMP.Services.ReportRepo
                             ReportID = item.ReportID,
                             Text = item.Text,
                             ReportStatus = _statusReposity.GetReportStatus(item.ReportStatusID),
+                            Create_Date = item.Create_Date,
                         };
                         list.Add(model);
                     }

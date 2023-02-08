@@ -5,6 +5,7 @@ using eSMP.Services.ShipRepo;
 using eSMP.Services.StatusRepo;
 using eSMP.VModels;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using User = eSMP.Models.User;
 
 namespace eSMP.Services.StoreRepo
@@ -767,6 +768,37 @@ namespace eSMP.Services.StoreRepo
             catch
             {
                 return 0;
+            }
+        }
+
+        public Result GetPriceActive()
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var system=_context.eSMP_Systems.SingleOrDefault(s=>s.SystemID==1);
+                if (system != null)
+                {
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = system.AmountActive;
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Không tìm thấy địa chỉ";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
             }
         }
     }

@@ -265,5 +265,20 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
             }
         }
+
+        [HttpGet]
+        //[Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
+        [Route("get_price_actice")]
+        public IActionResult GetPriceActive()
+        {
+            try
+            {
+                return Ok(_storeReposity.GetPriceActive());
+            }
+            catch (Exception ex)
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi Hệ thông", Data = ex.Message, TotalPage = 1 });
+            }
+        }
     }
 }

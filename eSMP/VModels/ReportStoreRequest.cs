@@ -29,7 +29,7 @@ namespace eSMP.VModels
         public List<Image>? ImagesFB { get; set; }
         public double? Rate { get; set; }
         public string? Comment { get; set; }
-        public DateTime? Create_Date { get; set; }
+        public DateTime Create_Date { get; set; }
         public Status ReportStatus { get; set; }
     }
     public class ItemReportModel
@@ -41,6 +41,7 @@ namespace eSMP.VModels
         public int ItemID { get; set; }
         public string ItemName { get; set; }
         public Status ReportStatus { get; set; }
+        public DateTime Create_Date { get; set; }
     }
     public class StoreReportModel
     {
@@ -51,5 +52,6 @@ namespace eSMP.VModels
         public int StoreID { get; set; }
         public string StoreName { get; set; }
         public Status ReportStatus { get; set; }
+        public DateTime Create_Date { get; set; }
     }
 }

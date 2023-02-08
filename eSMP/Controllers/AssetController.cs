@@ -222,7 +222,7 @@ namespace eSMP.Controllers
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1, 3")]
         [Route("get_store_withdrawal")]
-        public IActionResult GetStoreWithdrawal(int? storeID, int? page, int? statusID)
+        public IActionResult GetStoreWithdrawal(int? storeID, int? page, int? statusID, DateTime? from, DateTime? to)
         {
             try
             {
@@ -232,23 +232,23 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
-                else if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
-                {
-                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
-                }
                 else if (role == "3")
                 {
                     var store = _storeReposity.GetStore(int.Parse(userId));
-                    if (store == null)
+                    /*if (store == null)
                     {
                         return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", TotalPage = 1 });
-                    }
+                    }*/
                     if (store.StoreID != storeID)
                     {
                         return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin cửa hàng khác", Data = "", TotalPage = 1 });
                     }
+                    if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
+                    {
+                        return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                    }
                 }
-                return Ok(_assetReposity.GetStoreWithdrawal(storeID, page, statusID));
+                return Ok(_assetReposity.GetStoreWithdrawal(storeID, page, statusID, from, to));
             }
             catch
             {

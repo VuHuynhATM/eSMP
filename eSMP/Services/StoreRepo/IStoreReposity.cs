@@ -20,6 +20,7 @@ namespace eSMP.Services.StoreRepo
         public Boolean CheckStoreFirebase(string firebaseID);
         public StoreModel GetStore(int userID);
         public Boolean CheckStoreActive(int userID);
+        public Result GetPriceActive();
 
     }
 }

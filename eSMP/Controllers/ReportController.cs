@@ -83,7 +83,7 @@ namespace eSMP.Controllers
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("get_report")]
-        public IActionResult GetListReport(int? page, int reportType, int? reportStatusID, int? storeID)
+        public IActionResult GetListReport(int? page, int reportType, int? reportStatusID, int? storeID, int? userID)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
-                return Ok(_reportReposity.GetListReport(page,reportType,reportStatusID, storeID));
+                return Ok(_reportReposity.GetListReport(page,reportType,reportStatusID, storeID, userID));
             }
             catch
             {

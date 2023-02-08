@@ -14,7 +14,7 @@ namespace eSMP.Services.StoreAssetRepo
         private readonly IOrderReposity _orderReposity;
         private readonly IFileReposity _fileReposity;
         private readonly IStatusReposity _statusReposity;
-        private readonly int PAGE_SIZE = 25;
+        private readonly int PAGE_SIZE = 10;
         public AssetRepository(WebContext context, IOrderReposity orderReposity, IFileReposity fileReposity, IStatusReposity statusReposity)
         {
             _context = context;
@@ -547,7 +547,7 @@ namespace eSMP.Services.StoreAssetRepo
             }
         }
 
-        public Result GetStoreWithdrawal(int? storeID, int? page, int? statusID)
+        public Result GetStoreWithdrawal(int? storeID, int? page, int? statusID, DateTime? from, DateTime? to)
         {
             Result result = new Result();
             int numpage = 1;
@@ -562,6 +562,14 @@ namespace eSMP.Services.StoreAssetRepo
                 if (statusID.HasValue)
                 {
                     storeWitdrawal = storeWitdrawal.Where(sw => sw.Withdrawal_StatusID == statusID);
+                }
+                if (from.HasValue)
+                {
+                    storeWitdrawal = storeWitdrawal.Where(sw => sw.Create_Date>=from);
+                }
+                if (to.HasValue)
+                {
+                    storeWitdrawal = storeWitdrawal.Where(sw => sw.Create_Date <= to);
                 }
                 if (page.HasValue)
                 {
@@ -755,6 +763,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
                 var listReveneu = _context.Stores.AsQueryable();
+                listReveneu = listReveneu.Where(ot => ot.Store_StatusID == 1);
                 if (From.HasValue)
                 {
                     listReveneu = listReveneu.Where(ost => ost.Actice_Date.Value >= From);
@@ -773,7 +782,6 @@ namespace eSMP.Services.StoreAssetRepo
                     }
                     listReveneu = listReveneu.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
-                listReveneu = listReveneu.Where(ot => ot.Store_StatusID == 1);
                 List<StoreSystemReveneuView> list = new List<StoreSystemReveneuView>();
                 if (listReveneu.Count() > 0)
                 {
@@ -781,6 +789,7 @@ namespace eSMP.Services.StoreAssetRepo
                     {
                         StoreSystemReveneuView model = new StoreSystemReveneuView
                         {
+                            StoreName=item.StoreName,
                             ActiveDate = item.Actice_Date.Value,
                             Amount = item.AmountActive.Value,
                             MomoTransaction = item.MomoTransactionID.Value,

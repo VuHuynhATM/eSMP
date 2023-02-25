@@ -4,8 +4,8 @@ namespace eSMP.Services.BrandRepo
 {
     public interface IBrandReposity
     {
-        public Result GetAllBrand();
-        public Result GetBrandModel(int BrandID);
+        public Result GetAllBrand(string? role);
+        public Result GetBrandModel(int BrandID, string? role);
         public Result GetBrandModelForItem(int ItemID);
         public Result CreateBrand(string brand_Name);
         public Result CreateMotorcycle(int brandID, string moto_Name);

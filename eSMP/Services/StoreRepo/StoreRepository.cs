@@ -26,7 +26,7 @@ namespace eSMP.Services.StoreRepo
             _shipReposity = shipReposity;
             _orderReposity = orderReposity;
             _fileReposity = fileReposity;
-            _statusReposity= statusReposity;
+            _statusReposity = statusReposity;
         }
         public DateTime GetVnTime()
         {
@@ -95,8 +95,8 @@ namespace eSMP.Services.StoreRepo
                         UserID = store.UserID,
                         Image = image,
                     };
-                    _context.Stores.Add(storeRegister);
-                    _context.SaveChanges();
+                    _context.Stores.AddAsync(storeRegister);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Tạo cửa hàng thành công";
                     result.Data = GetStore(store.UserID);
@@ -132,16 +132,16 @@ namespace eSMP.Services.StoreRepo
                     Email = store.Email,
                     Phone = store.Phone,
                     Pick_date = store.Pick_date,
-                    Address =store.Address,
+                    Address = store.Address,
                     Image = GetImage(store.ImageID),
                     Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                     UserID = store.UserID,
-                    Asset=store.Asset,
+                    Asset = store.Asset,
                     Actice_Date = store.Actice_Date,
-                    MomoTransactionID=store.MomoTransactionID,
-                    Actice_Amount=store.AmountActive,
-                    FirebaseID=store.User.FirebaseID,
-                    FCM_Firebase=store.User.FCM_Firebase,
+                    MomoTransactionID = store.MomoTransactionID,
+                    Actice_Amount = store.AmountActive,
+                    FirebaseID = store.User.FirebaseID,
+                    FCM_Firebase = store.User.FCM_Firebase,
                     TotalActiveItem = GetTotalItemActive(store.StoreID),
                     TotalBlockItem = GetTotalItemBlock(store.StoreID),
                     TotalWatingItem = GetTotalItemWatting(store.StoreID),
@@ -233,10 +233,10 @@ namespace eSMP.Services.StoreRepo
                         Image = GetImage(store.ImageID),
                         Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                         UserID = store.UserID,
-                        Asset=store.Asset,
-                        Actice_Date = store.Actice_Date,    
+                        Asset = store.Asset,
+                        Actice_Date = store.Actice_Date,
                         MomoTransactionID = store.MomoTransactionID,
-                        Actice_Amount=store.AmountActive,
+                        Actice_Amount = store.AmountActive,
                         FCM_Firebase = store.User.FCM_Firebase,
                         FirebaseID = store.User.FirebaseID,
                     };
@@ -280,18 +280,18 @@ namespace eSMP.Services.StoreRepo
                         Image = GetImage(store.ImageID),
                         Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                         UserID = store.UserID,
-                        Asset= store.Asset,
+                        Asset = store.Asset,
                         Actice_Date = store.Actice_Date,
                         MomoTransactionID = store.MomoTransactionID,
                         Actice_Amount = store.AmountActive,
-                        FirebaseID=store.User.FirebaseID,
-                        FCM_Firebase=store.User.FCM_Firebase,
-                        TotalActiveItem=GetTotalItemActive(storeID),
-                        TotalBlockItem=GetTotalItemBlock(storeID),
-                        TotalWatingItem=GetTotalItemWatting(storeID),
-                        TotalOrder=GetTotalOrder(storeID),
-                        TotalCancelOrder=GetTotalCancelOrder(storeID),
-                        TotalRating=GetTotalRating(storeID),
+                        FirebaseID = store.User.FirebaseID,
+                        FCM_Firebase = store.User.FCM_Firebase,
+                        TotalActiveItem = GetTotalItemActive(storeID),
+                        TotalBlockItem = GetTotalItemBlock(storeID),
+                        TotalWatingItem = GetTotalItemWatting(storeID),
+                        TotalOrder = GetTotalOrder(storeID),
+                        TotalCancelOrder = GetTotalCancelOrder(storeID),
+                        TotalRating = GetTotalRating(storeID),
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -324,16 +324,48 @@ namespace eSMP.Services.StoreRepo
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == info.StoreID);
                 if (store != null)
                 {
-                    store.StoreName = info.StoreName;
-                    store.Email = info.Email;
-                    store.Phone = info.Phone;
-                    store.Pick_date = info.Pick_date;
-                    _context.SaveChanges();
-                    result.Success = true;
-                    result.Message = "Chỉnh sửa cửa hàng thành công";
-                    result.Data = GetStore(store.UserID);
-                    result.TotalPage = numpage;
-                    return result;
+                    if (info.StoreName != null)
+                    {
+                        store.StoreName = info.StoreName;
+                    }
+                    if (info.Email != null)
+                    {
+                        store.Email = info.Email;
+                    }
+                    if (info.Phone != null)
+                    {
+                        store.Phone = info.Phone;
+                    }
+                    if (info.Pick_date != null)
+                    {
+                        store.Pick_date = (int)info.Pick_date;
+                    }
+                    if (info.File != null)
+                    {
+                        var img = _context.Images.SingleOrDefault(i => i.ImageID == store.ImageID);
+                        if (img != null)
+                        {
+                            var date = GetVnTime();
+                            Guid myuuid = Guid.NewGuid();
+                            string myuuidAsString = myuuid.ToString();
+                            string filename = store.StoreID + "-" + myuuidAsString;
+                            string path = _fileReposity.Value.UploadFile(info.File, filename).Result;
+                            string pathDelete = img.Path;
+                            string imageDelete = img.FileName;
+                            if (_fileReposity.Value.DeleteFileASYNC(imageDelete).Result)
+                            {
+                                img.Crete_date = GetVnTime();
+                                img.FileName = filename;
+                                img.Path = path;
+                            }
+                        }
+                        _context.SaveChanges();
+                        result.Success = true;
+                        result.Message = "Chỉnh sửa cửa hàng thành công";
+                        result.Data = GetStore(store.UserID);
+                        result.TotalPage = numpage;
+                        return result;
+                    }
                 }
                 result.Success = false;
                 result.Message = "Cửa hàng không tồn tại";
@@ -363,8 +395,9 @@ namespace eSMP.Services.StoreRepo
                         StoreID = store.StoreID,
                         StoreName = store.StoreName,
                         Imagepath = GetImage(store.ImageID).Path,
-                        FirebaseID=store.User.FirebaseID,
-                        FCM_Firebase=store.User.FCM_Firebase,
+                        FirebaseID = store.User.FirebaseID,
+                        FCM_Firebase = store.User.FCM_Firebase,
+                        storeStatusID = store.Store_StatusID,
                     };
                     return model;
                 }
@@ -530,7 +563,7 @@ namespace eSMP.Services.StoreRepo
 
         public Result UpdateAddress(int storeID, Address address)
         {
-            Result result=new Result();
+            Result result = new Result();
             int numpage = 1;
             try
             {
@@ -538,15 +571,15 @@ namespace eSMP.Services.StoreRepo
                 if (addressUpdate != null)
                 {
                     addressUpdate.UserName = address.UserName;
-                    addressUpdate.Phone= address.Phone;
+                    addressUpdate.Phone = address.Phone;
                     addressUpdate.Context = address.Context;
-                    addressUpdate.Province=address.Province;
-                    addressUpdate.District=address.District;
-                    addressUpdate.Ward=address.Ward;
+                    addressUpdate.Province = address.Province;
+                    addressUpdate.District = address.District;
+                    addressUpdate.Ward = address.Ward;
                     addressUpdate.Latitude = address.Latitude;
                     addressUpdate.Longitude = address.Longitude;
                     _context.SaveChanges();
-                    UpdateOrderaddress(storeID,address.Province, address.District, address.Ward, address.Context, address.UserName, address.Phone);
+                    UpdateOrderaddress(storeID, address.Province, address.District, address.Ward, address.Context, address.UserName, address.Phone);
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = addressUpdate;
@@ -569,21 +602,21 @@ namespace eSMP.Services.StoreRepo
             }
         }
 
-        public void UpdateOrderaddress(int storeID,string provine, string district, string ward,string address, string name, string tel)
+        public void UpdateOrderaddress(int storeID, string provine, string district, string ward, string address, string name, string tel)
         {
             try
             {
-                var listOrder = _context.Orders.Where(o => o.OrderID == _context.OrderDetails.FirstOrDefault(od => od.Sub_ItemID == _context.Sub_Items.FirstOrDefault(si => si.ItemID == _context.Items.FirstOrDefault(i => i.StoreID == storeID).ItemID).Sub_ItemID).OrderID && o.OrderStatusID==2).ToList();
-                if(listOrder.Count > 0)
+                var listOrder = _context.Orders.Where(o => o.OrderID == _context.OrderDetails.FirstOrDefault(od => od.Sub_ItemID == _context.Sub_Items.FirstOrDefault(si => si.ItemID == _context.Items.FirstOrDefault(i => i.StoreID == storeID).ItemID).Sub_ItemID).OrderID && o.OrderStatusID == 2).ToList();
+                if (listOrder.Count > 0)
                 {
                     foreach (var item in listOrder)
                     {
                         item.Pick_Province = provine;
-                        item.Pick_District= district;
+                        item.Pick_District = district;
                         item.Pick_Ward = ward;
                         item.Pick_Address = address;
                         item.Pick_Name = name;
-                        item.Pick_Tel= tel;
+                        item.Pick_Tel = tel;
                         item.FeeShip = _shipReposity.Value.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.Value.GetWeightOrder(item.OrderID)).fee.fee;
                     }
                 }
@@ -616,12 +649,12 @@ namespace eSMP.Services.StoreRepo
                         Image = GetImage(store.ImageID),
                         Store_Status = _statusReposity.Value.GetStoreStatus(store.Store_StatusID),
                         UserID = store.UserID,
-                        Asset=store.Asset,
-                        MomoTransactionID=store.MomoTransactionID,
+                        Asset = store.Asset,
+                        MomoTransactionID = store.MomoTransactionID,
                         Actice_Date = store.Actice_Date,
-                        Actice_Amount=store.AmountActive,
-                        FCM_Firebase=store.User.FCM_Firebase,
-                        FirebaseID=store.User.FirebaseID,
+                        Actice_Amount = store.AmountActive,
+                        FCM_Firebase = store.User.FCM_Firebase,
+                        FirebaseID = store.User.FirebaseID,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -650,7 +683,7 @@ namespace eSMP.Services.StoreRepo
             Result result = new Result();
             try
             {
-                var store = _context.Stores.SingleOrDefault(s => s.User.FirebaseID == firebaseID && s.Store_StatusID==1);
+                var store = _context.Stores.SingleOrDefault(s => s.User.FirebaseID == firebaseID && s.Store_StatusID == 1);
                 if (store != null)
                 {
                     return true;
@@ -667,7 +700,7 @@ namespace eSMP.Services.StoreRepo
         {
             try
             {
-                var store = _context.Stores.SingleOrDefault(s => s.User.isActive && s.Store_StatusID == 1 && s.UserID==userID);
+                var store = _context.Stores.SingleOrDefault(s => s.User.isActive && s.Store_StatusID == 1 && s.UserID == userID);
                 if (store != null)
                 {
                     return true;
@@ -693,7 +726,7 @@ namespace eSMP.Services.StoreRepo
                     {
                         rate = rate + feedback.Feedback_Rate.Value;
                     }
-                    present = rate/listFeedback.Count();
+                    present = rate / listFeedback.Count();
                 }
                 return present;
             }
@@ -707,7 +740,7 @@ namespace eSMP.Services.StoreRepo
             try
             {
                 double num = 0;
-                var listorder=_context.Orders.Where(o=>_context.OrderDetails.FirstOrDefault(od=>od.OrderID==o.OrderID && od.Sub_Item.Item.StoreID==storeID)!=null && o.OrderStatusID!=2);
+                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && od.Sub_Item.Item.StoreID == storeID) != null && o.OrderStatusID != 2);
                 return listorder.Count();
             }
             catch
@@ -720,7 +753,7 @@ namespace eSMP.Services.StoreRepo
             try
             {
                 double num = 0;
-                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.FirstOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID && _context.Items.SingleOrDefault(i=>i.ItemID==si.ItemID && i.StoreID==storeID)!=null)!=null) != null && o.OrderStatusID != 3);;
+                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && i.StoreID == storeID) != null) != null) != null && o.OrderStatusID != 3); ;
                 return listorder.Count();
             }
             catch
@@ -733,7 +766,7 @@ namespace eSMP.Services.StoreRepo
             try
             {
                 int num = 0;
-                var listItem = _context.Items.Where(i=>i.StoreID==storeID && i.Item_StatusID!=2 && i.Item_StatusID != 3);
+                var listItem = _context.Items.Where(i => i.StoreID == storeID && i.Item_StatusID != 2 && i.Item_StatusID != 3);
                 num = listItem.Count();
                 return num;
             }
@@ -777,7 +810,7 @@ namespace eSMP.Services.StoreRepo
             int numpage = 1;
             try
             {
-                var system=_context.eSMP_Systems.SingleOrDefault(s=>s.SystemID==1);
+                var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
                 if (system != null)
                 {
                     result.Success = true;

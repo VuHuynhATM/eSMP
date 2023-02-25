@@ -3,6 +3,7 @@ using eSMP.Services.SpecificationRepo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace eSMP.Controllers
 {
@@ -11,17 +12,20 @@ namespace eSMP.Controllers
     public class BrandController : ControllerBase
     {
         private readonly IBrandReposity _brandReposity;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BrandController(IBrandReposity brandReposity)
+        public BrandController(IBrandReposity brandReposity, IHttpContextAccessor httpContextAccessor)
         {
             _brandReposity = brandReposity;
+            _httpContextAccessor = httpContextAccessor;
         }
         [HttpGet]
         public IActionResult GetAllBrand()
         {
             try
             {
-                var result = _brandReposity.GetAllBrand();
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var result = _brandReposity.GetAllBrand(role);
                 return Ok(result);
             }
             catch
@@ -35,7 +39,8 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result = _brandReposity.GetBrandModel(brandID);
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var result = _brandReposity.GetBrandModel(brandID, role);
                 return Ok(result);
             }
             catch

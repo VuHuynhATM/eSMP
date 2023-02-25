@@ -14,7 +14,8 @@ namespace eSMP.VModels
         public double Price { get; set; }
         public string Item_Image { get; set; }
         public string Province { get; set; }
-        public int Num_Sold { get; set; }
+        public int Num_Sold { get; set; }                                    
+        public int StoreStatusID { get; set; }
     }
     public class ItemModel
     {

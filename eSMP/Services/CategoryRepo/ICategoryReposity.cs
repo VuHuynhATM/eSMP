@@ -4,8 +4,8 @@ namespace eSMP.Services.CategoryRepo
 {
     public interface ICategoryReposity
     {
-        public Result GetAllCategory();
-        public Result GetSubCategory(int categoryID);
+        public Result GetAllCategory(string? role);
+        public Result GetSubCategory(int categoryID, string? role);
         public Result RemoveCategory(int categoryID);
         public Result RemoveSubCategory(int subCategoryID);
         public Result ActiveCategory(int categoryID);

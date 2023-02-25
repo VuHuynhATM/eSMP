@@ -40,9 +40,9 @@ namespace eSMP.Services.ShipRepo
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
-            HttpResponseMessage shipResponse = await client.GetAsync(string.Format("https://services.giaohangtietkiem.vn/services/shipment/fee?province={0}&district={1}&pick_province={2}&pick_district={3}&weight={4}&deliver_option={5}&transport=road", province, district, pick_province, pick_district, weight, deliver_option));
-            var jsonreponse = await shipResponse.Content.ReadFromJsonAsync<FeeReponse>();
-            return jsonreponse;
+            var shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/shipment/fee?pick_province=" + pick_province + "&pick_district=" + pick_district + "&province=" + province + "&district=" + district + "&weight=" + weight + "&deliver_option=" + deliver_option + "&transport=road");
+            var content = shipResponse.Content.ReadFromJsonAsync<FeeReponse>();
+            return content.Result;
         }
 
         public FeeReponse GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight)
@@ -69,7 +69,7 @@ namespace eSMP.Services.ShipRepo
                 shipOrder.Reason= reason;
                 shipOrder.OrderID=int.Parse(partner_id);
                 shipOrder.Reason_code= reason_code;
-                _context.ShipOrders.Add(shipOrder);
+                _context.ShipOrders.AddAsync(shipOrder);
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 
                 //giao hang thanh cong
@@ -103,7 +103,7 @@ namespace eSMP.Services.ShipRepo
                 {
                     var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
                 }
-                _context.SaveChanges();
+                _context.SaveChangesAsync();
                 //thhong bao
                 var statustext = "";
                 var status = _context.ShipStatuses.SingleOrDefault(s => s.Status_ID == status_id+"");
@@ -130,7 +130,7 @@ namespace eSMP.Services.ShipRepo
             {
                 var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
                 role.RoleName = ex.Message;
-                _context.SaveChanges();
+                _context.SaveChangesAsync();
                 return false;
             }
         }
@@ -213,8 +213,8 @@ namespace eSMP.Services.ShipRepo
                         shipOrder.OrderID = int.Parse(Shipreponse.order.partner_id);
                         shipOrder.Reason_code = "";
                         order.Pick_Time=Shipreponse.order.estimated_pick_time;
-                        _context.ShipOrders.Add(shipOrder);
-                        _context.SaveChanges();
+                        _context.ShipOrders.AddAsync(shipOrder);
+                        _context.SaveChangesAsync();
                     }
                     else
                     {
@@ -227,8 +227,8 @@ namespace eSMP.Services.ShipRepo
                         shipOrder.OrderID = orderID;
                         shipOrder.Reason_code = "";
 
-                        _context.ShipOrders.Add(shipOrder);
-                        _context.SaveChanges();
+                        _context.ShipOrders.AddAsync(shipOrder);
+                        _context.SaveChangesAsync();
                     }
 
                     return Shipreponse;

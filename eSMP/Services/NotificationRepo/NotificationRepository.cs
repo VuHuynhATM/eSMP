@@ -11,7 +11,7 @@ namespace eSMP.Services.NotificationRepo
     {
         public static string TOKEN = "AAAAoDgJlCQ:APA91bEteTyEFMRfc_ly8aU1DAWEBdAsSU_QUWm2djkaqNDm7nEaDFUVxp5DeGOSkF3FKRhwjBGLvjGQnOobw4levIE-bovbeva2tHRMItW8TH-9tRzb9I754oxNaSBzHhVQGEOcN0uH";
         private readonly WebContext _context;
-        public static int PAGE_SIZE { get; set; } = 25;
+        public static int PAGE_SIZE { get; set; } = 10;
         public NotificationRepository(WebContext context)
         {
             _context = context;

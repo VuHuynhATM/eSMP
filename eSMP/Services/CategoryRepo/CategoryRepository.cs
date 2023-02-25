@@ -41,17 +41,21 @@ namespace eSMP.Services.CategoryRepo
                 return new List<Sub_CategoryModel>(); ;
             }
         }
-        public Result GetAllCategory()
+        public Result GetAllCategory(string role)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
-                var list = _context.Categorys.ToList();
-                var r = new List<CategoryModel>();
-                if (list.Count > 0)
+                var list = _context.Categorys.AsQueryable();
+                if (string.IsNullOrEmpty(role)||role=="2"||role=="3")
                 {
-                    foreach (var c in list)
+                    list = list.Where(c => c.IsActive == true);
+                }
+                var r = new List<CategoryModel>();
+                if (list.Count() > 0)
+                {
+                    foreach (var c in list.ToList())
                     {
                         CategoryModel model = new CategoryModel
                         {
@@ -99,7 +103,7 @@ namespace eSMP.Services.CategoryRepo
                 return false;
             return true;
         }
-        public Result GetSubCategory(int categoryID)
+        public Result GetSubCategory(int categoryID, string role)
         {
             Result result = new Result();
             int numpage = 1;
@@ -114,15 +118,27 @@ namespace eSMP.Services.CategoryRepo
                     return result;
 
                 }
-                var sub = _context.SubCategories.FirstOrDefault(s => s.CategoryID == categoryID);
-                var r = new List<Sub_CategoryModel>();
-                if (sub != null)
+                var listsub = _context.SubCategories.AsQueryable();
+                listsub=listsub.Where(sc => sc.CategoryID == categoryID);
+                if (string.IsNullOrEmpty(role) || role == "2" || role == "3")
                 {
-                    r = GetSub_Categories(categoryID);
+                    listsub = listsub.Where(sc => sc.IsActive);
+                }
+                List<Sub_CategoryModel> list = new List<Sub_CategoryModel>();
+                foreach (var sub in listsub.ToList())
+                {
+                    Sub_CategoryModel mode = new Sub_CategoryModel
+                    {
+                        CategoryID = sub.CategoryID,
+                        Sub_CategoryID = sub.Sub_CategoryID,
+                        Sub_categoryName = sub.Sub_categoryName,
+                        IsActive = sub.IsActive,
+                    };
+                    list.Add(mode);
                 }
                 result.Success = true;
                 result.Message = "Thành Công";
-                result.Data = r;
+                result.Data = list;
                 result.TotalPage = numpage;
                 return result;
             }
@@ -260,8 +276,8 @@ namespace eSMP.Services.CategoryRepo
                     Category category = new Category();
                     category.Name = category_Name;
                     category.IsActive = true;
-                    _context.Categorys.Add(category);
-                    _context.SaveChanges();
+                    _context.Categorys.AddAsync(category);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = category;
@@ -300,8 +316,8 @@ namespace eSMP.Services.CategoryRepo
                     category.Sub_categoryName = subCategory_Name;
                     category.CategoryID = categoryID;
                     category.IsActive = true;
-                    _context.SubCategories.Add(category);
-                    _context.SaveChanges();
+                    _context.SubCategories.AddAsync(category);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = category;

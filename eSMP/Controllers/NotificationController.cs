@@ -1,5 +1,6 @@
 ﻿using eSMP.Services.NotificationRepo;
 using eSMP.VModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eSMP.Controllers
@@ -15,6 +16,7 @@ namespace eSMP.Controllers
             _notification = notification;
         }
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         public IActionResult GetNotification(int userID, int? page)
         {
             try
@@ -27,7 +29,8 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        public IActionResult pushhhNotification(FirebaseNotification request)
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
+        public IActionResult pushNotification(FirebaseNotification request)
         {
             try
             {

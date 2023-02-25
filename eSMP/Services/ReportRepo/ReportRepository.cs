@@ -53,8 +53,8 @@ namespace eSMP.Services.ReportRepo
                         Text = request.Text,
                         UserID = request.UserID,
                     };
-                    _context.Reports.Add(report);
-                    _context.SaveChanges();
+                    _context.Reports.AddAsync(report);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Báo cáo đánh giá thành công";
                     result.Data = "";
@@ -108,8 +108,8 @@ namespace eSMP.Services.ReportRepo
                         Text = request.Text,
                         UserID = request.UserID,
                     };
-                    _context.Reports.Add(report);
-                    _context.SaveChanges();
+                    _context.Reports.AddAsync(report);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Báo cáo sản phẩm thành công";
                     result.Data = "";
@@ -162,8 +162,8 @@ namespace eSMP.Services.ReportRepo
                         Text = request.Text,
                         UserID = request.UserID,
                     };
-                    _context.Reports.Add(report);
-                    _context.SaveChanges();
+                    _context.Reports.AddAsync(report);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Báo cáo sản phẩm thành công";
                     result.Data = "";

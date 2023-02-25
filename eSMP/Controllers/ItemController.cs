@@ -186,11 +186,11 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("search_admin")]
-        public IActionResult SearchItemAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int? page, bool? isSupplier)
+        public IActionResult SearchItemAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int? page, bool? isSupplier, int? itemStatusID)
         {
             try
             {
-                var result = _itemReposity.SearchItemForAdmin(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo, storeID, page, isSupplier);
+                var result = _itemReposity.SearchItemForAdmin(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo, storeID, page, isSupplier, itemStatusID);
                 return Ok(result);
             }
             catch

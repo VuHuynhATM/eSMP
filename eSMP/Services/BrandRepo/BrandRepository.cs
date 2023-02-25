@@ -22,15 +22,19 @@ namespace eSMP.Services.BrandRepo
             DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, vnTimeZone);
             return VnTime;
         }
-        public Result GetAllBrand()
+        public Result GetAllBrand(string? role)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
                 List<BrandModel> list = new List<BrandModel>();
-                var listBrand = _context.Brands.ToList();
-                foreach (var brand in listBrand)
+                var listBrand = _context.Brands.AsQueryable();
+                if (string.IsNullOrEmpty(role) || role == "2" || role == "3")
+                {
+                    listBrand = listBrand.Where(b => b.IsActive);
+                }
+                foreach (var brand in listBrand.ToList())
                 {
                     BrandModel brandModel = new BrandModel
                     {
@@ -86,17 +90,22 @@ namespace eSMP.Services.BrandRepo
             }
         }
 
-        public Result GetBrandModel(int BrandID)
+        public Result GetBrandModel(int BrandID, string? role)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
-                var listBrandModel = _context.Brand_Models.Where(b => b.BrandID == BrandID).ToList();
-                List<BrandItemModel> list = new List<BrandItemModel>();
-                if (listBrandModel.Count > 0)
+                var listBrandModel = _context.Brand_Models.AsQueryable();
+                listBrandModel = listBrandModel.Where(b => b.BrandID == BrandID);
+                if (string.IsNullOrEmpty(role) || role == "2" || role == "3")
                 {
-                    foreach (var item in listBrandModel)
+                    listBrandModel = listBrandModel.Where(b => b.IsActive);
+                }
+                List<BrandItemModel> list = new List<BrandItemModel>();
+                if (listBrandModel.Count() > 0)
+                {
+                    foreach (var item in listBrandModel.ToList())
                     {
                         BrandItemModel itemBrand = new BrandItemModel
                         {
@@ -217,8 +226,8 @@ namespace eSMP.Services.BrandRepo
                     Brand brand = new Brand();
                     brand.Name = brand_Name;
                     brand.IsActive = true;
-                    _context.Brands.Add(brand);
-                    _context.SaveChanges();
+                    _context.Brands.AddAsync(brand);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = brand;
@@ -258,8 +267,8 @@ namespace eSMP.Services.BrandRepo
                     moto.Name = moto_Name;
                     moto.BrandID = brandID;
                     moto.IsActive = true;
-                    _context.Brand_Models.Add(moto);
-                    _context.SaveChanges();
+                    _context.Brand_Models.AddAsync(moto);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = moto;

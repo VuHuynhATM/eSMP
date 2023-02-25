@@ -68,9 +68,9 @@ namespace eSMP.Services.StoreAssetRepo
 
                 var storeupdate = _context.Stores.SingleOrDefault(s => s.StoreID == store.StoreID);
                 storeupdate.Asset = storeupdate.Asset + transaction.Price;
-                _context.OrderSystem_Transactions.Add(system_Transaction);
+                _context.OrderSystem_Transactions.AddAsync(system_Transaction);
                 esmpSystem.Asset = esmpSystem.Asset + system_Transaction.Price;
-                _context.SaveChanges();
+                _context.SaveChangesAsync();
                 return true;
 
             }
@@ -103,7 +103,7 @@ namespace eSMP.Services.StoreAssetRepo
                 system_Withdrawal.Create_Date = GetVnTime();
                 system_Withdrawal.IsActive = true;
                 system_Withdrawal.Image = image;
-                _context.System_Withdrawals.Add(system_Withdrawal);
+                _context.System_Withdrawals.AddAsync(system_Withdrawal);
 
                 var systemeSMP = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
 
@@ -116,7 +116,7 @@ namespace eSMP.Services.StoreAssetRepo
                     return result;
                 }
                 systemeSMP.Asset = systemeSMP.Asset - request.Price;
-                _context.SaveChanges();
+                _context.SaveChangesAsync();
                 result.Success = true;
                 result.Message = "Thành công";
                 result.Data = "";
@@ -407,8 +407,8 @@ namespace eSMP.Services.StoreAssetRepo
                     withdrawal.Create_Date = GetVnTime();
                     withdrawal.StoreID = request.StoreID;
 
-                    _context.Store_Withdrawals.Add(withdrawal);
-                    _context.SaveChanges();
+                    _context.Store_Withdrawals.AddAsync(withdrawal);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = withdrawal;

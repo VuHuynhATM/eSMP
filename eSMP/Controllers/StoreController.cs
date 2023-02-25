@@ -84,7 +84,7 @@ namespace eSMP.Controllers
         [HttpPost]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
         [Route("store_edit")]
-        public IActionResult EditStore(StoreUpdateInfo info)
+        public IActionResult EditStore([FromForm] StoreUpdateInfo info)
         {
             try
             {

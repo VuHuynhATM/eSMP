@@ -8,6 +8,7 @@ namespace eSMP.VModels
         public int SpecificationID { get; set; }
         public string SpecificationName { get; set; }
         public Boolean IsActive { get; set; }
+        public string[] SuggestValues { get; set; }
     }
     public class SpecificationValueModel
     {
@@ -41,5 +42,10 @@ namespace eSMP.VModels
     {
         public List<Specification> ispecs { get; set; }
         public List<Specification> nonpecs { get; set; }
+    }
+    public class SpecSuggestAdd
+    {
+        public int specificationID { get; set; }
+        public string suggsetvalues{ get; set; }
     }
 }

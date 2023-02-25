@@ -25,12 +25,25 @@ namespace eSMP.Services.SpecificationRepo
             try
             {
                 var list = _context.Specification.ToList();
-                List<Specification> speList = new List<Specification>();
+                List<SpecificationModel> speList = new List<SpecificationModel>();
                 if (list.Count > 0)
                 {
+                    foreach (var spec in list)
+                    {
+                        SpecificationModel model = new SpecificationModel();
+                        model.SpecificationID = spec.SpecificationID;
+                        model.SpecificationName = spec.SpecificationName;
+                        model.IsActive = spec.IsActive;
+                        if (spec.SpecificationSuggests != null)
+                        {
+                            var listvalue = spec.SpecificationSuggests.Split(";");
+                            model.SuggestValues = listvalue;
+                        }
+                        speList.Add(model);
+                    }
                     result.Success = true;
                     result.Message = "Thành Công";
-                    result.Data = list;
+                    result.Data = speList;
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -49,22 +62,48 @@ namespace eSMP.Services.SpecificationRepo
                 return result;
             }
         }
-        public Result GetSpecificationsBySubCate(int subCategoryID)
+        public Result GetSpecificationsBySubCate(int subCategoryID, string? role)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
-                var listIsSpe = _context.Specification.Where(s => _context.SubCate_Specifications.SingleOrDefault(ss => ss.IsActive && ss.Sub_CategoryID == subCategoryID && ss.SpecificationID == s.SpecificationID) != null && s.IsActive && s.SpecificationID != 2).ToList();
-                var listSpe = _context.Specification.Where(s => s.IsActive && s.SpecificationID != 2).ToList();
                 CateSpecification_Reponse reponse = new CateSpecification_Reponse();
-                reponse.ispecs = listIsSpe;
-                reponse.nonpecs = listSpe;
-                result.Success = true;
-                result.Message = "Thành Công";
-                result.Data = reponse;
-                result.TotalPage = numpage;
-                return result;
+                if (role == "1")
+                {
+                    var listIsSpe = _context.Specification.Where(s => _context.SubCate_Specifications.SingleOrDefault(ss => ss.IsActive && ss.Sub_CategoryID == subCategoryID && ss.SpecificationID == s.SpecificationID) != null && s.IsActive && s.SpecificationID != 2).ToList();
+                    var listSpe = _context.Specification.Where(s => s.IsActive && s.SpecificationID != 2).ToList();
+                    reponse.ispecs = listIsSpe;
+                    reponse.nonpecs = listSpe;
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = reponse;
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                else
+                {
+                    var listSpe = _context.Specification.Where(s => s.IsActive).ToList();
+                    List<SpecificationModel> list = new List<SpecificationModel>();
+                    foreach (var spec in listSpe)
+                    {
+                        SpecificationModel model = new SpecificationModel();
+                        model.SpecificationID = spec.SpecificationID;
+                        model.SpecificationName = spec.SpecificationName;
+                        model.IsActive = spec.IsActive;
+                        if (spec.SpecificationSuggests != null)
+                        {
+                            var listvalue = spec.SpecificationSuggests.Split(";");
+                            model.SuggestValues = listvalue;
+                        }
+                        list.Add(model);
+                    }
+                    result.Success = true;
+                    result.Message = "Thành Công";
+                    result.Data = list;
+                    result.TotalPage = numpage;
+                    return result;
+                }
             }
             catch
             {
@@ -118,8 +157,8 @@ namespace eSMP.Services.SpecificationRepo
                 Specification specification = new Specification();
                 specification.SpecificationName = specification_Name;
                 specification.IsActive = true;
-                _context.Specification.Add(specification);
-                _context.SaveChanges();
+                _context.Specification.AddAsync(specification);
+                _context.SaveChangesAsync();
                 result.Success = true;
                 result.Message = "Chưa có thông số";
                 result.Data = "";
@@ -155,7 +194,7 @@ namespace eSMP.Services.SpecificationRepo
                         specification.SpecificationID = item;
                         specification.Sub_CategoryID = request.sub_CategoryID;
                         specification.IsActive = true;
-                        _context.SubCate_Specifications.Add(specification);
+                        _context.SubCate_Specifications.AddAsync(specification);
                     }
                 }
                 foreach (int itemremove in request.specificationIDsRemove)
@@ -166,7 +205,7 @@ namespace eSMP.Services.SpecificationRepo
                         subCate_speremove.IsActive = false;
                     }
                 }
-                _context.SaveChanges();
+                _context.SaveChangesAsync();
                 result.Success = true;
                 result.Message = "Thêm thông số thành công";
                 result.Data = "";
@@ -285,5 +324,31 @@ namespace eSMP.Services.SpecificationRepo
                 return result;
             }
         }
+
+        public Result AddSuggesTSpecification(int SpecificationID, string suggestValues)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var specification= _context.Specification.SingleOrDefault(s => s.SpecificationID == SpecificationID);
+                    specification.SpecificationSuggests=suggestValues;
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành Công";
+                result.Data = suggestValues;
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+        }
+
     }
 }

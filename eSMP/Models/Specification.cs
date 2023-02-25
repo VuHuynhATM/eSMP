@@ -9,6 +9,7 @@ namespace eSMP.Models
         [Key]
         public int SpecificationID { get; set; }
         public string SpecificationName { get; set; }
+        public string? SpecificationSuggests { get; set; }
         public Boolean IsActive { get; set; }
     }
 }

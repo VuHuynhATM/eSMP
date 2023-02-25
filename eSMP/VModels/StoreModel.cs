@@ -36,6 +36,7 @@ namespace eSMP.VModels
         public string Imagepath { get; set; }
         public string? FirebaseID { get; set; }
         public string? FCM_Firebase { get; set; }
+        public int storeStatusID { get; set; }
     }
     public class StoreRegister
     {
@@ -55,10 +56,11 @@ namespace eSMP.VModels
 
     public class StoreUpdateInfo
     {
-        public string StoreName { get; set; }
+        public string? StoreName { get; set; }
         public int StoreID { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public int Pick_date { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public int? Pick_date { get; set; }
+        public IFormFile? File { get; set; }
     }
 }

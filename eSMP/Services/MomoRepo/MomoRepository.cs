@@ -645,7 +645,7 @@ namespace eSMP.Services.MomoRepo
             //https://esmp.page.link/view
             request.orderInfo = "Thanh Toan";
             request.partnerCode = partnerCode;
-            request.redirectUrl = "http://localhost:3000/success";
+            request.redirectUrl = "https://gsp23-se-37-supplier.vercel.app/#/";
             request.ipnUrl = "http://esmpfree-001-site1.etempurl.com/api/Payment/store";
             request.amount = (long)system.AmountActive;
             request.orderId = store.StoreID + "-" + myuuidAsString;

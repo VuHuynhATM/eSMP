@@ -29,7 +29,8 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result = _categoryReposity.GetAllCategory();
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var result = _categoryReposity.GetAllCategory(role);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -44,7 +45,8 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result = _categoryReposity.GetSubCategory(categoryID);
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var result = _categoryReposity.GetSubCategory(categoryID,role);
                 return Ok(result);
             }
             catch (Exception ex)

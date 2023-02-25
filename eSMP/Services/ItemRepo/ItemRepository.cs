@@ -103,7 +103,7 @@ namespace eSMP.Services.ItemRepo
 
                     sub.Image = i;
                     index++;
-                    _context.Sub_Items.Add(sub);
+                    _context.Sub_Items.AddAsync(sub);
                 }
 
                 var listImage = item.List_Image;
@@ -132,7 +132,7 @@ namespace eSMP.Services.ItemRepo
                     item_Image.Image = i;
                     item_Image.Item = newItem;
 
-                    _context.Item_Images.Add(item_Image);
+                    _context.Item_Images.AddAsync(item_Image);
                 }
                 if (listSpec.IsNullOrEmpty())
                 {
@@ -149,7 +149,7 @@ namespace eSMP.Services.ItemRepo
                     specification_Value.Value = specitication.Value;
                     specification_Value.Item = newItem;
                     specification_Value.IsActive = true;
-                    _context.Specification_Values.Add(specification_Value);
+                    _context.Specification_Values.AddAsync(specification_Value);
                 }
                 if (listModel.IsNullOrEmpty())
                 {
@@ -165,9 +165,9 @@ namespace eSMP.Services.ItemRepo
                     model_Item.Item = newItem;
                     model_Item.Brand_ModelID = model;
                     model_Item.IsActive = true;
-                    _context.Model_Items.Add(model_Item);
+                    _context.Model_Items.AddAsync(model_Item);
                 }
-                _context.SaveChanges();
+                _context.SaveChangesAsync();
                 result.Success = true;
                 result.Message = "thành Công";
                 result.Data = newItem.ItemID;
@@ -775,8 +775,8 @@ namespace eSMP.Services.ItemRepo
                     si.SubItem_StatusID = 3;
                     si.ItemID = item.ItemID;
                     si.Image = image;
-                    _context.Sub_Items.Add(si);
-                    _context.SaveChanges();
+                    _context.Sub_Items.AddAsync(si);
+                    _context.SaveChangesAsync();
                     result.Success = false;
                     result.Message = "Thêm thành công";
                     result.Data = si;
@@ -846,7 +846,7 @@ namespace eSMP.Services.ItemRepo
                     var listsub = _context.Sub_Items.Where(si => si.ItemID == item.ItemID).ToList();
                     foreach (var subitem in listsub)
                     {
-                        var s = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitem.Sub_ItemID);
+                        var s = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitem.Sub_ItemID && subitem.SubItem_StatusID!=2 );
                         if (s != null)
                         {
                             s.SubItem_StatusID = 1;
@@ -1114,7 +1114,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, bool? isSupplier)
+        public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, bool? isSupplier, int? itemStatusID)
         {
             Result result = new Result();
             int numpage = 1;
@@ -1163,6 +1163,11 @@ namespace eSMP.Services.ItemRepo
                 if (storeID.HasValue)
                 {
                     listItem = listItem.Where(i => i.StoreID == storeID);
+                }
+                if (itemStatusID.HasValue)
+                {
+                    listItem = listItem.Where(i => i.Item_StatusID == itemStatusID);
+
                 }
                 // item khong bi block
                 if (isSupplier.HasValue)
@@ -1273,6 +1278,7 @@ namespace eSMP.Services.ItemRepo
                         Discount = item.Discount,
                         Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                         Num_Sold = GetNumSold(item.ItemID),
+                        StoreStatusID=item.Store.Store_StatusID,
                     };
                     listmodel.Add(model);
                 }
@@ -1316,8 +1322,8 @@ namespace eSMP.Services.ItemRepo
                             model_Item.Brand_ModelID = branmodelid;
                             model_Item.ItemID = itemID;
                             model_Item.IsActive = true;
-                            _context.Model_Items.Add(model_Item);
-                            _context.SaveChanges();
+                            _context.Model_Items.AddAsync(model_Item);
+                            _context.SaveChangesAsync();
                         }
                     }
                 }

@@ -64,6 +64,9 @@ namespace eSMP.Models
                 .HasIndex(e => new { e.Phone, e.RoleID })
                 .IsUnique();
             modelBuilder.Entity<User>()
+                .HasIndex(e => new { e.Phone })
+                .IsUnique();
+            modelBuilder.Entity<User>()
                 .Property(e => e.Crete_date)
                 .HasDefaultValueSql("getdate()");
             modelBuilder.Entity<User_Address>()

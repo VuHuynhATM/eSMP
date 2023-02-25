@@ -286,8 +286,8 @@ namespace eSMP.Services.UserRepo
                         user_Address.Address = address;
                         user_Address.User = new_user;
                         user_Address.IsActive = true;
-                        _context.User_Addresses.Add(user_Address);
-                        _context.SaveChanges();
+                        _context.User_Addresses.AddAsync(user_Address);
+                        _context.SaveChangesAsync();
                         UserModel model = new UserModel();
                         CreateTokenByUserID(user_Address.UserID);
                         model = GetUserIFByID(user_Address.UserID);
@@ -382,8 +382,8 @@ namespace eSMP.Services.UserRepo
                         user_Address.Address = address;
                         user_Address.User = new_user;
                         user_Address.IsActive = true;
-                        _context.User_Addresses.Add(user_Address);
-                        _context.SaveChanges();
+                        _context.User_Addresses.AddAsync(user_Address);
+                        _context.SaveChangesAsync();
 
                         UserModel model = new UserModel();
                         CreateTokenByUserID(user_Address.UserID);
@@ -630,8 +630,8 @@ namespace eSMP.Services.UserRepo
                     user_Address.Address = newAddress;
                     user_Address.User = user;
                     user_Address.IsActive = true;
-                    _context.User_Addresses.Add(user_Address);
-                    _context.SaveChanges();
+                    _context.User_Addresses.AddAsync(user_Address);
+                    _context.SaveChangesAsync();
                     result.Success = true;
                     result.Message = "Thêm địa chỉ thành công";
                     result.Data = GetAddresses(address.UserID);

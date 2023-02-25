@@ -43,7 +43,8 @@ namespace eSMP.Controllers
         {
             try
             {
-                var result = _specificationReposity.GetSpecificationsBySubCate(sub_CategoryID);
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var result = _specificationReposity.GetSpecificationsBySubCate(sub_CategoryID,role);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -145,6 +146,26 @@ namespace eSMP.Controllers
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
                 }
                 var result = _specificationReposity.ActiveSpecification(specificationID);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPost]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
+        [Route("add_specificationsuggset")]
+        public IActionResult AddSpecificationSuggest(SpecSuggestAdd input)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "" });
+                }
+                var result = _specificationReposity.AddSuggesTSpecification(input.specificationID, input.suggsetvalues);
                 return Ok(result);
             }
             catch (Exception ex)

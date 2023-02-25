@@ -109,7 +109,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        [Authorize]
+        //[Authorize]
         [Route("supplier_register")]
         public IActionResult SupplierRegister(UserRegister user)
         {

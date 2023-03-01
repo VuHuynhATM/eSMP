@@ -11,5 +11,6 @@ namespace eSMP.Models
         public string SpecificationName { get; set; }
         public string? SpecificationSuggests { get; set; }
         public Boolean IsActive { get; set; }
+        public Boolean IsSystem { get; set; }
     }
 }

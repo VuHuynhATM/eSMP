@@ -48,4 +48,9 @@ namespace eSMP.VModels
         public int specificationID { get; set; }
         public string suggsetvalues{ get; set; }
     }
+    public class NewSpecificationItem
+    {
+        public string specificationName { get; set; }
+        public string specificationValue { get; set; }
+    }
 }

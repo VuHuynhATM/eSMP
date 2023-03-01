@@ -122,11 +122,16 @@ namespace eSMP.Controllers
             }
         }*/
         [HttpPost]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        [Authorize(AuthenticationSchemes = "AuthDemo")]
         public IActionResult CreateItem([FromForm]ItemRegister item)
         {
             try
             {
+                var role= _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                if (role != "3")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không có quền thực hiện yêu cầu này", Data = "", TotalPage = 1 });
+                }
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var storeID = _storeReposity.GetStore(int.Parse(userId)).StoreID;
                 if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
@@ -146,7 +151,7 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
         [Route("add_subitem")]
         public IActionResult AddSubItem([FromForm]Sub_ItemRegister SubItem)
         {

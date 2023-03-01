@@ -24,7 +24,7 @@ namespace eSMP.Services.SpecificationRepo
             int numpage = 1;
             try
             {
-                var list = _context.Specification.ToList();
+                var list = _context.Specification.Where(s=>s.IsSystem).ToList();
                 List<SpecificationModel> speList = new List<SpecificationModel>();
                 if (list.Count > 0)
                 {
@@ -71,8 +71,8 @@ namespace eSMP.Services.SpecificationRepo
                 CateSpecification_Reponse reponse = new CateSpecification_Reponse();
                 if (role == "1")
                 {
-                    var listIsSpe = _context.Specification.Where(s => _context.SubCate_Specifications.SingleOrDefault(ss => ss.IsActive && ss.Sub_CategoryID == subCategoryID && ss.SpecificationID == s.SpecificationID) != null && s.IsActive && s.SpecificationID != 2).ToList();
-                    var listSpe = _context.Specification.Where(s => s.IsActive && s.SpecificationID != 2).ToList();
+                    var listIsSpe = _context.Specification.Where(s => _context.SubCate_Specifications.SingleOrDefault(ss => ss.IsActive && ss.Sub_CategoryID == subCategoryID && ss.SpecificationID == s.SpecificationID && s.IsSystem) != null && s.IsActive && s.SpecificationID != 2).ToList();
+                    var listSpe = _context.Specification.Where(s => s.IsActive && s.SpecificationID != 2 && s.IsSystem).ToList();
                     reponse.ispecs = listIsSpe;
                     reponse.nonpecs = listSpe;
                     result.Success = true;
@@ -83,7 +83,7 @@ namespace eSMP.Services.SpecificationRepo
                 }
                 else
                 {
-                    var listSpe = _context.Specification.Where(s => s.IsActive).ToList();
+                    var listSpe = _context.Specification.Where(s => s.IsActive && s.IsSystem).ToList();
                     List<SpecificationModel> list = new List<SpecificationModel>();
                     foreach (var spec in listSpe)
                     {
@@ -157,6 +157,7 @@ namespace eSMP.Services.SpecificationRepo
                 Specification specification = new Specification();
                 specification.SpecificationName = specification_Name;
                 specification.IsActive = true;
+                specification.IsSystem = true;
                 _context.Specification.AddAsync(specification);
                 _context.SaveChangesAsync();
                 result.Success = true;

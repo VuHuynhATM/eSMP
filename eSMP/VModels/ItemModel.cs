@@ -78,6 +78,7 @@ namespace eSMP.VModels
         public string List_SubItem { get; set; }
         public string List_Specitication { get; set; }
         public string ListModel { get; set; }
+        public string? List_SpecificationCustom { get; set; }
     }
     public class SubItemUpdate
     {

@@ -24,7 +24,7 @@ namespace eSMP.Services.ItemRepo
 
         public static int PAGE_SIZE { get; set; } = 12;
 
-        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity, IFileReposity fileReposity,IStatusReposity statusReposity)
+        public ItemRepository(WebContext context, IStoreReposity storeReposity, ISpecificationReposity specificationReposity, IUserReposity userReposity, IBrandReposity brandReposity, IFileReposity fileReposity, IStatusReposity statusReposity)
         {
             _context = context;
             _storeReposity = storeReposity;
@@ -77,6 +77,14 @@ namespace eSMP.Services.ItemRepo
                 {
                     result.Success = false;
                     result.Message = "Các loại sản phẩm trống";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                if (listsub.Count() != listSubImage.Count())
+                {
+                    result.Success = false;
+                    result.Message = "Hình ảnh của loại sản phẩm không đủ";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;
@@ -137,7 +145,16 @@ namespace eSMP.Services.ItemRepo
                 if (listSpec.IsNullOrEmpty())
                 {
                     result.Success = false;
-                    result.Message = "thông tin sản phẩm trống";
+                    result.Message = "thông số sản phẩm trống";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                var numspec = _context.SubCate_Specifications.Where(ss => ss.Sub_CategoryID == item.Sub_CategoryID && ss.IsActive&& ss.Specification.IsActive).Count();
+                if(numspec != listSpec.Count()-1)
+                {
+                    result.Success = false;
+                    result.Message = "thông số sản phẩm không đủ";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;
@@ -151,10 +168,31 @@ namespace eSMP.Services.ItemRepo
                     specification_Value.IsActive = true;
                     _context.Specification_Values.AddAsync(specification_Value);
                 }
+                if (!item.List_SpecificationCustom.IsNullOrEmpty())
+                {
+                    IEnumerable<NewSpecificationItem> listSpecCus = JsonConvert.DeserializeObject<IEnumerable<NewSpecificationItem>>(item.List_SpecificationCustom);
+                    if (!listSpecCus.IsNullOrEmpty())
+                    {
+                        foreach (var newSpec in listSpecCus)
+                        {
+                            Specification specification = new Specification();
+                            specification.SpecificationName = newSpec.specificationName;
+                            specification.IsActive = true;
+                            specification.IsSystem = false;
+
+                            Specification_Value specValue = new Specification_Value();
+                            specValue.Specification = specification;
+                            specValue.Value = newSpec.specificationValue;
+                            specValue.IsActive = true;
+                            specValue.Item = newItem;
+                            _context.Specification_Values.AddAsync(specValue);
+                        }
+                    }
+                }
                 if (listModel.IsNullOrEmpty())
                 {
                     result.Success = false;
-                    result.Message = "thông số sản phẩm trống";
+                    result.Message = "Danh sách phương tiện sản phẩm trống";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;
@@ -396,9 +434,9 @@ namespace eSMP.Services.ItemRepo
             var list = new List<Image>();
             if (listIF.Count > 0)
             {
-                foreach(var image in listIF)
+                foreach (var image in listIF)
                 {
-                    list.Add(image.Image);    
+                    list.Add(image.Image);
                 }
                 return list;
             }
@@ -406,7 +444,7 @@ namespace eSMP.Services.ItemRepo
         }
         public List<FeedBackModel> GetListFeedBack(int itemID)
         {
-            var listorderdetail = _context.OrderDetails.Where(od =>_context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==od.Sub_ItemID).ItemID==itemID).Take(PAGE_SIZE).ToList();
+            var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == itemID).Take(PAGE_SIZE).ToList();
             var list = new List<FeedBackModel>();
             if (listorderdetail.Count > 0)
             {
@@ -424,7 +462,7 @@ namespace eSMP.Services.ItemRepo
                     if (item.FeedBack_Date.HasValue)
                     {
                         model.Rate = item.Feedback_Rate;
-                        model.Comment =item.Feedback_Title;
+                        model.Comment = item.Feedback_Title;
                         model.ImagesFB = GetListImageFB(item.OrderDetailID);
                         list.Add(model);
                     }
@@ -434,7 +472,7 @@ namespace eSMP.Services.ItemRepo
         }
         public int GetTotalFeedBack(int itemID)
         {
-            var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == itemID && od.Feedback_StatusID!=null);
+            var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == itemID && od.Feedback_StatusID != null);
             return listorderdetail.Count();
         }
 
@@ -466,7 +504,7 @@ namespace eSMP.Services.ItemRepo
                         ListModel = _brandReposity.GetModelForItem(item.ItemID),
                         Num_Sold = GetNumSold(item.ItemID),
                         ListFeedBack = GetListFeedBack(itemID),
-                        Num_Feedback= GetTotalFeedBack(itemID),
+                        Num_Feedback = GetTotalFeedBack(itemID),
                     };
 
                     result.Success = true;
@@ -759,7 +797,7 @@ namespace eSMP.Services.ItemRepo
                 {
                     Guid myuuid = Guid.NewGuid();
                     string myuuidAsString = myuuid.ToString();
-                    var filename = "eSMP" +item.ItemID + myuuidAsString;
+                    var filename = "eSMP" + item.ItemID + myuuidAsString;
                     string path = _fileReposity.UploadFile(subItem.File, filename).Result;
 
                     Image image = new Image();
@@ -812,7 +850,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Active thành công";
-                    result.Data =_statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
+                    result.Data = _statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -846,8 +884,8 @@ namespace eSMP.Services.ItemRepo
                     var listsub = _context.Sub_Items.Where(si => si.ItemID == item.ItemID).ToList();
                     foreach (var subitem in listsub)
                     {
-                        var s = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitem.Sub_ItemID && subitem.SubItem_StatusID!=2 );
-                        if (s != null)
+                        var s = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitem.Sub_ItemID && subitem.SubItem_StatusID != 2);
+                        if (s != null&& s.SubItem_StatusID!=2)
                         {
                             s.SubItem_StatusID = 1;
                             _context.SaveChanges();
@@ -1278,7 +1316,7 @@ namespace eSMP.Services.ItemRepo
                         Discount = item.Discount,
                         Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                         Num_Sold = GetNumSold(item.ItemID),
-                        StoreStatusID=item.Store.Store_StatusID,
+                        StoreStatusID = item.Store.Store_StatusID,
                     };
                     listmodel.Add(model);
                 }
@@ -1378,7 +1416,7 @@ namespace eSMP.Services.ItemRepo
             int result = 0;
             try
             {
-                return _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.SingleOrDefault(si => si.ItemID == itemID).Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID==od.OrderID)!=null).Sum(od=>od.Amount);
+                return _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.SingleOrDefault(si => si.ItemID == itemID).Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID) != null).Sum(od => od.Amount);
 
             }
             catch
@@ -1394,7 +1432,7 @@ namespace eSMP.Services.ItemRepo
             try
             {
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
-                if(item == null)
+                if (item == null)
                 {
                     result.Success = false;
                     result.Message = "sản phhẩm không tồn tại";
@@ -1410,7 +1448,7 @@ namespace eSMP.Services.ItemRepo
                     result.Data = dícsount;
                     result.TotalPage = numpage;
                     return result;
-                }            
+                }
             }
             catch
             {
@@ -1436,7 +1474,7 @@ namespace eSMP.Services.ItemRepo
                     {
                         numpage = 1;
                     }
-                    listorderdetail =listorderdetail.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                    listorderdetail = listorderdetail.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
                 var list = new List<FeedBackModel>();
                 if (listorderdetail.Count() > 0)
@@ -1480,7 +1518,7 @@ namespace eSMP.Services.ItemRepo
         {
             try
             {
-                var store = _context.Stores.SingleOrDefault(s=> _context.Items.SingleOrDefault(i => i.ItemID == itemID).StoreID==s.StoreID);
+                var store = _context.Stores.SingleOrDefault(s => _context.Items.SingleOrDefault(i => i.ItemID == itemID).StoreID == s.StoreID);
                 return store.UserID;
             }
             catch
@@ -1493,7 +1531,7 @@ namespace eSMP.Services.ItemRepo
         {
             try
             {
-                var store = _context.Stores.SingleOrDefault(s => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==SubItemID).ItemID==i.ItemID).StoreID == s.StoreID);
+                var store = _context.Stores.SingleOrDefault(s => _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == SubItemID).ItemID == i.ItemID).StoreID == s.StoreID);
                 return store.UserID;
             }
             catch

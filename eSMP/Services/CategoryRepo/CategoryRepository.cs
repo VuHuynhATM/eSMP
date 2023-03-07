@@ -276,8 +276,8 @@ namespace eSMP.Services.CategoryRepo
                     Category category = new Category();
                     category.Name = category_Name;
                     category.IsActive = true;
-                    _context.Categorys.AddAsync(category);
-                    _context.SaveChangesAsync();
+                    _context.Categorys.Add(category);
+                    _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = category;
@@ -316,8 +316,8 @@ namespace eSMP.Services.CategoryRepo
                     category.Sub_categoryName = subCategory_Name;
                     category.CategoryID = categoryID;
                     category.IsActive = true;
-                    _context.SubCategories.AddAsync(category);
-                    _context.SaveChangesAsync();
+                    _context.SubCategories.Add(category);
+                    _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành Công";
                     result.Data = category;

@@ -39,11 +39,11 @@ namespace eSMP.Controllers
 
         [HttpGet]
         [Route("sub_category")]
-        public IActionResult GetSpecificationsBySubCate(int sub_CategoryID)
+        public IActionResult GetSpecificationsBySubCate(int sub_CategoryID, string? role)
         {
             try
             {
-                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                //var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 var result = _specificationReposity.GetSpecificationsBySubCate(sub_CategoryID,role);
                 return Ok(result);
             }

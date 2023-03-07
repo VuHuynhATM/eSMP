@@ -226,8 +226,8 @@ namespace eSMP.Services.BrandRepo
                     Brand brand = new Brand();
                     brand.Name = brand_Name;
                     brand.IsActive = true;
-                    _context.Brands.AddAsync(brand);
-                    _context.SaveChangesAsync();
+                    _context.Brands.Add(brand);
+                    _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = brand;
@@ -267,8 +267,8 @@ namespace eSMP.Services.BrandRepo
                     moto.Name = moto_Name;
                     moto.BrandID = brandID;
                     moto.IsActive = true;
-                    _context.Brand_Models.AddAsync(moto);
-                    _context.SaveChangesAsync();
+                    _context.Brand_Models.Add(moto);
+                    _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = moto;

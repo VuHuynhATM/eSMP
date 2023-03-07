@@ -20,11 +20,11 @@ namespace eSMP.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
         [HttpGet]
-        public IActionResult GetAllBrand()
+        public IActionResult GetAllBrand(string? role)
         {
             try
             {
-                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                //var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 var result = _brandReposity.GetAllBrand(role);
                 return Ok(result);
             }
@@ -35,11 +35,11 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("brand_model")]
-        public IActionResult GetBrandModel(int brandID)
+        public IActionResult GetBrandModel(int brandID, string? role)
         {
             try
             {
-                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                //var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 var result = _brandReposity.GetBrandModel(brandID, role);
                 return Ok(result);
             }

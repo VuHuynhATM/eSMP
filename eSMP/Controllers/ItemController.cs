@@ -122,12 +122,12 @@ namespace eSMP.Controllers
             }
         }*/
         [HttpPost]
-        [Authorize(AuthenticationSchemes = "AuthDemo")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles ="3")]
         public IActionResult CreateItem([FromForm]ItemRegister item)
         {
             try
             {
-                var role= _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 if (role != "3")
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không có quền thực hiện yêu cầu này", Data = "", TotalPage = 1 });

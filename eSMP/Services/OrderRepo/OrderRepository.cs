@@ -121,8 +121,8 @@ namespace eSMP.Services.OrderRepo
                             newod.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
                             newod.Sub_ItemID = orderDetail.Sub_ItemID;
 
-                            _context.OrderDetails.AddAsync(newod);
-                            _context.SaveChangesAsync();
+                            _context.OrderDetails.Add(newod);
+                            _context.SaveChanges();
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
                             result.Data = order.OrderID;
@@ -180,8 +180,8 @@ namespace eSMP.Services.OrderRepo
                             od.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
                             od.Sub_ItemID = orderDetail.Sub_ItemID;
 
-                            _context.OrderDetails.AddAsync(od);
-                            _context.SaveChangesAsync();
+                            _context.OrderDetails.Add(od);
+                            _context.SaveChanges();
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
                             result.Data = o.OrderID;

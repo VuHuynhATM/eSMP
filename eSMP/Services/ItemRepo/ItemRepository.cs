@@ -111,7 +111,7 @@ namespace eSMP.Services.ItemRepo
 
                     sub.Image = i;
                     index++;
-                    _context.Sub_Items.AddAsync(sub);
+                    _context.Sub_Items.Add(sub);
                 }
 
                 var listImage = item.List_Image;
@@ -140,7 +140,7 @@ namespace eSMP.Services.ItemRepo
                     item_Image.Image = i;
                     item_Image.Item = newItem;
 
-                    _context.Item_Images.AddAsync(item_Image);
+                    _context.Item_Images.Add(item_Image);
                 }
                 if (listSpec.IsNullOrEmpty())
                 {
@@ -150,8 +150,8 @@ namespace eSMP.Services.ItemRepo
                     result.TotalPage = numpage;
                     return result;
                 }
-                var numspec = _context.SubCate_Specifications.Where(ss => ss.Sub_CategoryID == item.Sub_CategoryID && ss.IsActive&& ss.Specification.IsActive).Count();
-                if(numspec != listSpec.Count()-1)
+                var numspec = _context.Specification.Where(s => _context.SubCate_Specifications.SingleOrDefault(ss => ss.IsActive && ss.Sub_CategoryID == item.Sub_CategoryID && ss.SpecificationID == s.SpecificationID && s.IsSystem) != null && s.IsActive).Count();
+                if(numspec != listSpec.Count())
                 {
                     result.Success = false;
                     result.Message = "thông số sản phẩm không đủ";
@@ -166,7 +166,7 @@ namespace eSMP.Services.ItemRepo
                     specification_Value.Value = specitication.Value;
                     specification_Value.Item = newItem;
                     specification_Value.IsActive = true;
-                    _context.Specification_Values.AddAsync(specification_Value);
+                    _context.Specification_Values.Add(specification_Value);
                 }
                 if (!item.List_SpecificationCustom.IsNullOrEmpty())
                 {
@@ -185,7 +185,7 @@ namespace eSMP.Services.ItemRepo
                             specValue.Value = newSpec.specificationValue;
                             specValue.IsActive = true;
                             specValue.Item = newItem;
-                            _context.Specification_Values.AddAsync(specValue);
+                            _context.Specification_Values.Add(specValue);
                         }
                     }
                 }
@@ -203,9 +203,9 @@ namespace eSMP.Services.ItemRepo
                     model_Item.Item = newItem;
                     model_Item.Brand_ModelID = model;
                     model_Item.IsActive = true;
-                    _context.Model_Items.AddAsync(model_Item);
+                    _context.Model_Items.Add(model_Item);
                 }
-                _context.SaveChangesAsync();
+                _context.SaveChanges();
                 result.Success = true;
                 result.Message = "thành Công";
                 result.Data = newItem.ItemID;
@@ -813,8 +813,8 @@ namespace eSMP.Services.ItemRepo
                     si.SubItem_StatusID = 3;
                     si.ItemID = item.ItemID;
                     si.Image = image;
-                    _context.Sub_Items.AddAsync(si);
-                    _context.SaveChangesAsync();
+                    _context.Sub_Items.Add(si);
+                    _context.SaveChanges();
                     result.Success = false;
                     result.Message = "Thêm thành công";
                     result.Data = si;
@@ -885,7 +885,7 @@ namespace eSMP.Services.ItemRepo
                     foreach (var subitem in listsub)
                     {
                         var s = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitem.Sub_ItemID && subitem.SubItem_StatusID != 2);
-                        if (s != null&& s.SubItem_StatusID!=2)
+                        if (s != null&& s.SubItem_StatusID==3)
                         {
                             s.SubItem_StatusID = 1;
                             _context.SaveChanges();
@@ -1360,8 +1360,8 @@ namespace eSMP.Services.ItemRepo
                             model_Item.Brand_ModelID = branmodelid;
                             model_Item.ItemID = itemID;
                             model_Item.IsActive = true;
-                            _context.Model_Items.AddAsync(model_Item);
-                            _context.SaveChangesAsync();
+                            _context.Model_Items.Add(model_Item);
+                            _context.SaveChanges();
                         }
                     }
                 }

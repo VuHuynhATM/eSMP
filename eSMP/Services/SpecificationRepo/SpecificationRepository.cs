@@ -83,7 +83,7 @@ namespace eSMP.Services.SpecificationRepo
                 }
                 else
                 {
-                    var listSpe = _context.Specification.Where(s => s.IsActive && s.IsSystem).ToList();
+                    var listSpe = _context.Specification.Where(s => _context.SubCate_Specifications.SingleOrDefault(ss => ss.IsActive && ss.Sub_CategoryID == subCategoryID && ss.SpecificationID == s.SpecificationID && s.IsSystem) != null && s.IsActive).ToList();
                     List<SpecificationModel> list = new List<SpecificationModel>();
                     foreach (var spec in listSpe)
                     {
@@ -158,8 +158,8 @@ namespace eSMP.Services.SpecificationRepo
                 specification.SpecificationName = specification_Name;
                 specification.IsActive = true;
                 specification.IsSystem = true;
-                _context.Specification.AddAsync(specification);
-                _context.SaveChangesAsync();
+                _context.Specification.Add(specification);
+                _context.SaveChanges();
                 result.Success = true;
                 result.Message = "Chưa có thông số";
                 result.Data = "";
@@ -195,7 +195,7 @@ namespace eSMP.Services.SpecificationRepo
                         specification.SpecificationID = item;
                         specification.Sub_CategoryID = request.sub_CategoryID;
                         specification.IsActive = true;
-                        _context.SubCate_Specifications.AddAsync(specification);
+                        _context.SubCate_Specifications.Add(specification);
                     }
                 }
                 foreach (int itemremove in request.specificationIDsRemove)

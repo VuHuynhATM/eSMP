@@ -52,12 +52,12 @@ namespace eSMP.Controllers
             }
         }
         [HttpPost]
-        //[Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
         public IActionResult AddToCart(OrderDetailAdd orderDetail)
         {
             try
             {
-               /* var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
@@ -65,7 +65,7 @@ namespace eSMP.Controllers
                 else if (userId != orderDetail.UserID + "")
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
-                }*/
+                }
                 return Ok(_orderReposity.AddOrderDetail(orderDetail));
             }
             catch
@@ -242,6 +242,20 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
+        [HttpGet]
+        [Route("get_order_status_ship")]
+        public IActionResult GetOrdersWithShipstatusShip(int? userID, int? storeID, DateTime? dateFrom, DateTime? dateTo, int? shipOrderStatus, int? page, string? userName, int? orderID)
+        {
+            try
+            {
+                return Ok(_orderReposity.GetOrdersWithShipstatus(userID, storeID, dateFrom, dateTo, shipOrderStatus, page, userName, orderID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
+
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
         [Route("get_list_feedback")]

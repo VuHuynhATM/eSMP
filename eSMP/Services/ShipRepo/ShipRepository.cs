@@ -69,7 +69,7 @@ namespace eSMP.Services.ShipRepo
                 shipOrder.Reason= reason;
                 shipOrder.OrderID=int.Parse(partner_id);
                 shipOrder.Reason_code= reason_code;
-                _context.ShipOrders.AddAsync(shipOrder);
+                _context.ShipOrders.Add(shipOrder);
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 
                 //giao hang thanh cong
@@ -103,7 +103,7 @@ namespace eSMP.Services.ShipRepo
                 {
                     var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
                 }
-                _context.SaveChangesAsync();
+                _context.SaveChanges();
                 //thhong bao
                 var statustext = "";
                 var status = _context.ShipStatuses.SingleOrDefault(s => s.Status_ID == status_id+"");
@@ -186,7 +186,7 @@ namespace eSMP.Services.ShipRepo
                     address=order.Address,
                     district=order.District,
                     province=order.Province,
-                    hamlet="Khác",
+                    hamlet= order.Address,
                     street="",
                     ward=order.Ward,
                     tel=order.Tel,
@@ -213,8 +213,8 @@ namespace eSMP.Services.ShipRepo
                         shipOrder.OrderID = int.Parse(Shipreponse.order.partner_id);
                         shipOrder.Reason_code = "";
                         order.Pick_Time=Shipreponse.order.estimated_pick_time;
-                        _context.ShipOrders.AddAsync(shipOrder);
-                        _context.SaveChangesAsync();
+                        _context.ShipOrders.Add(shipOrder);
+                        _context.SaveChanges();
                     }
                     else
                     {
@@ -227,8 +227,8 @@ namespace eSMP.Services.ShipRepo
                         shipOrder.OrderID = orderID;
                         shipOrder.Reason_code = "";
 
-                        _context.ShipOrders.AddAsync(shipOrder);
-                        _context.SaveChangesAsync();
+                        _context.ShipOrders.Add(shipOrder);
+                        _context.SaveChanges();
                     }
 
                     return Shipreponse;

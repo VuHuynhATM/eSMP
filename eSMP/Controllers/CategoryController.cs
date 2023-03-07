@@ -6,6 +6,7 @@ using eSMP.VModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using System.Security.Claims;
 
 namespace eSMP.Controllers
@@ -25,11 +26,10 @@ namespace eSMP.Controllers
             _userReposity = userReposity;
         }
         [HttpGet]
-        public IActionResult GetAllCategory()
+        public IActionResult GetAllCategory(string? role)
         {
             try
             {
-                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 var result = _categoryReposity.GetAllCategory(role);
                 return Ok(result);
             }
@@ -41,11 +41,11 @@ namespace eSMP.Controllers
 
         [HttpGet]
         [Route("sub_category")]
-        public IActionResult GetSubCategory(int categoryID)
+        public IActionResult GetSubCategory(int categoryID, string? role)
         {
             try
             {
-                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                //var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 var result = _categoryReposity.GetSubCategory(categoryID,role);
                 return Ok(result);
             }

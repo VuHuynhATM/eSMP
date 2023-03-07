@@ -95,8 +95,8 @@ namespace eSMP.Services.StoreRepo
                         UserID = store.UserID,
                         Image = image,
                     };
-                    _context.Stores.AddAsync(storeRegister);
-                    _context.SaveChangesAsync();
+                    _context.Stores.Add(storeRegister);
+                    _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Tạo cửa hàng thành công";
                     result.Data = GetStore(store.UserID);

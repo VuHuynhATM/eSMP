@@ -4,7 +4,7 @@ namespace eSMP.Services.MomoRepo
 {
     public interface IMomoReposity
     {
-        public Result GetPayUrl(int orderID);   
+        public Result GetPayUrl(int orderID, string paymentMethod);   
         public void PayOrderINP(MomoPayINP payINP);
         public Result CancelOrder(int orderID, string reason);
         public Result ConfimOrder(int orderID);

@@ -57,7 +57,7 @@ namespace eSMP.Services.ShipRepo
                 var orderID = int.Parse(partner_id);
                 DateTime datetime = DateTime.Parse(action_time);
                 DateTime cstTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(datetime, TimeZoneInfo.Local.Id, "SE Asia Standard Time");
-                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == orderID && so.Status_ID==status_id+"" && so.Create_Date==cstTime );
+                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == orderID && so.Status_ID == status_id + "" && so.Create_Date == cstTime);
                 if (shipdb != null)
                 {
                     return false;
@@ -66,19 +66,27 @@ namespace eSMP.Services.ShipRepo
                 shipOrder.Status_ID = status_id + "";
                 shipOrder.Create_Date = cstTime;
                 shipOrder.LabelID = label_id;
-                shipOrder.Reason= reason;
-                shipOrder.OrderID=int.Parse(partner_id);
-                shipOrder.Reason_code= reason_code;
+                shipOrder.Reason = reason;
+                shipOrder.OrderID = int.Parse(partner_id);
+                shipOrder.Reason_code = reason_code;
                 _context.ShipOrders.Add(shipOrder);
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
-                
+
                 //giao hang thanh cong
                 if (status_id == 5)
                 {
-                    var comfim = _momoReposity.Value.ConfimOrder(shipOrder.OrderID);
+                    if (order.PaymentMethod == "COD")
+                    {
+                        order.OrderStatusID = 1;
+                        _context.SaveChanges();
+                    }
+                    else
+                    {
+                        var comfim = _momoReposity.Value.ConfimOrder(shipOrder.OrderID);
+                    }   
                 }
                 //giao hang that bai
-                if(status_id ==9)
+                if (status_id == 9)
                 {
                     var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
                     if (reason_code == "130")
@@ -106,12 +114,12 @@ namespace eSMP.Services.ShipRepo
                 _context.SaveChanges();
                 //thhong bao
                 var statustext = "";
-                var status = _context.ShipStatuses.SingleOrDefault(s => s.Status_ID == status_id+"");
+                var status = _context.ShipStatuses.SingleOrDefault(s => s.Status_ID == status_id + "");
                 if (status != null)
                 {
-                    statustext=status.Status_Name;
+                    statustext = status.Status_Name;
                 }
-                _notification.Value.CreateNotifiaction(order.UserID, "cập nhập trạng thái đơn hàng: "+ statustext, null, orderID, null);
+                _notification.Value.CreateNotifiaction(order.UserID, "cập nhập trạng thái đơn hàng: " + statustext, null, orderID, null);
                 Notification notification = new Notification
                 {
                     title = "Cập nhập đơn hàng " + orderID,
@@ -154,8 +162,8 @@ namespace eSMP.Services.ShipRepo
         {
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID==2);
-                var listoderdetai= _orderReposity.Value.GetOrderDetailModels(orderID, 2);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 2);
+                var listoderdetai = _orderReposity.Value.GetOrderDetailModels(orderID, 2);
                 var listproduct = new List<productsShip>();
                 foreach (var item in listoderdetai)
                 {
@@ -165,40 +173,40 @@ namespace eSMP.Services.ShipRepo
                         price = (int)item.PricePurchase,
                         product_code = item.Sub_ItemID,
                         quantity = item.Amount,
-                        weight = GetWeightOfSubItem(item.ItemID)/(double)1000,
+                        weight = GetWeightOfSubItem(item.ItemID) / (double)1000,
                     };
                     listproduct.Add(pro);
                 }
-                var priceOrder= _orderReposity.Value.GetPriceItemOrder(orderID);
+                var priceOrder = _orderReposity.Value.GetPriceItemOrder(orderID);
                 orderrequest shiporder = new orderrequest
                 {
-                    id=orderID+"",
-                    pick_name=order.Pick_Name,
-                    pick_address=order.Pick_Address,
-                    pick_ward=order.Pick_Ward,
-                    pick_district=order.Pick_District,
-                    pick_province=order.Pick_Province,
-                    pick_street="",
-                    pick_tel=order.Pick_Tel,
-                    pick_money=0,
-                    is_freeship=1,
-                    name=order.Name,
-                    address=order.Address,
-                    district=order.District,
-                    province=order.Province,
-                    hamlet= order.Address,
-                    street="",
-                    ward=order.Ward,
-                    tel=order.Tel,
-                    value=(int)priceOrder,
-                    transport= "road",
+                    id = orderID + "",
+                    pick_name = order.Pick_Name,
+                    pick_address = order.Pick_Address,
+                    pick_ward = order.Pick_Ward,
+                    pick_district = order.Pick_District,
+                    pick_province = order.Pick_Province,
+                    pick_street = "",
+                    pick_tel = order.Pick_Tel,
+                    pick_money = 0,
+                    is_freeship = 1,
+                    name = order.Name,
+                    address = order.Address,
+                    district = order.District,
+                    province = order.Province,
+                    hamlet = order.Address,
+                    street = "",
+                    ward = order.Ward,
+                    tel = order.Tel,
+                    value = (int)priceOrder,
+                    transport = "road",
                 };
                 if (order != null)
                 {
                     ShipOrderRequest request = new ShipOrderRequest
                     {
-                        order=shiporder,
-                        products=listproduct,
+                        order = shiporder,
+                        products = listproduct,
                     };
                     var Shipreponse = CreateOrderAsync(request).Result;
 
@@ -212,7 +220,7 @@ namespace eSMP.Services.ShipRepo
                         shipOrder.Reason = "";
                         shipOrder.OrderID = int.Parse(Shipreponse.order.partner_id);
                         shipOrder.Reason_code = "";
-                        order.Pick_Time=Shipreponse.order.estimated_pick_time;
+                        order.Pick_Time = Shipreponse.order.estimated_pick_time;
                         _context.ShipOrders.Add(shipOrder);
                         _context.SaveChanges();
                     }
@@ -222,7 +230,7 @@ namespace eSMP.Services.ShipRepo
                         shipOrder.Status_ID = "-1";
                         DateTime datetime = GetVnTime();
                         shipOrder.Create_Date = datetime;
-                        shipOrder.LabelID = orderID+"";
+                        shipOrder.LabelID = orderID + "";
                         shipOrder.Reason = Shipreponse.message;
                         shipOrder.OrderID = orderID;
                         shipOrder.Reason_code = "";
@@ -235,10 +243,10 @@ namespace eSMP.Services.ShipRepo
                 }
                 return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-                role.RoleName = role.RoleName+ex.Message;
+                role.RoleName = role.RoleName + ex.Message;
                 _context.SaveChanges();
                 return null;
             }
@@ -255,28 +263,28 @@ namespace eSMP.Services.ShipRepo
             int numpage = 1;
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID!=2);
-                if(order != null)
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID != 2);
+                if (order != null)
                 {
                     var liststatus = _context.ShipOrders.AsQueryable();
                     liststatus = liststatus.Where(so => so.OrderID == orderID);
-                    liststatus=liststatus.OrderBy(so => so.Create_Date);
+                    liststatus = liststatus.OrderBy(so => so.Create_Date);
                     ShipModel model = new ShipModel();
                     List<ShipStatusModel> list = new List<ShipStatusModel>();
                     if (liststatus.Count() > 0)
                     {
-                        foreach(var item in liststatus.ToList())
+                        foreach (var item in liststatus.ToList())
                         {
-                            if(list.Count() == 0)
+                            if (list.Count() == 0)
                             {
                                 model.orderID = item.OrderID;
                                 model.LabelID = item.LabelID;
                             }
                             ShipStatusModel statusModel = new ShipStatusModel
                             {
-                                status=GetShipStatus(item.Status_ID).Status_Name,
+                                status = GetShipStatus(item.Status_ID).Status_Name,
                                 Create_Date = item.Create_Date,
-                                Reason=item.Reason,
+                                Reason = item.Reason,
                                 Reason_code = item.Reason_code
                             };
                             list.Add(statusModel);
@@ -284,7 +292,7 @@ namespace eSMP.Services.ShipRepo
                         model.shipStatusModels = list;
                         result.Success = true;
                         result.Message = "Thành công";
-                        result.Data=model;
+                        result.Data = model;
                         result.TotalPage = numpage;
                         return result;
                     }
@@ -312,14 +320,14 @@ namespace eSMP.Services.ShipRepo
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
-            var ghtkreponde = await client.PostAsync("https://services-staging.ghtklab.com/services/shipment/cancel/partner_id:"+orderID, httpContent);
+            var ghtkreponde = await client.PostAsync("https://services-staging.ghtklab.com/services/shipment/cancel/partner_id:" + orderID, httpContent);
             var contents = ghtkreponde.Content.ReadFromJsonAsync<ShipReponse>().Result;
             return contents;
         }
 
         public Result CancelOrder(int orderID)
         {
-            Result result=new Result();
+            Result result = new Result();
             int numpage = 1;
             try
             {
@@ -347,14 +355,14 @@ namespace eSMP.Services.ShipRepo
                 result.TotalPage = numpage;
                 return result;
             }
-            
+
         }
 
         public async Task<Object> GetTicketAsync(string labelID)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
-            HttpResponseMessage shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/label/"+labelID);
+            HttpResponseMessage shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/label/" + labelID);
             var jsonreponse = await shipResponse.Content.ReadAsStreamAsync();
             return jsonreponse;
         }

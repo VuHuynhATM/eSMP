@@ -94,7 +94,7 @@ namespace eSMP.Services.StatusRepo
                     status = new Status
                     {
                         Item_StatusID = statusID,
-                        StatusName = "giỏ hàng"
+                        StatusName = "Giỏ hàng"
                     };
                     break;
                 case 3:
@@ -102,6 +102,13 @@ namespace eSMP.Services.StatusRepo
                     {
                         Item_StatusID = statusID,
                         StatusName = "Huỷ"
+                    };
+                    break;
+                case 4:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Chờ thanh toán"
                     };
                     break;
                 default:

@@ -11,7 +11,6 @@ namespace eSMP.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public float Rate { get; set; }
-        public double Discount { get; set; }
         public DateTime Create_date { get; set; }
         public int StoreID { get; set; }//FK
         [ForeignKey("StoreID")]

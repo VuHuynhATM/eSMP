@@ -10,6 +10,7 @@ namespace eSMP.Models
         public int OrderDetailID { get; set; }
         public double PricePurchase { get; set; }
         public double DiscountPurchase { get; set; }
+        public int WarrantiesTime { get; set; }
         public int Amount { get; set; }
         public string? Feedback_Title { get; set; }
         public double? Feedback_Rate { get; set; }

@@ -42,8 +42,8 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
-        [Route("momopay")]
-        public IActionResult PayOrder(int orderID)
+        [Route("order_pay_url")]
+        public IActionResult PayOrder(int orderID, string paymentMethod)
         {
             try
             {
@@ -57,7 +57,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
                 }
-                return Ok(_momoReposity.GetPayUrl(orderID));
+                return Ok(_momoReposity.GetPayUrl(orderID,paymentMethod));
             }
             catch
             {
@@ -115,7 +115,7 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
-        [Route("momo_store_pay")]
+        [Route("store_pay_url")]
         public IActionResult PayStore(int storeID)
         {
             try

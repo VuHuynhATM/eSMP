@@ -28,7 +28,7 @@ namespace eSMP.Services.StoreAssetRepo
         }
         public long GetMomoTransaction(int orderID)
         {
-            return _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID).MomoTransactionID;
+            return _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID).TransactionID;
         }
         public DateTime GetVnTime()
         {

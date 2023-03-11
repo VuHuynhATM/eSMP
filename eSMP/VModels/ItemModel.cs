@@ -24,6 +24,7 @@ namespace eSMP.VModels
         public string Description { get; set; }
         public float Rate { get; set; }
         public double MaxPrice { get; set; }
+        public int WarrantiesTime { get; set; }
         public double MinPrice { get; set; }
         public double Discount { get; set; }
         public int Num_Sold { get; set; }
@@ -43,6 +44,8 @@ namespace eSMP.VModels
         public string sub_ItemName { get; set; }
         public int amount { get; set; }
         public double price { get; set; }
+        public double discount { get; set; }
+        public int warrantiesTime { get; set; }
     }
     public class SubItemModel
     {
@@ -52,12 +55,16 @@ namespace eSMP.VModels
         public Image Image { get; set; }
         public double Price { get; set; }
         public Status SubItem_Status { get; set; }
+        public double Discount { get; set; }
+        public int WarrantiesTime { get; set; }
     }
     public class Sub_ItemRegister
     {
         public int itemID { get; set; }
         public string Sub_ItemName { get; set; }
         public int Amount { get; set; }
+        public double Discount { get; set; }
+        public int WarrantiesTime { get; set; }
         public IFormFile File { get; set; }
         public double Price { get; set; }
     }
@@ -70,7 +77,6 @@ namespace eSMP.VModels
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public double Discount { get; set; }
         public int StoreID { get; set; }
         public int Sub_CategoryID { get; set; }
         public IFormFileCollection List_Image { get; set; }
@@ -84,6 +90,8 @@ namespace eSMP.VModels
     {
         public int SubItemID { get; set; }
         public int Amount { get; set; }
+        public double Discount { get; set; }
+        public int WarrantiesTime { get; set; }
         public double Price { get; set; }
     }
 }

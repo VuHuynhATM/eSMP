@@ -28,6 +28,7 @@ namespace eSMP.Models
         public string Address { get; set; }
         public string? Reason { get; set; }
         public string? Pick_Time { get; set; }
+        public string? PaymentMethod { get; set; }
 
     }
 }

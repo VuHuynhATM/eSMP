@@ -62,9 +62,11 @@ namespace eSMP.Services.OrderRepo
                     var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == orderDetail.UserID).OrderStatusID == 2);
                     if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount + odexist.Amount))
                     {
+                        var sub = GetSub_Item(orderDetail.Sub_ItemID);
                         odexist.Amount = odexist.Amount + orderDetail.Amount;
-                        odexist.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
-                        odexist.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
+                        odexist.DiscountPurchase = sub.Discount;
+                        odexist.PricePurchase = sub.Price;
+                        odexist.WarrantiesTime=sub.WarrantiesTime;
                         //ship
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
                         int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
@@ -114,11 +116,13 @@ namespace eSMP.Services.OrderRepo
                         }
                         if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount))
                         {
+                            var sub = GetSub_Item(orderDetail.Sub_ItemID);
                             OrderDetail newod = new OrderDetail();
                             newod.OrderID = order.OrderID;
-                            newod.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
+                            newod.PricePurchase = sub.Price;
                             newod.Amount = orderDetail.Amount;
-                            newod.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
+                            newod.DiscountPurchase = sub.Discount;
+                            newod.WarrantiesTime = sub.WarrantiesTime;
                             newod.Sub_ItemID = orderDetail.Sub_ItemID;
 
                             _context.OrderDetails.Add(newod);
@@ -173,11 +177,13 @@ namespace eSMP.Services.OrderRepo
                         }
                         if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount))
                         {
+                            var sub = GetSub_Item(orderDetail.Sub_ItemID);
                             OrderDetail od = new OrderDetail();
                             od.Order = o;
-                            od.PricePurchase = GetSub_Item(orderDetail.Sub_ItemID).Price;
+                            od.PricePurchase = sub.Price;
                             od.Amount = orderDetail.Amount;
-                            od.DiscountPurchase = GetDiscount(orderDetail.Sub_ItemID);
+                            od.DiscountPurchase = sub.Discount;
+                            od.WarrantiesTime = sub.WarrantiesTime;
                             od.Sub_ItemID = orderDetail.Sub_ItemID;
 
                             _context.OrderDetails.Add(od);
@@ -245,7 +251,7 @@ namespace eSMP.Services.OrderRepo
         {
             try
             {
-                return _context.Items.SingleOrDefault(i => i.ItemID == _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == sub_ItemID).ItemID).Discount;
+                return _context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==sub_ItemID).Discount;
             }
             catch
             {
@@ -409,6 +415,7 @@ namespace eSMP.Services.OrderRepo
                                     Sub_ItemID = subitem.Sub_ItemID,
                                     Sub_ItemName = subitem.Sub_ItemName,
                                     sub_ItemImage = subitem.Image.Path,
+                                    WarrantiesTime=orderDetail.WarrantiesTime,
                                     ItemID = subitem.ItemID,
                                     ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
                                 };
@@ -430,6 +437,7 @@ namespace eSMP.Services.OrderRepo
                                     Sub_ItemName = subitem.Sub_ItemName,
                                     sub_ItemImage = subitem.Image.Path,
                                     ItemID = subitem.ItemID,
+                                    WarrantiesTime= orderDetail.WarrantiesTime,
                                     ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
                                 };
                                 list.Add(model);
@@ -442,13 +450,14 @@ namespace eSMP.Services.OrderRepo
                             OrderDetailModel model = new OrderDetailModel
                             {
                                 Amount = orderDetail.Amount,
-                                DiscountPurchase = GetItem(orderDetail.Sub_ItemID).Discount,
+                                DiscountPurchase = subitem.Discount,
                                 OrderDetailID = orderDetail.OrderDetailID,
                                 PricePurchase = subitem.Price,
                                 Sub_ItemID = subitem.Sub_ItemID,
                                 Sub_ItemName = subitem.Sub_ItemName,
                                 sub_ItemImage = subitem.Image.Path,
                                 ItemID = subitem.ItemID,
+                                WarrantiesTime = subitem.WarrantiesTime,
                             };
                             list.Add(model);
                         }
@@ -504,6 +513,7 @@ namespace eSMP.Services.OrderRepo
                             FeeShip = order.FeeShip,
                             Reason = order.Reason,
                             Pick_Time= order.Pick_Time,
+                            PaymentMethod=order.PaymentMethod,
                         };
                         list.Add(model);
                     }
@@ -577,6 +587,7 @@ namespace eSMP.Services.OrderRepo
                             Pick_Time = order.Pick_Time,
                             ShipOrderID = shiporder.ShipStatusID,
                             FirebaseID=order.User.FirebaseID,
+                            PaymentMethod=order.PaymentMethod,
                         };
                         result.Success = true;
                         result.Message = "Thành công";
@@ -608,6 +619,7 @@ namespace eSMP.Services.OrderRepo
                             Tel = order.Tel,
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             FeeShip = order.FeeShip,
+                            PaymentMethod=order.PaymentMethod,
                         };
                         result.Success = true;
                         result.Message = "Thành công";
@@ -1039,8 +1051,9 @@ namespace eSMP.Services.OrderRepo
                             StoreView = GetStoreViewModel(order.OrderID),
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             Reason = order.Reason,
-                            Pick_Time= order.Pick_Time,
-                            FirebaseID=order.User.FirebaseID,
+                            Pick_Time = order.Pick_Time,
+                            FirebaseID = order.User.FirebaseID,
+                            PaymentMethod = order.PaymentMethod,
                         };
                         list.Add(model);
                     }

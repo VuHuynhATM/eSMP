@@ -56,7 +56,6 @@ namespace eSMP.Services.ItemRepo
                 newItem.StoreID = item.StoreID;
                 newItem.Sub_CategoryID = item.Sub_CategoryID;
                 newItem.Rate = 0;
-                newItem.Discount = item.Discount;
                 newItem.Item_StatusID = 3;
 
                 //var listsub = JsonConvert.DeserializeObject<ItemRegister_Sub>(item.List_SubItem);
@@ -102,6 +101,8 @@ namespace eSMP.Services.ItemRepo
                     sub.SubItem_StatusID = 3;
                     sub.Price = itemsub.price;
                     sub.Item = newItem;
+                    sub.WarrantiesTime = itemsub.warrantiesTime;
+                    sub.Discount = itemsub.discount;
 
                     Image i = new Image();
                     i.Crete_date = GetVnTime();
@@ -245,14 +246,14 @@ namespace eSMP.Services.ItemRepo
         }
 
 
-        public double GetMinPriceForItem(int itemID)
+        public Sub_Item GetMinPriceForItem(int itemID)
         {
-            return _context.Sub_Items.Where(i => i.ItemID == itemID).Min(i => i.Price);
+            return _context.Sub_Items.OrderBy(i => i.Price).FirstOrDefault(i => i.ItemID == itemID);
         }
 
-        public double GetMaxPriceForItem(int itemID)
+        public Sub_Item GetMaxPriceForItem(int itemID)
         {
-            return _context.Sub_Items.Where(i => i.ItemID == itemID).Max(i => i.Price);
+            return _context.Sub_Items.OrderByDescending(i => i.Price).FirstOrDefault(i => i.ItemID == itemID);
         }
 
 
@@ -287,6 +288,7 @@ namespace eSMP.Services.ItemRepo
                     {
                         foreach (var item in listItem.ToList())
                         {
+                            Sub_Item sub = GetMinPriceForItem(item.ItemID);
                             ItemViewModel model = new ItemViewModel
                             {
                                 ItemID = item.ItemID,
@@ -294,8 +296,8 @@ namespace eSMP.Services.ItemRepo
                                 Rate = item.Rate,
                                 Item_Image = GetItemImage(item.ItemID)[0].Path,
                                 Name = item.Name,
-                                Price = GetMinPriceForItem(item.ItemID),
-                                Discount = item.Discount,
+                                Price = sub.Price,
+                                Discount= sub.Discount,
                                 Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                                 Num_Sold = GetNumSold(item.ItemID),
                             };
@@ -354,6 +356,7 @@ namespace eSMP.Services.ItemRepo
                     List<ItemViewModel> listmodel = new List<ItemViewModel>();
                     foreach (var item in listItem.ToList())
                     {
+                        Sub_Item sub = GetMinPriceForItem(item.ItemID);
                         ItemViewModel model = new ItemViewModel
                         {
                             ItemID = item.ItemID,
@@ -361,8 +364,8 @@ namespace eSMP.Services.ItemRepo
                             Rate = item.Rate,
                             Item_Image = GetItemImage(item.ItemID)[0].Path,
                             Name = item.Name,
-                            Price = GetMinPriceForItem(item.ItemID),
-                            Discount = item.Discount,
+                            Price = sub.Price,
+                            Discount = sub.Discount,
                             Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                             Num_Sold = GetNumSold(item.ItemID),
                         };
@@ -420,6 +423,8 @@ namespace eSMP.Services.ItemRepo
                         Price = item.Price,
                         Sub_ItemName = item.Sub_ItemName,
                         Image = item.Image,
+                        WarrantiesTime=item.WarrantiesTime,
+                        Discount=item.Discount,
                     };
                     list.Add(model);
                 }
@@ -485,15 +490,17 @@ namespace eSMP.Services.ItemRepo
                 var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
                 if (item != null)
                 {
+                    Sub_Item submin = GetMinPriceForItem(itemID);
+                    Sub_Item submax = GetMaxPriceForItem(itemID);
                     ItemModel model = new ItemModel
                     {
                         ItemID = item.ItemID,
                         Name = item.Name,
                         Description = item.Description,
                         Create_date = item.Create_date,
-                        MaxPrice = GetMaxPriceForItem(item.ItemID),
-                        MinPrice = GetMinPriceForItem(item.ItemID),
-                        Discount = item.Discount,
+                        MaxPrice = submin.Price,
+                        MinPrice = submax.Price,
+                        Discount = submin.Discount,
                         Rate = item.Rate,
                         Sub_Category = item.Sub_Category.Sub_categoryName,
                         Store = _storeReposity.GetStoreModel(item.StoreID),
@@ -505,6 +512,7 @@ namespace eSMP.Services.ItemRepo
                         Num_Sold = GetNumSold(item.ItemID),
                         ListFeedBack = GetListFeedBack(itemID),
                         Num_Feedback = GetTotalFeedBack(itemID),
+                        WarrantiesTime=submin.WarrantiesTime,
                     };
 
                     result.Success = true;
@@ -679,7 +687,7 @@ namespace eSMP.Services.ItemRepo
                             {
                                 double lo = lot.Value;
                                 double la = lat.Value;
-                                listItem = listItem.OrderByDescending(i => i.Discount).ThenBy(i =>
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si=>si.ItemID==i.ItemID).Min(si=>si.Discount)).ThenBy(i =>
                                                 6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
                                                 * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
                                                 * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
@@ -687,7 +695,7 @@ namespace eSMP.Services.ItemRepo
                             }
                             else
                             {
-                                listItem = listItem.OrderByDescending(i => i.Discount);
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Discount));
 
                             }
                             break;
@@ -722,6 +730,7 @@ namespace eSMP.Services.ItemRepo
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())
                 {
+                    Sub_Item sub = GetMinPriceForItem(item.ItemID);
                     ItemViewModel model = new ItemViewModel
                     {
                         ItemID = item.ItemID,
@@ -729,8 +738,8 @@ namespace eSMP.Services.ItemRepo
                         Rate = item.Rate,
                         Item_Image = GetItemImage(item.ItemID)[0].Path,
                         Name = item.Name,
-                        Price = GetMinPriceForItem(item.ItemID),
-                        Discount = item.Discount,
+                        Price = sub.Price,
+                        Discount = sub.Discount,
                         Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                         Num_Sold = GetNumSold(item.ItemID),
                     };
@@ -813,6 +822,8 @@ namespace eSMP.Services.ItemRepo
                     si.SubItem_StatusID = 3;
                     si.ItemID = item.ItemID;
                     si.Image = image;
+                    si.WarrantiesTime = subItem.WarrantiesTime;
+                    si.Discount = subItem.Discount;
                     _context.Sub_Items.Add(si);
                     _context.SaveChanges();
                     result.Success = false;
@@ -1261,7 +1272,7 @@ namespace eSMP.Services.ItemRepo
                             {
                                 double lo = lot.Value;
                                 double la = lat.Value;
-                                listItem = listItem.OrderByDescending(i => i.Discount).ThenBy(i =>
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Discount)).ThenBy(i =>
                                                 6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
                                                 * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
                                                 * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
@@ -1269,7 +1280,7 @@ namespace eSMP.Services.ItemRepo
                             }
                             else
                             {
-                                listItem = listItem.OrderByDescending(i => i.Discount);
+                                listItem = listItem.OrderByDescending(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Discount));
 
                             }
                             break;
@@ -1305,6 +1316,7 @@ namespace eSMP.Services.ItemRepo
                 List<ItemViewModel> listmodel = new List<ItemViewModel>();
                 foreach (var item in listItem.ToList())
                 {
+                    Sub_Item sub = GetMinPriceForItem(item.ItemID);
                     ItemViewModel model = new ItemViewModel
                     {
                         ItemID = item.ItemID,
@@ -1312,8 +1324,8 @@ namespace eSMP.Services.ItemRepo
                         Rate = item.Rate,
                         Item_Image = GetItemImage(item.ItemID)[0].Path,
                         Name = item.Name,
-                        Price = GetMinPriceForItem(item.ItemID),
-                        Discount = item.Discount,
+                        Price = sub.Price,
+                        Discount = sub.Discount,
                         Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                         Num_Sold = GetNumSold(item.ItemID),
                         StoreStatusID = item.Store.Store_StatusID,
@@ -1425,14 +1437,14 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result UpdateDiscount(int itemID, double dícsount)
+        public Result UpdateDiscount(int Sub_ItemID, double discsount)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
-                var item = _context.Items.SingleOrDefault(i => i.ItemID == itemID);
-                if (item == null)
+                var subitem = _context.Sub_Items.SingleOrDefault(i => i.Sub_ItemID == Sub_ItemID);
+                if (subitem == null)
                 {
                     result.Success = false;
                     result.Message = "sản phhẩm không tồn tại";
@@ -1442,10 +1454,11 @@ namespace eSMP.Services.ItemRepo
                 }
                 else
                 {
-                    item.Discount = dícsount;
+                    subitem.Discount = discsount;
+                    _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";
-                    result.Data = dícsount;
+                    result.Data = discsount;
                     result.TotalPage = numpage;
                     return result;
                 }

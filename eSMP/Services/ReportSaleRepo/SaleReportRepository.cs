@@ -48,14 +48,15 @@ namespace eSMP.Services.ReportSaleRepo
                 {
                     foreach (var item in listItem.ToList())
                     {
+                        Sub_Item sub = GetMinPriceForItem(item.ItemID);
                         ItemViewModel model = new ItemViewModel
                         {
                             Description = item.Description,
-                            Discount = item.Discount,
+                            Discount = sub.Discount,
                             ItemID = item.ItemID,
                             Item_Image = GetItemImage(item.ItemID)[0].Path,
                             Name = item.Name,
-                            Price = GetMinPriceForItem(item.ItemID),
+                            Price = sub.Price,
                             Province = _storeReposity.GetAddressByStoreID(item.StoreID).Province,
                             Rate = item.Rate,
                             Num_Sold = GetNumSold(item.ItemID),
@@ -111,9 +112,9 @@ namespace eSMP.Services.ReportSaleRepo
                 return null;
             }
         }
-        public double GetMinPriceForItem(int itemID)
+        public Sub_Item GetMinPriceForItem(int itemID)
         {
-            return _context.Sub_Items.Where(i => i.ItemID == itemID).Min(i => i.Price);
+            return _context.Sub_Items.OrderBy(i => i.Price).FirstOrDefault(i => i.ItemID == itemID);
         }
     }
 }

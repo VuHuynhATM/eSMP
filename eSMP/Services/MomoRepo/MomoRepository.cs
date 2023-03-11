@@ -22,7 +22,7 @@ namespace eSMP.Services.MomoRepo
         string secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
         string partnerCode = "MOMOBKUN20180529";
 
-        public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity,Lazy<INotificationReposity> notification)
+        public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<INotificationReposity> notification)
         {
             _context = context;
             _shipReposity = shipReposity;
@@ -148,7 +148,7 @@ namespace eSMP.Services.MomoRepo
                 return false;
             }
         }
-        public Result GetPayUrl(int orderID)
+        public Result GetPayUrl(int orderID, string paymentMethod)
         {
             Result result = new Result();
             try
@@ -184,30 +184,98 @@ namespace eSMP.Services.MomoRepo
                         {
                             if (CheckShip(orderID))
                             {
-                                MomoPayReponse momoPayReponse = GetPayAsync(orderID).Result;
-                                if (momoPayReponse != null)
+                                if (paymentMethod != "COD")
                                 {
-                                    if (momoPayReponse.resultCode == 0)
+                                    MomoPayReponse momoPayReponse = GetPayAsync(orderID).Result;
+                                    if (momoPayReponse != null)
                                     {
-                                        result.Success = true;
-                                        result.Message = "Thành công";
-                                        result.Data = momoPayReponse;
-                                        return result;
+                                        if (momoPayReponse.resultCode == 0)
+                                        {
+                                            result.Success = true;
+                                            result.Message = "Thành công";
+                                            result.Data = momoPayReponse;
+                                            return result;
+                                        }
+                                        else
+                                        {
+                                            result.Success = false;
+                                            result.Message = "Hệ thống thanh toán lỗi";
+                                            result.Data = momoPayReponse;
+                                            return result;
+                                        }
                                     }
                                     else
                                     {
                                         result.Success = false;
-                                        result.Message = "Hệ thống thanh toán lỗi";
-                                        result.Data = momoPayReponse;
+                                        result.Message = "Hệ thống thanh toán đang bảo trì";
+                                        result.Data = "";
                                         return result;
                                     }
                                 }
                                 else
                                 {
-                                    result.Success = false;
-                                    result.Message = "Hệ thống thanh toán đang bảo trì";
-                                    result.Data = "";
-                                    return result;
+                                    var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
+                                    if (shipReponse != null)
+                                    {
+                                        if (shipReponse.success)
+                                        {
+                                            order.OrderStatusID = 4;
+                                            order.FeeShip = shipReponse.order.fee;
+                                            order.Create_Date = GetVnTime();
+                                            //tạo status
+                                            _context.SaveChanges();
+                                            //updateamount
+                                            var listdetailnew = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
+                                            foreach (var detail in listdetailnew)
+                                            {
+                                                var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == detail.Sub_ItemID);
+                                                detail.WarrantiesTime = subItem.WarrantiesTime;
+                                                subItem.Amount = subItem.Amount - detail.Amount;
+                                                _context.SaveChanges();
+                                            }
+                                            //thong bao
+                                            _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thành công", null, order.OrderID, null);
+                                            Notification notification = new Notification
+                                            {
+                                                title = "Đặt hàng",
+                                                body = "Đặt hàng " + order.OrderID + " thành công",
+                                            };
+                                            FirebaseNotification firebaseNotification = new FirebaseNotification
+                                            {
+                                                notification = notification,
+                                                to = order.User.FCM_Firebase,
+                                            };
+                                            _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                                            // supplier
+                                            var store = GetStoreByorderID(order.OrderID);
+                                            _notification.Value.CreateNotifiaction(store.UserID, "Đơn hàng mới: ", null, order.OrderID, null);
+                                            Notification notificationOfSup = new Notification
+                                            {
+                                                title = "Đơn hàng",
+                                                body = "Đơn hàng mới",
+                                            };
+                                            FirebaseNotification firebaseNotificationSupp = new FirebaseNotification
+                                            {
+                                                notification = notificationOfSup,
+                                                to = store.User.FCM_Firebase,
+                                            };
+                                            _notification.Value.PushUserNotificationAsync(firebaseNotificationSupp);
+                                            result.Success = true;
+                                            result.Message = "Đặt hàng thành công";
+                                            result.Data = "";
+                                            return result;
+                                        }
+                                        else
+                                        {
+
+                                            order.OrderStatusID = 2;
+                                            _context.SaveChanges();
+                                            result.Success = false;
+                                            result.Message = "Hệ thống giao hàng bảo trì, thử lại sau";
+                                            result.Data = "";
+                                            return result;
+                                        }
+                                    }
                                 }
                             }
                             else
@@ -261,24 +329,21 @@ namespace eSMP.Services.MomoRepo
                         DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
                         transacsion.Create_Date = VnTime;
                         transacsion.ResultCode = payINP.resultCode;
-                        transacsion.MomoTransactionID = payINP.transId;
-                        transacsion.OrderIDMOMO = payINP.orderId;
+                        transacsion.TransactionID = payINP.transId;
+                        transacsion.OrderIDGateway = payINP.orderId;
                         transacsion.RequestID = payINP.requestId;
                         _context.orderBuy_Transacsions.Add(transacsion);
                         _context.SaveChanges();
-                        
+
                         //create ship
                         var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
                         if (shipReponse != null)
                         {
                             if (shipReponse.success)
                             {
-                                //lay tien
-                                //ConfirmReponse confirmReponse = confirm(order.OrderID).Result;
                                 order.OrderStatusID = 1;
                                 order.FeeShip = shipReponse.order.fee;
                                 order.Create_Date = GetVnTime();
-                                //tạo status
                                 _context.SaveChanges();
                                 //updateamount
                                 var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
@@ -292,7 +357,7 @@ namespace eSMP.Services.MomoRepo
                                 _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thành công", null, order.OrderID, null);
                                 Notification notification = new Notification
                                 {
-                                    title = "Thanhh toán",
+                                    title = "Thanh toán",
                                     body = "Đơn hàng " + order.OrderID + " thành công",
                                 };
                                 FirebaseNotification firebaseNotification = new FirebaseNotification
@@ -319,7 +384,7 @@ namespace eSMP.Services.MomoRepo
                             else
                             {
                                 //ConfimCancelOrder(order.OrderID);
-                                var refund=RefundOrder(order.OrderID, 1);
+                                var refund = RefundOrder(order.OrderID, 1);
                                 if (refund.Success)
                                 {
                                     order.OrderStatusID = 3;
@@ -348,7 +413,7 @@ namespace eSMP.Services.MomoRepo
             string myuuidAsString = myuuid.ToString();
             var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
             ConfirmRequest request = new ConfirmRequest();
-            request.orderId = ordertransaction.OrderIDMOMO;
+            request.orderId = ordertransaction.OrderIDGateway;
             request.requestId = myuuidAsString;
             request.partnerCode = partnerCode;
             request.lang = "vi";
@@ -377,7 +442,7 @@ namespace eSMP.Services.MomoRepo
             string myuuidAsString = myuuid.ToString();
             var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
             ConfirmRequest request = new ConfirmRequest();
-            request.orderId = ordertransaction.OrderIDMOMO;
+            request.orderId = ordertransaction.OrderIDGateway;
             request.requestId = ordertransaction.RequestID;
             request.partnerCode = partnerCode;
             request.lang = "vi";
@@ -409,9 +474,9 @@ namespace eSMP.Services.MomoRepo
             request.requestId = myuuidAsString;
             request.partnerCode = partnerCode;
             request.lang = "vi";
-            request.amount = (long)(Gettotalprice(orderID)* numrefund);
+            request.amount = (long)(Gettotalprice(orderID) * numrefund);
             request.description = "";
-            request.transId = ordertransaction.MomoTransactionID;
+            request.transId = ordertransaction.TransactionID;
 
             var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId + "&partnerCode=" + request.partnerCode + "&requestId=" + request.requestId + "&transId=" + request.transId;
 
@@ -450,7 +515,7 @@ namespace eSMP.Services.MomoRepo
                     {
                         if (shipReponse.Success)
                         {
-                            var comfim = RefundOrder(orderID,1);
+                            var comfim = RefundOrder(orderID, 1);
                             if (comfim.Success)
                             {
                                 var labelID = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID).LabelID;
@@ -467,7 +532,7 @@ namespace eSMP.Services.MomoRepo
                                 _context.ShipOrders.Add(model);
                                 _context.SaveChanges();
                                 //thong bao
-                                var store=GetStoreByorderID(orderID);
+                                var store = GetStoreByorderID(orderID);
                                 _notification.Value.CreateNotifiaction(store.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
                                 Notification notification = new Notification
                                 {
@@ -600,7 +665,7 @@ namespace eSMP.Services.MomoRepo
                 var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
                 var esystem = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
                 var orderprivce = _orderReposity.Value.GetPriceItemOrder(orderID);
-                var storeprice = orderprivce*(1-esystem.Refund_Precent);
+                var storeprice = orderprivce * (1 - esystem.Refund_Precent);
                 if (confirmReponse.ResultCode == 0)
                 {
                     //ghi nhan tien ship
@@ -611,7 +676,7 @@ namespace eSMP.Services.MomoRepo
                     orderStore_Transaction.OrderID = orderID;
                     orderStore_Transaction.StoreID = store.StoreID;
                     orderStore_Transaction.IsActive = true;
-                    orderStore_Transaction.Price = shipprice+storeprice;
+                    orderStore_Transaction.Price = shipprice + storeprice;
                     orderStore_Transaction.Create_Date = GetVnTime();
                     store.Asset = store.Asset + orderStore_Transaction.Price;
                     _context.OrderStore_Transactions.Add(orderStore_Transaction);
@@ -762,7 +827,7 @@ namespace eSMP.Services.MomoRepo
                         store.MomoTransactionID = payINP.transId;
                         store.Actice_Date = GetVnTime();
                         store.AmountActive = payINP.amount;
-                        system.Asset=system.Asset+payINP.amount;
+                        system.Asset = system.Asset + payINP.amount;
                         _context.SaveChanges();
                         //thong bao
                         _notification.Value.CreateNotifiaction(store.UserID, "Thanh toán thành công", store.StoreID, null, null);
@@ -808,7 +873,7 @@ namespace eSMP.Services.MomoRepo
             Result result = new Result();
             try
             {
-                RefundReponse refundReponse = refundtransaction(orderID,numrefund).Result;
+                RefundReponse refundReponse = refundtransaction(orderID, numrefund).Result;
                 if (refundReponse.resultCode == 0)
                 {
                     result.Success = true;

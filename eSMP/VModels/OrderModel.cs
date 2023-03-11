@@ -30,6 +30,7 @@ namespace eSMP.VModels
         public string? Pick_Time { get; set; }
         public string? ShipOrderID { get; set; }
         public string? FirebaseID { get; set; }
+        public string PaymentMethod { get; set; }
     }
     public class OrderModelView
     {
@@ -57,6 +58,7 @@ namespace eSMP.VModels
         public string? Reason { get; set; }
         public string? Pick_Time { get; set; }
         public string? FirebaseID { get; set; }
+        public string PaymentMethod { get; set; }
 
     }
     public class OrderDetailModel
@@ -73,7 +75,8 @@ namespace eSMP.VModels
         public string sub_ItemImage { get; set; }
         public int ItemID { get; set; }
         public Status? Feedback_Status { get; set; }
-        public List<Image>? ListImageFb { get; set; } 
+        public List<Image>? ListImageFb { get; set; }
+        public int WarrantiesTime { get; set; }
 
     }
     public class OrderDetailAdd

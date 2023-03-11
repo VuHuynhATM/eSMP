@@ -18,5 +18,7 @@ namespace eSMP.Models
         [ForeignKey("ItemID")]
         public virtual Item Item { get; set; }
         public int SubItem_StatusID { get; set; }
+        public int WarrantiesTime { get; set; }
+        public double Discount { get; set; }
     }
 }

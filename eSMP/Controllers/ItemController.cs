@@ -122,12 +122,12 @@ namespace eSMP.Controllers
             }
         }*/
         [HttpPost]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles ="3")]
+        //[Authorize(AuthenticationSchemes = "AuthDemo", Roles ="3")]
         public IActionResult CreateItem([FromForm]ItemRegister item)
         {
             try
             {
-                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                /*var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 if (role != "3")
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không có quền thực hiện yêu cầu này", Data = "", TotalPage = 1 });
@@ -141,7 +141,7 @@ namespace eSMP.Controllers
                 else if (storeID != item.StoreID)
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
-                }
+                }*/
                 var result = _itemReposity.CreateItem(item);
                 return Ok(result);
             }
@@ -423,15 +423,15 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
-        [HttpPut]
+       /* [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
         [Route("update_discount")]
-        public IActionResult UpdateDiscount(int itemID, double discount)
+        public IActionResult UpdateDiscount(int Sub_ItemID, double discount)
         {
             try
             {
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var supplierID = _itemReposity.GetSupplierIDByItemID(itemID);
+                var supplierID = _itemReposity.GetSupplierIDBySubItemID(Sub_ItemID);
                 if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
@@ -440,12 +440,12 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
                 }
-                return Ok(_itemReposity.UpdateDiscount(itemID, discount));
+                return Ok(_itemReposity.UpdateDiscount(Sub_ItemID, discount));
             }
             catch
             {
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
-        }
+        }*/
     }
 }

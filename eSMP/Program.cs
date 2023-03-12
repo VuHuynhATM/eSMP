@@ -24,6 +24,7 @@ using eSMP.Services.FileRepo;
 using eSMP.Services.NotificationRepo;
 using eSMP.Services.AddressRepo;
 using eSMP.Services.StatusRepo;
+using eSMP.Services.AutoService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +32,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddScoped<WebContext, WebContext>();
+builder.Services.AddTransient<WebContext>();
 
 builder.Services.AddLazyResolution();
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -51,6 +52,7 @@ builder.Services.AddScoped<IFileReposity, FileRepository>();
 builder.Services.AddScoped<INotificationReposity, NotificationRepository>();
 builder.Services.AddScoped<IAddressReposity, Addressrepository>();
 builder.Services.AddScoped<IStatusReposity, StatusRepsitory>();
+builder.Services.AddSingleton<IWorker, Worker>();
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -115,6 +117,8 @@ builder.Services.AddAuthorization(opt =>
     .RequireAuthenticatedUser()
     .Build();
 });
+
+builder.Services.AddHostedService<Processor>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

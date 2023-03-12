@@ -20,5 +20,7 @@ namespace eSMP.Models
         public int SubItem_StatusID { get; set; }
         public int WarrantiesTime { get; set; }
         public double Discount { get; set; }
+        public int ReturnAndExchange { get; set; }
+        public string? StatusText { get; set; }
     }
 }

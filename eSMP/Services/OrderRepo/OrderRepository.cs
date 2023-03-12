@@ -67,6 +67,7 @@ namespace eSMP.Services.OrderRepo
                         odexist.DiscountPurchase = sub.Discount;
                         odexist.PricePurchase = sub.Price;
                         odexist.WarrantiesTime=sub.WarrantiesTime;
+                        odexist.ReturnAndExchange = sub.ReturnAndExchange;
                         //ship
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
                         int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
@@ -416,6 +417,7 @@ namespace eSMP.Services.OrderRepo
                                     Sub_ItemName = subitem.Sub_ItemName,
                                     sub_ItemImage = subitem.Image.Path,
                                     WarrantiesTime=orderDetail.WarrantiesTime,
+                                    ReturnAndExchange=orderDetail.ReturnAndExchange,
                                     ItemID = subitem.ItemID,
                                     ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
                                 };
@@ -438,6 +440,7 @@ namespace eSMP.Services.OrderRepo
                                     sub_ItemImage = subitem.Image.Path,
                                     ItemID = subitem.ItemID,
                                     WarrantiesTime= orderDetail.WarrantiesTime,
+                                    ReturnAndExchange= orderDetail.ReturnAndExchange,
                                     ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
                                 };
                                 list.Add(model);
@@ -458,6 +461,7 @@ namespace eSMP.Services.OrderRepo
                                 sub_ItemImage = subitem.Image.Path,
                                 ItemID = subitem.ItemID,
                                 WarrantiesTime = subitem.WarrantiesTime,
+                                ReturnAndExchange = subitem.ReturnAndExchange,
                             };
                             list.Add(model);
                         }
@@ -973,6 +977,15 @@ namespace eSMP.Services.OrderRepo
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "13" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "20" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "21" 
+                            );
+                            break;
+                        case "7":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "6" && o.OrderStatusID==5||
+                            o.OrderStatusID==3
+                            );
+                            break;
+                        case "8":
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Reason_code == "129"
                             );
                             break;
                     }

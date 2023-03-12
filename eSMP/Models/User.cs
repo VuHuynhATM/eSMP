@@ -26,6 +26,7 @@ namespace eSMP.Models
         public virtual Image Image { get; set; }
         public string? FirebaseID { get; set; }
         public string? FCM_Firebase { get; set; }
+        public string? StatusText { get; set; }
 
     }
 }

@@ -148,6 +148,7 @@ namespace eSMP.Services.StoreRepo
                     TotalOrder = GetTotalOrder(store.StoreID),
                     TotalCancelOrder = GetTotalCancelOrder(store.StoreID),
                     TotalRating = GetTotalRating(store.StoreID),
+                    StatusText=store.StatusText,
                 };
                 return model;
             }
@@ -239,6 +240,7 @@ namespace eSMP.Services.StoreRepo
                         Actice_Amount = store.AmountActive,
                         FCM_Firebase = store.User.FCM_Firebase,
                         FirebaseID = store.User.FirebaseID,
+                        StatusText = store.StatusText,
                     };
                     list.Add(model);
                 }
@@ -292,6 +294,7 @@ namespace eSMP.Services.StoreRepo
                         TotalOrder = GetTotalOrder(storeID),
                         TotalCancelOrder = GetTotalCancelOrder(storeID),
                         TotalRating = GetTotalRating(storeID),
+                        StatusText=store.StatusText,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -418,6 +421,7 @@ namespace eSMP.Services.StoreRepo
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
                 if (store != null)
                 {
+                    store.StatusText = "";
                     store.Store_StatusID = 1;
                     _context.SaveChanges();
                     result.Success = true;
@@ -485,7 +489,7 @@ namespace eSMP.Services.StoreRepo
             }
         }
 
-        public Result BlockStore(int storeID)
+        public Result BlockStore(int storeID, string? statusText)
         {
             Result result = new Result();
             int numpage = 1;
@@ -494,6 +498,7 @@ namespace eSMP.Services.StoreRepo
                 var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
                 if (store != null)
                 {
+                    store.StatusText = statusText;
                     store.Store_StatusID = 2;
                     _context.SaveChanges();
                     result.Success = true;
@@ -655,6 +660,7 @@ namespace eSMP.Services.StoreRepo
                         Actice_Amount = store.AmountActive,
                         FCM_Firebase = store.User.FCM_Firebase,
                         FirebaseID = store.User.FirebaseID,
+                        StatusText = store.StatusText,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";

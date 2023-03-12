@@ -628,7 +628,7 @@ namespace eSMP.Services.MomoRepo
                     orderStore_Transaction.IsActive = true;
                     orderStore_Transaction.Price = orderprice * (1 - system.Commission_Precent) + shipprice;
                     orderStore_Transaction.Create_Date = GetVnTime();
-                    store.Asset = store.Asset + orderStore_Transaction.Price;
+                    //store.Asset = store.Asset + orderStore_Transaction.Price; chưa công vô tai khoan
                     //sys
                     OrderSystem_Transaction orderSystem_Transaction = new OrderSystem_Transaction();
                     orderSystem_Transaction.OrderStore_Transaction = orderStore_Transaction;
@@ -636,7 +636,7 @@ namespace eSMP.Services.MomoRepo
                     orderSystem_Transaction.Create_Date = GetVnTime();
                     orderSystem_Transaction.Price = orderprice * system.Commission_Precent;
                     orderSystem_Transaction.IsActive = true;
-                    system.Asset = system.Asset + orderSystem_Transaction.Price;
+                    //system.Asset = system.Asset + orderSystem_Transaction.Price; chưa công vo tai khoan
                     _context.OrderSystem_Transactions.Add(orderSystem_Transaction);
                     _context.SaveChanges();
                     result.Success = true;
@@ -908,6 +908,49 @@ namespace eSMP.Services.MomoRepo
             var quickPayResponse = await client.PostAsync("https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyBaUaNJe050MkvaSfL2LOw24AnXKN2Sl60", httpContent);
             var contents = quickPayResponse.Content.ReadFromJsonAsync<FirebaseReponse>();
             return contents.Result;
+        }
+
+        public Result ConfimStoreShipLostOrder(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
+                var esystem = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+                var orderprivce = _orderReposity.Value.GetPriceItemOrder(orderID);
+                if (confirmReponse.ResultCode == 0)
+                {
+                    //ghi nhan tien ship + tiền hàng
+                    //store
+                    var store = GetStoreByorderID(orderID);
+                    var shipprice = GetFeeship(orderID);
+                    OrderStore_Transaction orderStore_Transaction = new OrderStore_Transaction();
+                    orderStore_Transaction.OrderID = orderID;
+                    orderStore_Transaction.StoreID = store.StoreID;
+                    orderStore_Transaction.IsActive = true;
+                    orderStore_Transaction.Price = shipprice + orderprivce;
+                    orderStore_Transaction.Create_Date = GetVnTime();
+                    store.Asset = store.Asset + orderStore_Transaction.Price;
+                    _context.OrderStore_Transactions.Add(orderStore_Transaction);
+                    _context.SaveChanges();
+
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = "";
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thất bại";
+                result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
         }
     }
 }

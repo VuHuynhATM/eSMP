@@ -2,6 +2,7 @@
 using eSMP.Services.MomoRepo;
 using eSMP.Services.NotificationRepo;
 using eSMP.Services.OrderRepo;
+using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using System;
 using System.Text.Json;
@@ -86,7 +87,7 @@ namespace eSMP.Services.ShipRepo
                     }   
                 }
                 //giao hang that bai
-                if (status_id == 9)
+                if (status_id == 11)
                 {
                     var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
                     if (reason_code == "130")
@@ -99,6 +100,14 @@ namespace eSMP.Services.ShipRepo
                         if (comfim.Success)
                         {
                             _momoReposity.Value.ConfimStoreShipOrder(shipOrder.OrderID);
+                        }
+                    }
+                    else if (reason_code == "129")
+                    {
+                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
+                        if (comfim.Success)
+                        {
+                            _momoReposity.Value.ConfimStoreShipLostOrder(shipOrder.OrderID);
                         }
                     }
                     else
@@ -132,6 +141,21 @@ namespace eSMP.Services.ShipRepo
                     to = user.FCM_Firebase,
                 };
                 _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                //supplier
+                var store=GetStore(orderID);
+                _notification.Value.CreateNotifiaction(store.UserID, "cập nhập trạng thái đơn hàng: " + statustext, null, orderID, null);
+                Notification notificationsup = new Notification
+                {
+                    title = "Cập nhập đơn hàng " + orderID,
+                    body = "Đơn hàng " + orderID + " đang trong trạng thái: " + shipOrder.ShipStatus.Status_Name,
+                };
+                var userspu = _context.Users.SingleOrDefault(u => u.UserID == store.UserID);
+                FirebaseNotification firebaseNotificationsup = new FirebaseNotification
+                {
+                    notification = notificationsup,
+                    to = userspu.FCM_Firebase,
+                };
+                _notification.Value.PushUserNotificationAsync(firebaseNotificationsup);
                 return true;
             }
             catch (Exception ex)
@@ -142,7 +166,30 @@ namespace eSMP.Services.ShipRepo
                 return false;
             }
         }
-
+        public Store GetStore(int orderID)
+        {
+            try
+            {
+                var orderdetail = _context.OrderDetails.FirstOrDefault(od => od.OrderID == orderID);
+                var store = GetStoreBySubItemID(orderdetail.Sub_ItemID);
+                return store;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public Store GetStoreBySubItemID(int sub_itemID)
+        {
+            try
+            {
+                return _context.Stores.SingleOrDefault(s => s.StoreID == _context.Items.SingleOrDefault(i => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == sub_itemID).ItemID == i.ItemID).StoreID);
+            }
+            catch
+            {
+                return null;
+            }
+        }
         public async Task<ShipReponse> CreateOrderAsync(ShipOrderRequest request)
         {
             var client = new HttpClient();
@@ -200,7 +247,13 @@ namespace eSMP.Services.ShipRepo
                     tel = order.Tel,
                     value = (int)priceOrder,
                     transport = "road",
+                    pick_option="cod",
                 };
+                if (order.PaymentMethod == "COD")
+                {
+                    shiporder.is_freeship = 0;
+                    shiporder.pick_money = (int)GetPriceItemOrder(orderID);
+                }
                 if (order != null)
                 {
                     ShipOrderRequest request = new ShipOrderRequest
@@ -251,7 +304,40 @@ namespace eSMP.Services.ShipRepo
                 return null;
             }
         }
+        public double GetPriceItemOrder(int orderID)
+        {
+            try
+            {
+                double total = 0;
+                var listorderdetail = _context.OrderDetails.Where(od => od.OrderID == orderID);
 
+                if (_context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID == 1)
+                {
+                    if (listorderdetail.Count() > 0)
+                    {
+                        foreach (var item in listorderdetail.ToList())
+                        {
+                            total = total + item.PricePurchase * item.Amount * (1 - item.DiscountPurchase);
+                        }
+                    }
+                }
+                else
+                {
+                    if (listorderdetail.Count() > 0)
+                    {
+                        foreach (var item in listorderdetail.ToList())
+                        {
+                            total = total + item.Sub_Item.Price * item.Amount * (1 - item.Sub_Item.Discount);
+                        }
+                    }
+                }
+                return total;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
         public ShipStatus GetShipStatus(string statusID)
         {
             return _context.ShipStatuses.SingleOrDefault(ss => ss.Status_ID.Equals(statusID));

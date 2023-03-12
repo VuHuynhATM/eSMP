@@ -244,7 +244,7 @@ namespace eSMP.Controllers
         [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("block_item")]
-        public IActionResult BlockItem(int itemID)
+        public IActionResult BlockItem(int itemID, string? statusText)
         {
             try
             {
@@ -253,7 +253,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
-                return Ok(_itemReposity.BlockItem(itemID));
+                return Ok(_itemReposity.BlockItem(itemID, statusText));
             }
             catch
             {
@@ -263,7 +263,7 @@ namespace eSMP.Controllers
         [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("block_subItem")]
-        public IActionResult BlockSubItem(int subItemID)
+        public IActionResult BlockSubItem(int subItemID, string? statusText)
         {
             try
             {
@@ -272,7 +272,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
-                return Ok(_itemReposity.BlocksubItem(subItemID));
+                return Ok(_itemReposity.BlocksubItem(subItemID, statusText));
             }
             catch
             {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20230311073712_v34.2")]
+    partial class v342
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -298,9 +300,6 @@ namespace eSMP.Migrations
 
                     b.Property<float>("Rate")
                         .HasColumnType("real");
-
-                    b.Property<string>("StatusText")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("StoreID")
                         .HasColumnType("int");
@@ -857,9 +856,6 @@ namespace eSMP.Migrations
                     b.Property<int>("Pick_date")
                         .HasColumnType("int");
 
-                    b.Property<string>("StatusText")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("StoreName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -981,9 +977,6 @@ namespace eSMP.Migrations
 
                     b.Property<int>("ReturnAndExchange")
                         .HasColumnType("int");
-
-                    b.Property<string>("StatusText")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SubItem_StatusID")
                         .HasColumnType("int");
@@ -1109,9 +1102,6 @@ namespace eSMP.Migrations
 
                     b.Property<int>("RoleID")
                         .HasColumnType("int");
-
-                    b.Property<string>("StatusText")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Token")
                         .IsRequired()

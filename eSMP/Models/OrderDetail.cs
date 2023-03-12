@@ -22,5 +22,6 @@ namespace eSMP.Models
         [ForeignKey("OrderID")]
         public virtual Order Order { get; set; }
         public int? Feedback_StatusID { get; set; }
+        public int ReturnAndExchange { get; set; }
     }
 }

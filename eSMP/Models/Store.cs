@@ -27,5 +27,6 @@ namespace eSMP.Models
         public double? AmountActive { get; set; }
         public long? MomoTransactionID { get; set; }
         public DateTime? Actice_Date { get; set; }
+        public string? StatusText { get; set; }
     }
 }

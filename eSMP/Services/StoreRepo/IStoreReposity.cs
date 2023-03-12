@@ -14,7 +14,7 @@ namespace eSMP.Services.StoreRepo
         public Address GetAddressByStoreID(int StoreID);
         public Result ActiveStore(int storeID);
         public Result HiddenStore(int storeID);
-        public Result BlockStore(int storeID);
+        public Result BlockStore(int storeID, string? statusText);
         public Result UnHiddenStore(int storeID);
         public Result UpdateAddress(int storeID, Address address);
         public Boolean CheckStoreFirebase(string firebaseID);

@@ -77,6 +77,7 @@ namespace eSMP.VModels
         public Status? Feedback_Status { get; set; }
         public List<Image>? ListImageFb { get; set; }
         public int WarrantiesTime { get; set; }
+        public int ReturnAndExchange { get; set; }
 
     }
     public class OrderDetailAdd

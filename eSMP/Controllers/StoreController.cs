@@ -131,7 +131,7 @@ namespace eSMP.Controllers
         [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("block_store")]
-        public IActionResult BlockStore(int storeID)
+        public IActionResult BlockStore(int storeID, string? statusText)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace eSMP.Controllers
                         return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
                     }
                 }
-                return Ok(_storeReposity.BlockStore(storeID));
+                return Ok(_storeReposity.BlockStore(storeID, statusText));
             }
             catch (Exception ex)
             {

@@ -21,6 +21,7 @@ namespace eSMP.VModels
         public List<Address> addresses { get; set; }
         public string? FirebaseID { get; set; }
         public string? FCM_Firebase { get; set; }
+        public string? StatusText { get; set; }
 
     }
     public class UserLogin

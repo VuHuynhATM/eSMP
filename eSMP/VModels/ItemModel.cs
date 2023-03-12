@@ -38,6 +38,7 @@ namespace eSMP.VModels
         public List<SubItemModel> ListSubItem { get; set; }
         public List<BrandModel> ListModel { get; set; }
         public List<FeedBackModel> ListFeedBack { get; set; }
+        public string? StatusText { get; set; }
     }
     public class ItemRegister_Sub
     {
@@ -46,6 +47,7 @@ namespace eSMP.VModels
         public double price { get; set; }
         public double discount { get; set; }
         public int warrantiesTime { get; set; }
+        public int returnAndExchange { get; set; }
     }
     public class SubItemModel
     {
@@ -57,6 +59,8 @@ namespace eSMP.VModels
         public Status SubItem_Status { get; set; }
         public double Discount { get; set; }
         public int WarrantiesTime { get; set; }
+        public int ReturnAndExchange { get; set; }
+        public string? StatusText { get; set; }
     }
     public class Sub_ItemRegister
     {
@@ -67,6 +71,7 @@ namespace eSMP.VModels
         public int WarrantiesTime { get; set; }
         public IFormFile File { get; set; }
         public double Price { get; set; }
+        public int ReturnAndExchange { get; set; }
     }
     public class ItemImageRegister
     {
@@ -93,5 +98,6 @@ namespace eSMP.VModels
         public double Discount { get; set; }
         public int WarrantiesTime { get; set; }
         public double Price { get; set; }
+        public int ReturnAndExchange { get; set; }
     }
 }

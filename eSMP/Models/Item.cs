@@ -19,6 +19,7 @@ namespace eSMP.Models
         [ForeignKey("Sub_CategoryID")]
         public virtual Sub_Category Sub_Category { get; set; }
         public int Item_StatusID { get; set; }
+        public string? StatusText { get; set; }
 
     }
 }

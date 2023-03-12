@@ -159,7 +159,7 @@ namespace eSMP.Controllers
         [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("Update_user_status")]
-        public IActionResult UpdateUserStatus(int UserID, Boolean isActive)
+        public IActionResult UpdateUserStatus(int UserID, Boolean isActive, string? statusText)
         {
             try
             {
@@ -168,7 +168,7 @@ namespace eSMP.Controllers
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
-                var result = _userReposity.UpdatteUserStatus(UserID, isActive);
+                var result = _userReposity.UpdatteUserStatus(UserID, isActive, statusText);
                 return Ok(result);
             }
             catch (Exception ex)

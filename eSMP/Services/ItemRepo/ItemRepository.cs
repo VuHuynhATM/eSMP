@@ -103,6 +103,7 @@ namespace eSMP.Services.ItemRepo
                     sub.Item = newItem;
                     sub.WarrantiesTime = itemsub.warrantiesTime;
                     sub.Discount = itemsub.discount;
+                    sub.ReturnAndExchange = itemsub.returnAndExchange;
 
                     Image i = new Image();
                     i.Crete_date = GetVnTime();
@@ -423,8 +424,10 @@ namespace eSMP.Services.ItemRepo
                         Price = item.Price,
                         Sub_ItemName = item.Sub_ItemName,
                         Image = item.Image,
-                        WarrantiesTime=item.WarrantiesTime,
-                        Discount=item.Discount,
+                        WarrantiesTime = item.WarrantiesTime,
+                        Discount = item.Discount,
+                        ReturnAndExchange = item.ReturnAndExchange,
+                        StatusText = item.StatusText,
                     };
                     list.Add(model);
                 }
@@ -512,7 +515,8 @@ namespace eSMP.Services.ItemRepo
                         Num_Sold = GetNumSold(item.ItemID),
                         ListFeedBack = GetListFeedBack(itemID),
                         Num_Feedback = GetTotalFeedBack(itemID),
-                        WarrantiesTime=submin.WarrantiesTime,
+                        WarrantiesTime = submin.WarrantiesTime,
+                        StatusText = item.StatusText,
                     };
 
                     result.Success = true;
@@ -857,6 +861,7 @@ namespace eSMP.Services.ItemRepo
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
                 if (subitem != null)
                 {
+                    subitem.StatusText = "";
                     subitem.SubItem_StatusID = 1;
                     _context.SaveChanges();
                     result.Success = true;
@@ -890,6 +895,7 @@ namespace eSMP.Services.ItemRepo
                 var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
                 if (item != null)
                 {
+                    item.StatusText = "";
                     item.Item_StatusID = 1;
                     _context.SaveChanges();
                     var listsub = _context.Sub_Items.Where(si => si.ItemID == item.ItemID).ToList();
@@ -924,7 +930,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result BlocksubItem(int subitemID)
+        public Result BlocksubItem(int subitemID, string? statusText)
         {
             Result result = new Result();
             int numpage = 1;
@@ -933,6 +939,7 @@ namespace eSMP.Services.ItemRepo
                 var subitem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == subitemID);
                 if (subitem != null)
                 {
+                    subitem.StatusText = statusText;
                     subitem.SubItem_StatusID = 2;
                     _context.SaveChanges();
                     result.Success = true;
@@ -957,7 +964,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result BlockItem(int itemID)
+        public Result BlockItem(int itemID, string? statusText)
         {
             Result result = new Result();
             int numpage = 1;
@@ -966,6 +973,7 @@ namespace eSMP.Services.ItemRepo
                 var item = _context.Items.SingleOrDefault(si => si.ItemID == itemID);
                 if (item != null)
                 {
+                    item.StatusText = statusText;
                     item.Item_StatusID = 2;
                     _context.SaveChanges();
                     result.Success = true;

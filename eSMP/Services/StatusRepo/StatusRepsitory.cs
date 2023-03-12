@@ -111,6 +111,14 @@ namespace eSMP.Services.StatusRepo
                         StatusName = "Chờ thanh toán"
                     };
                     break;
+                case 5:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Đã đối soát"
+                    };
+                    break;
+
                 default:
                     status = null;
                     break;

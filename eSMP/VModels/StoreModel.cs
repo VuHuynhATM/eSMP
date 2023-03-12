@@ -28,6 +28,7 @@ namespace eSMP.VModels
         public int TotalOrder { get; set; }
         public int TotalCancelOrder { get; set; }
         public double TotalRating { get; set; }
+        public string? StatusText { get; set; }
     }
     public class StoreViewModel
     {

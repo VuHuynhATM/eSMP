@@ -15,8 +15,8 @@ namespace eSMP.Services.ItemRepo
         public Result AddsubItem(Sub_ItemRegister subItem);
         public Result ActivesubItem(int subitemID);
         public Result ActiveItem(int itemID);
-        public Result BlocksubItem(int subitemID);
-        public Result BlockItem(int itemID);
+        public Result BlocksubItem(int subitemID, string? statusText);
+        public Result BlockItem(int itemID, string? statusText);
         public Result HiddensubItem(int subitemID);
         public Result HiddenItem(int itemID);
         public Result UnHiddensubItem(int subitemID);

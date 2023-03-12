@@ -12,7 +12,7 @@ namespace eSMP.Services.UserRepo
         public Result LoginByEmail(string email, string password, string? FCM_Firebase);
         public Result RigisterUser(UserRegister user);
         public Result RigisterSupplier(UserRegister user);
-        public Result UpdatteUserStatus(int userID, bool isActive);
+        public Result UpdatteUserStatus(int userID, bool isActive, string? statusText);
         public Result GetListUser(int? page, string? search, int? roleID, bool? isActive);
         public Result RemoveUser(int userID);
         public Result GetAddressByID(int userID);

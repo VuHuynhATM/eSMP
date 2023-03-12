@@ -64,6 +64,7 @@ namespace eSMP.Services.UserRepo
                             addresses = GetAddresses(u.UserID),
                             FCM_Firebase=u.FCM_Firebase,
                             FirebaseID=u.FirebaseID,
+                            StatusText = u.StatusText,
                         };
                         if (!model.IsActive)
                         {
@@ -133,6 +134,7 @@ namespace eSMP.Services.UserRepo
                             StoreID = storeID,
                             FCM_Firebase = u.FCM_Firebase,
                             FirebaseID=u.FirebaseID,
+                            StatusText=u.StatusText,
                         };
                         if (!model.IsActive)
                         {
@@ -209,6 +211,7 @@ namespace eSMP.Services.UserRepo
                             addresses = GetAddresses(u.UserID),
                             FCM_Firebase = FCM_Firebase,
                             FirebaseID= u.FirebaseID,
+                            StatusText = u.StatusText,
                         };
                         if (!model.IsActive)
                         {
@@ -439,7 +442,7 @@ namespace eSMP.Services.UserRepo
                 return null;
             }
         }
-        public Result UpdatteUserStatus(int userID, bool iaActive)
+        public Result UpdatteUserStatus(int userID, bool isActive, string? statusText)
         {
             Result result = new Result();
             int numpage = 1;
@@ -448,7 +451,15 @@ namespace eSMP.Services.UserRepo
                 var user = _context.Users.SingleOrDefault(u => u.UserID == userID);
                 if (user != null)
                 {
-                    user.isActive = iaActive;
+                    if (isActive)
+                    {
+                        user.StatusText = "";
+                    }
+                    else
+                    {
+                        user.StatusText = statusText;
+                    }
+                    user.isActive = isActive;
                     _context.Update(user);
                     _context.SaveChanges();
                     result.Success = true;
@@ -528,6 +539,7 @@ namespace eSMP.Services.UserRepo
                             StoreID= storeid,
                             FCM_Firebase=user.FCM_Firebase,
                             FirebaseID=user.FirebaseID,
+                            StatusText=user.StatusText,
                         };
                         r.Add(model);
                     }
@@ -1038,6 +1050,7 @@ namespace eSMP.Services.UserRepo
                         StoreID = storeid,
                         FCM_Firebase = u.FCM_Firebase,
                         FirebaseID = u.FirebaseID,
+                        StatusText=u.StatusText,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -1091,6 +1104,7 @@ namespace eSMP.Services.UserRepo
                         StoreID=storeid,
                         FCM_Firebase = u.FCM_Firebase,
                         FirebaseID = u.FirebaseID,
+                        StatusText=u.StatusText,
                     };
                     return model;
                 }

@@ -38,6 +38,7 @@ namespace eSMP.Models
         public DbSet<Report> Reports { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AddressVn> addressVns { get; set; }
+        public DbSet<DataExchangeStore> DataExchangeStores { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

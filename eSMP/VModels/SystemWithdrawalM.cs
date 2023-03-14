@@ -41,7 +41,7 @@ namespace eSMP.VModels
     {
         public int OrderStore_TransactionID { get; set; }
         public int OrderID { get; set; }
-        public long MomoTransaction { get; set; }
+        public long PaymentTransaction { get; set; }
         public DateTime Create_Date { get; set; }
         public double Price { get; set; }
         public Boolean IsActive { get; set; }

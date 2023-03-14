@@ -327,7 +327,7 @@ namespace eSMP.Services.UserRepo
                 {
                     result.Success = true;
                     result.Message = "Số điện thoại đã được kích hoạt";
-                    result.Data = "";
+                    result.Data = user.Role.RoleName;
                     result.TotalPage = numpage;
                     return result;
                 }

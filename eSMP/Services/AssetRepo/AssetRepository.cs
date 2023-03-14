@@ -241,7 +241,7 @@ namespace eSMP.Services.StoreAssetRepo
                                 OrderID = item.OrderStore_Transaction.OrderID,
                                 OrderStore_TransactionID = item.OrderStore_TransactionID,
                                 Price = item.OrderStore_Transaction.Price,
-                                MomoTransaction = GetMomoTransaction(item.OrderStore_Transaction.OrderID)
+                                PaymentTransaction = GetMomoTransaction(item.OrderStore_Transaction.OrderID)
                             },
                             Price = item.Price,
                             StoreID = GetStore(item.OrderStore_Transaction.OrderID).StoreID,
@@ -360,7 +360,7 @@ namespace eSMP.Services.StoreAssetRepo
                             OrderStore_TransactionID = item.OrderStore_TransactionID,
                             Price = item.Price,
                             OrderID = item.OrderID,
-                            MomoTransaction = GetMomoTransaction(item.OrderID)
+                            PaymentTransaction = GetMomoTransaction(item.OrderID)
                         };
                         list.Add(model);
                     }

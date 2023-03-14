@@ -25,6 +25,7 @@ using eSMP.Services.NotificationRepo;
 using eSMP.Services.AddressRepo;
 using eSMP.Services.StatusRepo;
 using eSMP.Services.AutoService;
+using eSMP.Services.DataExchangeRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,7 @@ builder.Services.AddScoped<IFileReposity, FileRepository>();
 builder.Services.AddScoped<INotificationReposity, NotificationRepository>();
 builder.Services.AddScoped<IAddressReposity, Addressrepository>();
 builder.Services.AddScoped<IStatusReposity, StatusRepsitory>();
+builder.Services.AddScoped<IDataExchangeReposity, DataExchangeRepository>();
 builder.Services.AddSingleton<IWorker, Worker>();
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

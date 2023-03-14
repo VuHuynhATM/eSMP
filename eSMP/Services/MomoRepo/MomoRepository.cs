@@ -154,6 +154,8 @@ namespace eSMP.Services.MomoRepo
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                order.PaymentMethod = paymentMethod;
+                _context.SaveChanges();
                 if (order != null)
                 {
                     if (order.OrderStatusID == 1)

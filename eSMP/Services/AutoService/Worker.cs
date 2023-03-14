@@ -46,7 +46,11 @@ namespace eSMP.Services.AutoService
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == ship.OrderID);
                         order.OrderStatusID = 5;
                         var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == ship.OrderID);
-                        if (confirmReponse.ResultCode == 0)
+                        //layas thoi gian giai ngan
+                        var maxReturnTime=_context.OrderDetails.Where(od=>od.OrderID==order.OrderID).Max(od=>od.ReturnAndExchange);
+                        DateTime now = GetVnTime();
+                        DateTime timeCanReturn=order.Create_Date.AddDays(maxReturnTime);
+                        if (confirmReponse.ResultCode == 0 && timeCanReturn<=now)
                         {
                             //ghi nhan doanh thu
                             //store
@@ -81,6 +85,47 @@ namespace eSMP.Services.AutoService
             catch
             {
                 return null;
+            }
+        }
+        public double GetPriceItemOrder(int orderID)
+        {
+            try
+            {
+                double total = 0;
+                var listorderdetail = _context.OrderDetails.Where(od => od.OrderID == orderID);
+
+                if (_context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID == 1)
+                {
+                    if (listorderdetail.Count() > 0)
+                    {
+                        foreach (var item in listorderdetail.ToList())
+                        {
+                            total = total + item.PricePurchase * item.Amount * (1 - item.DiscountPurchase);
+                        }
+                    }
+                }
+                return total;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        // tạo đối soát khi mất hàng
+        public void CreateDataExchangeStoreOrder()
+        {
+            var Order = _context.Orders.Where(o => _context.ShipOrders.FirstOrDefault(so=>so.OrderID==o.OrderID && so.Status_ID=="11")!=null && _context.ShipOrders.FirstOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "21") == null).ToList();
+            foreach (var order in Order)
+            {
+                DataExchangeStore exchangeStore = new DataExchangeStore();
+                exchangeStore.Create_date = GetVnTime();
+                exchangeStore.ExchangePrice = GetPriceItemOrder(order.OrderID);
+                exchangeStore.OrderID= order.OrderID;
+                exchangeStore.ExchangeStatusID = 3;
+                exchangeStore.ExchangeStoreName = "Đơn hàng";
+                _context.DataExchangeStores.Add(exchangeStore);
+                _context.SaveChanges();
             }
         }
     }

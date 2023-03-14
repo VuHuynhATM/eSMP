@@ -5,7 +5,10 @@ using eSMP.Services.OrderRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using System;
+using System.IO;
+using System.Net.Mime;
 using System.Text.Json;
+using static Google.Apis.Requests.BatchRequest;
 using Notification = eSMP.VModels.Notification;
 
 namespace eSMP.Services.ShipRepo
@@ -90,11 +93,18 @@ namespace eSMP.Services.ShipRepo
                 if (status_id == 11)
                 {
                     var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
-                    if (reason_code == "130")
+                    //kt hàng đã trả cho supplier chưa
+                    var statusshipcheck = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Status_ID == "21");
+                    var status130 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "130");
+                    var status131 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "131");
+                    var status132 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "132");
+                    var status13 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Status_ID == "13");
+
+                    if (status130!=null && statusshipcheck!=null)
                     {
                         var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
                     }
-                    else if (reason_code == "131" || reason_code == "132")
+                    else if ((status131!=null || status132!=null) && statusshipcheck != null)
                     {
                         var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, refundpre);
                         if (comfim.Success)
@@ -102,15 +112,23 @@ namespace eSMP.Services.ShipRepo
                             _momoReposity.Value.ConfimStoreShipOrder(shipOrder.OrderID);
                         }
                     }
-                    else if (reason_code == "129")
+                    else if (statusshipcheck != null && status13!=null)// mat hang va da doi soat vs ghtk
                     {
-                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
+                        /*var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
                         if (comfim.Success)
                         {
                             _momoReposity.Value.ConfimStoreShipLostOrder(shipOrder.OrderID);
-                        }
+                        }*/
+                        DataExchangeStore exchangeStore = new DataExchangeStore();
+                        exchangeStore.Create_date = GetVnTime();
+                        exchangeStore.ExchangePrice = GetPriceItemOrder(order.OrderID);
+                        exchangeStore.OrderID = order.OrderID;
+                        exchangeStore.ExchangeStatusID = 3;
+                        exchangeStore.ExchangeStoreName = "Đơn hàng";
+                        _context.DataExchangeStores.Add(exchangeStore);
+                        _context.SaveChanges();
                     }
-                    else
+                    else if (statusshipcheck != null)
                     {
                         var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
                     }
@@ -444,15 +462,71 @@ namespace eSMP.Services.ShipRepo
 
         }
 
-        public async Task<Object> GetTicketAsync(string labelID)
+        public async Task<System.IO.Stream> GetTicketAsync(string labelID)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
             HttpResponseMessage shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/label/" + labelID);
-            var jsonreponse = await shipResponse.Content.ReadAsStreamAsync();
-            return jsonreponse;
+            //var jsonreponse = shipResponse.Content.ReadAsStream();
+            if (shipResponse.IsSuccessStatusCode)
+            {
+                System.Net.Http.HttpContent content = shipResponse.Content;
+                var contentStream = await content.ReadAsStreamAsync(); // get the actual content stream
+                return contentStream;
+            }
+            return null;
         }
+        public static byte[] ReadToEnd(System.IO.Stream stream)
+        {
+            long originalPosition = 0;
 
+            if (stream.CanSeek)
+            {
+                originalPosition = stream.Position;
+                stream.Position = 0;
+            }
+
+            try
+            {
+                byte[] readBuffer = new byte[4096];
+
+                int totalBytesRead = 0;
+                int bytesRead;
+
+                while ((bytesRead = stream.Read(readBuffer, totalBytesRead, readBuffer.Length - totalBytesRead)) > 0)
+                {
+                    totalBytesRead += bytesRead;
+
+                    if (totalBytesRead == readBuffer.Length)
+                    {
+                        int nextByte = stream.ReadByte();
+                        if (nextByte != -1)
+                        {
+                            byte[] temp = new byte[readBuffer.Length * 2];
+                            Buffer.BlockCopy(readBuffer, 0, temp, 0, readBuffer.Length);
+                            Buffer.SetByte(temp, totalBytesRead, (byte)nextByte);
+                            readBuffer = temp;
+                            totalBytesRead++;
+                        }
+                    }
+                }
+
+                byte[] buffer = readBuffer;
+                if (readBuffer.Length != totalBytesRead)
+                {
+                    buffer = new byte[totalBytesRead];
+                    Buffer.BlockCopy(readBuffer, 0, buffer, 0, totalBytesRead);
+                }
+                return buffer;
+            }
+            finally
+            {
+                if (stream.CanSeek)
+                {
+                    stream.Position = originalPosition;
+                }
+            }
+        }
         public object GetTicket(int orderID)
         {
             Result result = new Result();
@@ -461,11 +535,31 @@ namespace eSMP.Services.ShipRepo
                 var orderStatus = _context.ShipOrders.FirstOrDefault(os => os.OrderID == orderID);
                 if (orderStatus != null)
                 {
-                    return GetTicketAsync(orderStatus.LabelID).Result;
+                    Stream stream = GetTicketAsync(orderStatus.LabelID).Result;
+                    if(stream != null)
+                    {
+                        byte[] m_Bytes = ReadToEnd(stream);
+
+                        result.Success = true;
+                        result.Message = "Thành công";
+                        result.Data = m_Bytes;
+                        result.TotalPage = 1;
+                        //return GetTicketAsync(orderStatus.LabelID).Result;
+                        return result;
+                    }
+                    else
+                    {
+                        result.Success = false;
+                        result.Message = "GHTK gặp sự cố thử lại sau";
+                        result.Data = "";
+                        result.TotalPage = 1;
+                        return result;
+                    }
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
             catch
@@ -473,6 +567,7 @@ namespace eSMP.Services.ShipRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }

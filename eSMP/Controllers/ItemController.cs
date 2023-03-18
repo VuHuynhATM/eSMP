@@ -122,12 +122,12 @@ namespace eSMP.Controllers
             }
         }*/
         [HttpPost]
-        //[Authorize(AuthenticationSchemes = "AuthDemo", Roles ="3")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles ="3")]
         public IActionResult CreateItem([FromForm]ItemRegister item)
         {
             try
             {
-                /*var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 if (role != "3")
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không có quền thực hiện yêu cầu này", Data = "", TotalPage = 1 });
@@ -141,7 +141,7 @@ namespace eSMP.Controllers
                 else if (storeID != item.StoreID)
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
-                }*/
+                }
                 var result = _itemReposity.CreateItem(item);
                 return Ok(result);
             }
@@ -191,11 +191,11 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("search_admin")]
-        public IActionResult SearchItemAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int? page, bool? isSupplier, int? itemStatusID)
+        public IActionResult SearchItemAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? la, double? lo, int? storeID, int? page, int? itemStatusID)
         {
             try
             {
-                var result = _itemReposity.SearchItemForAdmin(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo, storeID, page, isSupplier, itemStatusID);
+                var result = _itemReposity.SearchItemForAdmin(search, min, max, rate, cateID, subCateID, brandID, brandModelID, sortBy, la, lo, storeID, page, itemStatusID);
                 return Ok(result);
             }
             catch

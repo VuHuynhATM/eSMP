@@ -11,5 +11,7 @@ namespace eSMP.Services.StatusRepo
         public Status GetWithdrawalStatus(int statusID);
         public Status GetOrderStatus(int statusID);
         public Status GetReportStatus(int statusID);
+        public Status GetStoreDataExchangeStatus(int statusID);
+        public Status GetUserDataExchangeStatus(int statusID);
     }
 }

@@ -471,12 +471,22 @@ namespace eSMP.Services.MomoRepo
             RefundRequest request = new RefundRequest();
             Guid myuuid = Guid.NewGuid();
             var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
+            var order=_context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+            long price = 0;
+            if (numrefund == 1)
+            {
+                price = (long)(Gettotalprice(orderID) +order.FeeShip);
+            }
+            else
+            {
+                price = (long)(Gettotalprice(orderID) * numrefund);
+            }
             string myuuidAsString = myuuid.ToString();
             request.orderId = orderID + myuuidAsString;
             request.requestId = myuuidAsString;
             request.partnerCode = partnerCode;
             request.lang = "vi";
-            request.amount = (long)(Gettotalprice(orderID) * numrefund);
+            request.amount = price;
             request.description = "";
             request.transId = ordertransaction.TransactionID;
 
@@ -489,11 +499,24 @@ namespace eSMP.Services.MomoRepo
             var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>();
             if (contents.Result.resultCode == 0)
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
-                order.OrderStatusID = 3;
+                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                store_Transaction.IsActive=false;
+                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                system_Transaction.IsActive=false;
+
+                order.RefundPrice = price;
                 ordertransaction.ResultCode = -1;
                 _context.SaveChanges();
-            }
+                return contents.Result;
+            }//đối soat hoan thât bại
+            DataExchangeUser exchangeUser = new DataExchangeUser();
+            exchangeUser.Create_date = GetVnTime();
+            exchangeUser.ExchangePrice = price;
+            exchangeUser.OrderID = order.OrderID;
+            exchangeUser.ExchangeStatusID = 3;
+            exchangeUser.ExchangeUserName = "Hoàn tiền thất bại";
+            _context.DataExchangeUsers.Add(exchangeUser);
+            _context.SaveChanges();
             return contents.Result;
         }
         public Result CancelOrder(int orderID, string reason)
@@ -517,56 +540,90 @@ namespace eSMP.Services.MomoRepo
                     {
                         if (shipReponse.Success)
                         {
-                            var comfim = RefundOrder(orderID, 1);
-                            if (comfim.Success)
+                            var comfim = new Result();
+                            if (order.PaymentMethod != "COD")
                             {
-                                var labelID = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID).LabelID;
-                                order.Reason = reason;
-                                order.OrderStatusID = 3;
-                                _orderReposity.Value.CancelOrder(orderID);
-                                ShipOrder model = new ShipOrder();
-                                model.OrderID = order.OrderID;
-                                model.Create_Date = GetVnTime();
-                                model.LabelID = labelID;
-                                model.Reason = "";
-                                model.Reason_code = "";
-                                model.Status_ID = "-3";
-                                _context.ShipOrders.Add(model);
-                                _context.SaveChanges();
-                                //thong bao
-                                var store = GetStoreByorderID(orderID);
-                                _notification.Value.CreateNotifiaction(store.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
-                                Notification notification = new Notification
-                                {
-                                    title = "Huỷ đơn",
-                                    body = "Huỷ đơn hàng " + order.OrderID,
-                                };
-                                FirebaseNotification firebaseNotification = new FirebaseNotification
-                                {
-                                    notification = notification,
-                                    to = store.User.FCM_Firebase,
-                                };
-                                _notification.Value.PushUserNotificationAsync(firebaseNotification);
-                                // supplier
-                                _notification.Value.CreateNotifiaction(store.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
-                                Notification notificationOfSup = new Notification
-                                {
-                                    title = "Huỷ đơn",
-                                    body = "Huỷ đơn hàng " + order.OrderID,
-                                };
-                                FirebaseNotification firebaseNotificationSupp = new FirebaseNotification
-                                {
-                                    notification = notificationOfSup,
-                                    to = store.User.FCM_Firebase,
-                                };
-                                _notification.Value.PushUserNotificationAsync(firebaseNotificationSupp);
+                                comfim = RefundOrder(orderID, 1);
+                            }
+                            var labelID = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID).LabelID;
+                            order.Reason = reason;
+                            order.OrderStatusID = 3;
+                            _orderReposity.Value.CancelOrder(orderID);
+                            ShipOrder model = new ShipOrder();
+                            model.OrderID = order.OrderID;
+                            model.Create_Date = GetVnTime();
+                            model.LabelID = labelID;
+                            model.Reason = "";
+                            model.Reason_code = "";
+                            model.Status_ID = "-3";
+                            _context.ShipOrders.Add(model);
+                            _context.SaveChanges();
+                            //thong bao
+                            var store = GetStoreByorderID(orderID);
+                            _notification.Value.CreateNotifiaction(store.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                            Notification notification = new Notification
+                            {
+                                title = "Huỷ đơn",
+                                body = "Huỷ đơn hàng " + order.OrderID,
+                            };
+                            FirebaseNotification firebaseNotification = new FirebaseNotification
+                            {
+                                notification = notification,
+                                to = store.User.FCM_Firebase,
+                            };
+                            _notification.Value.PushUserNotificationAsync(firebaseNotification);
+
+                            //hoan thất bại tạo đối soát
+                            if (!comfim.Success)
+                            {
                                 result.Success = true;
-                                result.Message = "Hủy đơn hàng thành công";
+                                result.Message = "Hoàn tiền chờ đối soát";
                                 result.Data = "";
+                                // user
+                                _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                                Notification notificationOfuser = new Notification
+                                {
+                                    title = "Huỷ đơn",
+                                    body = "Huỷ đơn hàng " + order.OrderID+" thành công, chờ đối soát hoàn tiền",
+                                };
+                                FirebaseNotification firebaseNotificationuser = new FirebaseNotification
+                                {
+                                    notification = notificationOfuser,
+                                    to = order.User.FCM_Firebase,
+                                };
+                                _notification.Value.PushUserNotificationAsync(firebaseNotificationuser);
+                                //admin
+                                var admin = _context.Users.FirstOrDefault(u => u.RoleID == 1);
+                                _notification.Value.CreateNotifiaction(admin.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                                Notification notificationOfAD = new Notification
+                                {
+                                    title = "Đối soát - Huỷ đơn",
+                                    body = "Đối soát đơn hàng " + order.OrderID + ", hoàn tiền thất bại",
+                                };
+                                FirebaseNotification firebaseNotificationAD = new FirebaseNotification
+                                {
+                                    notification = notificationOfAD,
+                                    to = admin.FCM_Firebase,
+                                };
+                                _notification.Value.PushUserNotificationAsync(firebaseNotificationAD);
                                 return result;
                             }
-                            result.Success = false;
-                            result.Message = "Thất bại do không thể hoàn tiền";
+                            
+                            // user
+                            _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                            Notification notificationOfU = new Notification
+                            {
+                                title = "Huỷ đơn",
+                                body = "Huỷ đơn hàng " + order.OrderID + " thành công",
+                            };
+                            FirebaseNotification firebaseNotificationU = new FirebaseNotification
+                            {
+                                notification = notificationOfU,
+                                to = order.User.FCM_Firebase,
+                            };
+                            _notification.Value.PushUserNotificationAsync(firebaseNotificationU);
+                            result.Success = true;
+                            result.Message = "Hủy đơn hàng thành công";
                             result.Data = "";
                             return result;
                         }
@@ -944,6 +1001,82 @@ namespace eSMP.Services.MomoRepo
                 result.Success = false;
                 result.Message = "Thất bại";
                 result.Data = "";
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+        public async Task<RefundReponse> refundServicetransaction(int ServiceID, double numrefund)
+        {
+            RefundRequest request = new RefundRequest();
+            Guid myuuid = Guid.NewGuid();
+            var afterService=_context.AfterBuyServices.SingleOrDefault(af=>af.AfterBuyServiceID==ServiceID);
+            var order = _context.ServiceDetails.FirstOrDefault(sd=>sd.AfterBuyServiceID==ServiceID).OrderDetail.Order;
+            var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+            
+            long price = 0;
+            var listServiceDetai = _context.ServiceDetails.Where(sd => sd.AfterBuyServiceID == ServiceID);
+            foreach (var item in listServiceDetai)
+            {
+                price = (long)(price + item.OrderDetail.PricePurchase * item.OrderDetail.DiscountPurchase * numrefund);
+            }
+            string myuuidAsString = myuuid.ToString();
+            request.orderId = afterService.AfterBuyServiceID + myuuidAsString;
+            request.requestId = myuuidAsString;
+            request.partnerCode = partnerCode;
+            request.lang = "vi";
+            request.amount = price;
+            request.description = "";
+            request.transId = ordertransaction.TransactionID;
+
+            var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId + "&partnerCode=" + request.partnerCode + "&requestId=" + request.requestId + "&transId=" + request.transId;
+
+            request.signature = getSignature(rawSignature, secretKey);
+            var client = new HttpClient();
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+            var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent);
+            var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>();
+            if (contents.Result.resultCode == 0)
+            {
+                afterService.RefundPrice = price;
+                OrderStore_Transaction store_Transaction=_context.OrderStore_Transactions.SingleOrDefault(os=>os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                store_Transaction.Price= store_Transaction.Price-price;
+                OrderSystem_Transaction system_Transaction=_context.OrderSystem_Transactions.SingleOrDefault(so=>so.OrderStore_TransactionID== store_Transaction.OrderStore_TransactionID);
+                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                _context.SaveChanges();
+                return contents.Result;
+            }//đối soat hoan thât bại
+            DataExchangeUser exchangeUser = new DataExchangeUser();
+            exchangeUser.Create_date = GetVnTime();
+            exchangeUser.ExchangePrice = price;
+            exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+            exchangeUser.ExchangeStatusID = 3;
+            exchangeUser.ExchangeUserName = "Hoàn tiền thất bại cho don boi hoan";
+            _context.DataExchangeUsers.Add(exchangeUser);
+            _context.SaveChanges();
+            return contents.Result;
+        }
+        public Result RefundService(int serviceID, double numrefund)
+        {
+            Result result = new Result();
+            try
+            {
+                RefundReponse refundReponse = refundServicetransaction(serviceID, numrefund).Result;
+                if (refundReponse.resultCode == 0)
+                {
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = refundReponse.resultCode;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = refundReponse.message;
+                result.Data = refundReponse.resultCode;
                 return result;
             }
             catch

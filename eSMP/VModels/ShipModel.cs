@@ -2,7 +2,7 @@
 {
     public class ShipModel
     {
-        public int orderID { get; set; }
+        public int? orderID { get; set; }
         public string LabelID { get; set; }
         public List<ShipStatusModel> shipStatusModels { get; set; }
     }

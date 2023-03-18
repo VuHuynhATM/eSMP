@@ -39,6 +39,9 @@ namespace eSMP.Models
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AddressVn> addressVns { get; set; }
         public DbSet<DataExchangeStore> DataExchangeStores { get; set; }
+        public DbSet<DataExchangeUser> DataExchangeUsers { get; set; }
+        public DbSet<ServiceDetail> ServiceDetails { get; set; }
+        public DbSet<AfterBuyService> AfterBuyServices { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

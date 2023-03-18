@@ -24,6 +24,7 @@ namespace eSMP.Services.AutoService
                 role.RoleName = DateTime.Now.ToString();
                 _context.SaveChanges();
                 ControlOfRevenues();
+                UpdateOrderstatus();
             }
         }
         public DateTime GetVnTime()
@@ -54,7 +55,7 @@ namespace eSMP.Services.AutoService
                         {
                             //ghi nhan doanh thu
                             //store
-                            var store = GetStoreByorderID(ship.OrderID);
+                            var store = GetStoreByorderID(ship.OrderID.Value);
                             var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
                             var orderStore_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderID == order.OrderID);
                             store.Asset = store.Asset + orderStore_Transaction.Price;
@@ -112,19 +113,12 @@ namespace eSMP.Services.AutoService
             }
         }
 
-        // tạo đối soát khi mất hàng
-        public void CreateDataExchangeStoreOrder()
+        public void UpdateOrderstatus()
         {
-            var Order = _context.Orders.Where(o => _context.ShipOrders.FirstOrDefault(so=>so.OrderID==o.OrderID && so.Status_ID=="11")!=null && _context.ShipOrders.FirstOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "21") == null).ToList();
-            foreach (var order in Order)
+            var listorderServicepending = _context.Orders.Where(o => o.OrderStatusID == 6 && _context.ServiceDetails.FirstOrDefault(sd => sd.OrderDetail.OrderID == o.OrderID && sd.AfterBuyService.ServicestatusID != 1) == null);
+            foreach (var item in listorderServicepending)
             {
-                DataExchangeStore exchangeStore = new DataExchangeStore();
-                exchangeStore.Create_date = GetVnTime();
-                exchangeStore.ExchangePrice = GetPriceItemOrder(order.OrderID);
-                exchangeStore.OrderID= order.OrderID;
-                exchangeStore.ExchangeStatusID = 3;
-                exchangeStore.ExchangeStoreName = "Đơn hàng";
-                _context.DataExchangeStores.Add(exchangeStore);
+                item.OrderStatusID = 1;
                 _context.SaveChanges();
             }
         }

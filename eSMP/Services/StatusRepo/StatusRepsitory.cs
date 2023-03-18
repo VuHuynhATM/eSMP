@@ -118,7 +118,13 @@ namespace eSMP.Services.StatusRepo
                         StatusName = "Đã đối soát"
                     };
                     break;
-
+                case 6:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Đang xử lý đổi, trả, hoàn"
+                    };
+                    break;
                 default:
                     status = null;
                     break;
@@ -270,6 +276,144 @@ namespace eSMP.Services.StatusRepo
                     {
                         Item_StatusID = statusID,
                         StatusName = "Hoàn thành"
+                    };
+                    break;
+                default:
+                    status = null;
+                    break;
+            }
+            return status;
+        }
+
+        public Status GetStoreDataExchangeStatus(int statusID)
+        {
+            Status status = new Status();
+            switch (statusID)
+            {
+                case 1:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Hoạt động"
+                    };
+                    break;
+                case 2:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Khoá"
+                    };
+                    break;
+                case 3:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Chờ Đối soát"
+                    };
+                    break;
+                default:
+                    status = null;
+                    break;
+            }
+            return status;
+        }
+
+        public Status GetUserDataExchangeStatus(int statusID)
+        {
+            Status status = new Status();
+            switch (statusID)
+            {
+                case 1:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Hoạt động"
+                    };
+                    break;
+                case 2:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Khoá"
+                    };
+                    break;
+                case 3:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Chờ Đối soát"
+                    };
+                    break;
+                default:
+                    status = null;
+                    break;
+            }
+            return status;
+        }
+
+        public Status GetServiceType(int statusID)
+        {
+            Status status = new Status();
+            switch (statusID)
+            {
+                case 1:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Đổi hàng"
+                    };
+                    break;
+                case 2:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Hoàn tiền"
+                    };
+                    break;
+                default:
+                    status = null;
+                    break;
+            }
+            return status;
+        }
+        public Status GetServiceStatus(int statusID)
+        {
+            Status status = new Status();
+            switch (statusID)
+            {
+                case 1:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Hoàn thành"
+                    };
+                    break;
+                case 2:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Hủy"
+                    };
+                    break;
+                case 3:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Chờ xác nhận"
+                    };
+                    break;
+                case 5:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Đã xác nhận"
+                    };
+                    break;
+                case 6:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Yêu cầu xữ lý"
                     };
                     break;
                 default:

@@ -27,10 +27,12 @@ namespace eSMP.VModels
         public string Address { get; set; }
         public List<OrderDetailModel> Details { get; set; }
         public string? Reason { get; set; }
+        public string? Deliver_time { get; set; }
         public string? Pick_Time { get; set; }
         public string? ShipOrderID { get; set; }
         public string? FirebaseID { get; set; }
         public string PaymentMethod { get; set; }
+        public double? RefundPrice { get; set; }
     }
     public class OrderModelView
     {
@@ -57,9 +59,10 @@ namespace eSMP.VModels
         public ShipViewModel OrderShip{ get; set; }
         public string? Reason { get; set; }
         public string? Pick_Time { get; set; }
+        public string? Deliver_time { get; set; }
         public string? FirebaseID { get; set; }
         public string PaymentMethod { get; set; }
-
+        public double? RefundPrice { get; set; }
     }
     public class OrderDetailModel
     {

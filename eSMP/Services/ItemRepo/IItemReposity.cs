@@ -21,7 +21,7 @@ namespace eSMP.Services.ItemRepo
         public Result HiddenItem(int itemID);
         public Result UnHiddensubItem(int subitemID);
         public Result UnHiddenItem(int itemID);
-        public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, bool? isSupplier, int? itemStatusID);
+        public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, int? itemStatusID);
         public Result UpdateBrandModel(int itemID, int[] brandmodelIDs);
         public Result RemoveBrandModel(int itemID, int[] brandmodelIDs);
         public Result UpdateDiscount(int Sub_ItemID, double discsount);

@@ -200,7 +200,7 @@ namespace eSMP.Services.StoreAssetRepo
             int numpage = 1;
             try
             {
-                var listReveneu = _context.OrderSystem_Transactions.AsQueryable();
+                var listReveneu = _context.OrderSystem_Transactions.Where(ost=>ost.OrderStore_Transaction.Order.OrderStatusID==5).AsQueryable();
                 if (From.HasValue)
                 {
                     listReveneu = listReveneu.Where(ost => ost.Create_Date >= From);
@@ -323,7 +323,7 @@ namespace eSMP.Services.StoreAssetRepo
             int numpage = 1;
             try
             {
-                var listReveneu = _context.OrderStore_Transactions.AsQueryable();
+                var listReveneu = _context.OrderStore_Transactions.Where(ost => ost.Order.OrderStatusID == 5).AsQueryable();
                 listReveneu = listReveneu.Where(ot => ot.StoreID == storeID);
                 if (From.HasValue)
                 {
@@ -662,7 +662,7 @@ namespace eSMP.Services.StoreAssetRepo
                 {
                     for (int i = 1; i < 13; i++)
                     {
-                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive).Sum(ost => ost.Price);
+                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive && ost.Order.OrderStatusID==5).Sum(ost => ost.Price);
                         ChartStoreModel model = new ChartStoreModel
                         {
                             amount = sumreveneu,
@@ -677,7 +677,7 @@ namespace eSMP.Services.StoreAssetRepo
                     var yearCrrent = GetVnTime().Year;
                     for (int i = yearStart; i < yearCrrent + 1; i++)
                     {
-                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == i && ost.IsActive).Sum(ost => ost.Price);
+                        var sumreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.Create_Date.Year == i && ost.IsActive && ost.Order.OrderStatusID == 5).Sum(ost => ost.Price);
                         ChartStoreModel model = new ChartStoreModel
                         {
                             amount = sumreveneu,
@@ -712,7 +712,7 @@ namespace eSMP.Services.StoreAssetRepo
                 {
                     for (int i = 1; i < 13; i++)
                     {
-                        var sumreveneuod = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive).Sum(ost => ost.Price);
+                        var sumreveneuod = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == year.Value && ost.Create_Date.Month == i && ost.IsActive&& ost.OrderStore_Transaction.Order.OrderStatusID==5).Sum(ost => ost.Price);
                         var sumreveneust = _context.Stores.Where(ost => ost.Actice_Date.Value.Year == year.Value && ost.Actice_Date.Value.Month == i && ost.Store_StatusID == 1).Sum(ost => ost.AmountActive);
                         ChartModel model = new ChartModel
                         {
@@ -729,7 +729,7 @@ namespace eSMP.Services.StoreAssetRepo
                     var yearCrrent = GetVnTime().Year;
                     for (int i = yearStart; i < yearCrrent + 1; i++)
                     {
-                        var sumreveneuod = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == i && ost.IsActive).Sum(ost => ost.Price);
+                        var sumreveneuod = _context.OrderSystem_Transactions.Where(ost => ost.SystemID == 1 && ost.Create_Date.Year == i && ost.IsActive && ost.OrderStore_Transaction.Order.OrderStatusID == 5).Sum(ost => ost.Price);
                         var sumreveneust = _context.Stores.Where(ost => ost.Actice_Date.Value.Year == i && ost.Store_StatusID == 1).Sum(ost => ost.AmountActive);
                         ChartModel model = new ChartModel
                         {

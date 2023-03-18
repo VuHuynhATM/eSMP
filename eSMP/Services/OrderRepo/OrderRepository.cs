@@ -517,7 +517,9 @@ namespace eSMP.Services.OrderRepo
                             FeeShip = order.FeeShip,
                             Reason = order.Reason,
                             Pick_Time= order.Pick_Time,
+                            Deliver_time= order.Deliver_time,
                             PaymentMethod=order.PaymentMethod,
+                            RefundPrice= order.RefundPrice,
                         };
                         list.Add(model);
                     }
@@ -589,9 +591,11 @@ namespace eSMP.Services.OrderRepo
                             FeeShip = order.FeeShip,
                             Reason = order.Reason,
                             Pick_Time = order.Pick_Time,
+                            Deliver_time = order.Deliver_time,
                             ShipOrderID = shiporder.ShipStatusID,
                             FirebaseID=order.User.FirebaseID,
                             PaymentMethod=order.PaymentMethod,
+                            RefundPrice=order.RefundPrice,
                         };
                         result.Success = true;
                         result.Message = "Thành công";
@@ -624,6 +628,7 @@ namespace eSMP.Services.OrderRepo
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             FeeShip = order.FeeShip,
                             PaymentMethod=order.PaymentMethod,
+                            RefundPrice = order.RefundPrice,
                         };
                         result.Success = true;
                         result.Message = "Thành công";
@@ -958,7 +963,7 @@ namespace eSMP.Services.OrderRepo
                             );
                             break;
                         case "4":
-                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-4" ||
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "4" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "8" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "10" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "410" &&
@@ -1065,8 +1070,10 @@ namespace eSMP.Services.OrderRepo
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             Reason = order.Reason,
                             Pick_Time = order.Pick_Time,
+                            Deliver_time= order.Deliver_time,
                             FirebaseID = order.User.FirebaseID,
                             PaymentMethod = order.PaymentMethod,
+                            RefundPrice=order.RefundPrice,
                         };
                         list.Add(model);
                     }

@@ -11,5 +11,6 @@ namespace eSMP.Services.ShipRepo
         public Result GetShipstatus(int orderID);
         public Result CancelOrder(int orderID);
         public Object GetTicket(int orderID);
+        public ShipReponse CreateOrderService(int ServiceID, string type);
     }
 }

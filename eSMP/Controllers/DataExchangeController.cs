@@ -74,5 +74,71 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
+
+        [HttpGet]
+        [Route("user")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1, 2")]
+        public IActionResult GetUserDataExchanges(int? userID, int? orderID, DateTime? from, DateTime? to, int? page)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                if (role == "2")
+                {
+                    if (userId != userID.Value + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác ", Data = "", TotalPage = 1 });
+                    }
+                }
+                return Ok(_dataExchangeReposity.GetStoreDataExchanges(userID, orderID, from, to, page));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
+        [HttpPut]
+        [Route("user")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
+        public IActionResult FinishUserDataExchanges([FromForm] DataExchangeUserFinish DataExchange)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                return Ok(_dataExchangeReposity.FinishUserDataExchange(DataExchange));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
+        [HttpPut]
+        [Route("user_addcard")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        public IActionResult AddCardUserDataExchanges(DataExchangeUserAddCard DataExchange)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                return Ok(_dataExchangeReposity.AddCardUserDataExchange(DataExchange));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
     }
 }

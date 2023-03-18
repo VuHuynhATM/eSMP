@@ -1,4 +1,5 @@
 ﻿using eSMP.Models;
+using eSMP.Services.AutoService;
 using eSMP.Services.MomoRepo;
 using eSMP.Services.NotificationRepo;
 using eSMP.Services.OrderRepo;
@@ -58,87 +59,447 @@ namespace eSMP.Services.ShipRepo
         {
             try
             {
-                var orderID = int.Parse(partner_id);
+                //check service or order
+                bool checkorder = false;
+                var orderID = -1;
+                var afterServiceID = -1;
+                if (partner_id.IndexOf('_') < 0)
+                {
+                    checkorder = true;
+                    orderID = int.Parse(partner_id);
+                }
+                else
+                {
+                    afterServiceID = int.Parse(partner_id.Split('_')[0]);
+                    orderID = _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == afterServiceID).OrderDetail.Order.OrderID;
+                }
+
                 DateTime datetime = DateTime.Parse(action_time);
                 DateTime cstTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(datetime, TimeZoneInfo.Local.Id, "SE Asia Standard Time");
-                var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == orderID && so.Status_ID == status_id + "" && so.Create_Date == cstTime);
-                if (shipdb != null)
+                if (checkorder)
                 {
-                    return false;
+                    var shipdb = _context.ShipOrders.SingleOrDefault(so => so.OrderID == orderID && so.Status_ID == status_id + "" && so.Create_Date == cstTime);
+                    if (shipdb != null)
+                    {
+                        return false;
+                    }
                 }
+                else
+                {
+                    var shipdb = _context.ShipOrders.SingleOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Status_ID == status_id + "" && so.Create_Date == cstTime);
+                    if (shipdb != null)
+                    {
+                        return false;
+                    }
+                }
+
                 ShipOrder shipOrder = new ShipOrder();
                 shipOrder.Status_ID = status_id + "";
                 shipOrder.Create_Date = cstTime;
                 shipOrder.LabelID = label_id;
                 shipOrder.Reason = reason;
-                shipOrder.OrderID = int.Parse(partner_id);
+                if (checkorder)
+                    shipOrder.OrderID = orderID;
+                else
+                    shipOrder.AfterBuyServiceID = afterServiceID;
                 shipOrder.Reason_code = reason_code;
                 _context.ShipOrders.Add(shipOrder);
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
 
-                //giao hang thanh cong
-                if (status_id == 5)
+                var afterService = _context.AfterBuyServices.SingleOrDefault(af => af.AfterBuyServiceID == afterServiceID);
+                //dối soát gh tk
+                if (status_id == 6)
                 {
-                    if (order.PaymentMethod == "COD")
+                    if (checkorder)
                     {
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                         order.OrderStatusID = 1;
                         _context.SaveChanges();
                     }
                     else
                     {
-                        var comfim = _momoReposity.Value.ConfimOrder(shipOrder.OrderID);
-                    }   
+                        var order = _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == afterServiceID).OrderDetail.Order;
+
+                        if (partner_id.Split('_')[1] == "user" && afterService.ServiceType == 2)
+                        {
+                            if (order.PaymentMethod != "COD")
+                            {
+                                var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                            }
+                            else
+                            {
+                                DataExchangeUser exchangeUser = new DataExchangeUser();
+                                exchangeUser.Create_date = GetVnTime();
+                                exchangeUser.ExchangePrice = GetPriceItemOrderService(afterServiceID);
+                                exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                exchangeUser.ExchangeStatusID = 3;
+                                exchangeUser.ExchangeUserName = "Đối soát cho đơn đổi, trả hoàn";
+                                _context.DataExchangeUsers.Add(exchangeUser);
+                            }
+                            afterService.ServicestatusID = 1;
+                            order.OrderStatusID = 1;
+                            _context.SaveChanges();
+                        }
+                        else if (partner_id.Split('_')[1] == "user" && afterService.ServiceType == 1)
+                        {
+                            ShipReponse shipReponse = CreateOrderService(afterService.ServicestatusID, "store");
+                            if(shipReponse != null)// tao doi hang khac gui cho nguoi mua
+                            {
+                                if (!shipReponse.success)
+                                {
+                                    if (order.PaymentMethod != "COD")
+                                    {
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    }
+                                    else
+                                    {
+                                        DataExchangeUser exchangeUser = new DataExchangeUser();
+                                        exchangeUser.Create_date = GetVnTime();
+                                        exchangeUser.ExchangePrice = GetPriceItemOrderService(afterServiceID);
+                                        exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                        exchangeUser.ExchangeStatusID = 3;
+                                        exchangeUser.ExchangeUserName = "Đối soát cho đơn đổi, trả hoàn";
+                                        _context.DataExchangeUsers.Add(exchangeUser);
+                                    }
+                                    afterService.ServicestatusID = 1;
+                                    order.OrderStatusID = 1;
+                                    _context.SaveChanges();
+                                }
+                            }
+                        }
+                        else if(partner_id.Split('_')[1] == "store")
+                        {
+                            afterService.ServicestatusID = 1;
+                            order.OrderStatusID = 1;
+                            _context.SaveChanges();
+                        }
+                    }
+
+                }
+                //giao hang thanh cong
+                if (status_id == 5)
+                {
+                    if (checkorder)
+                    {
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                        if (order.PaymentMethod == "COD")
+                        {
+                            order.OrderStatusID = 1;
+                            _context.SaveChanges();
+                        }
+                        if (shipOrder.OrderID != null)
+                        {
+                            var comfim = _momoReposity.Value.ConfimOrder(shipOrder.OrderID.Value);
+                        }
+                    }
+
                 }
                 //giao hang that bai
                 if (status_id == 11)
                 {
-                    var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
-                    //kt hàng đã trả cho supplier chưa
-                    var statusshipcheck = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Status_ID == "21");
-                    var status130 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "130");
-                    var status131 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "131");
-                    var status132 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "132");
-                    var status13 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Status_ID == "13");
+                    afterService.ServicestatusID = 4;
+                    if (checkorder)
+                    {
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                        var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
+                        //kt hàng đã trả cho supplier chưa
+                        var statusshipcheck = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Status_ID == "21");
+                        var status130 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "130");
+                        var status131 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "131");
+                        var status132 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Reason_code == "132");
+                        var status13 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Status_ID == "13");
 
-                    if (status130!=null && statusshipcheck!=null)
-                    {
-                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
-                    }
-                    else if ((status131!=null || status132!=null) && statusshipcheck != null)
-                    {
-                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, refundpre);
-                        if (comfim.Success)
+                        if (status130 != null && statusshipcheck != null)
                         {
-                            _momoReposity.Value.ConfimStoreShipOrder(shipOrder.OrderID);
+                            if (shipOrder.OrderID != null)
+                            {
+                                var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
+                            }
+                        }
+                        //doi soat khi giao hang that bai
+                        else if ((status131 != null || status132 != null) && statusshipcheck != null)
+                        {
+                            if (shipOrder.OrderID != null)
+                            {
+                                var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, refundpre);
+                                if (comfim.Success)
+                                {
+                                    _momoReposity.Value.ConfimStoreShipOrder(shipOrder.OrderID.Value);
+                                }
+                            }
+                        }
+                        else if (statusshipcheck == null && status13 != null)// mat hang va da doi soat vs ghtk
+                        {
+                            /*var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
+                            if (comfim.Success)
+                            {
+                                _momoReposity.Value.ConfimStoreShipLostOrder(shipOrder.OrderID);
+                            }*/
+                            //tao doi soat vs shop
+                            DataExchangeStore exchangeStore = new DataExchangeStore();
+                            exchangeStore.Create_date = GetVnTime();
+                            exchangeStore.ExchangePrice = GetPriceItemOrder(order.OrderID) + order.FeeShip;
+                            exchangeStore.OrderID = order.OrderID;
+                            exchangeStore.ExchangeStatusID = 3;
+                            exchangeStore.ExchangeStoreName = "Đơn hàng";
+                            _context.DataExchangeStores.Add(exchangeStore);
+                            _context.SaveChanges();
+                            // hoan tien cho nguoi mua
+                            if (order.PaymentMethod != "COD")
+                            {
+                                if (shipOrder.OrderID != null)
+                                {
+                                    var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
+                                }
+                            }
+                        }
+                        else if (statusshipcheck != null)
+                        {
+                            if (shipOrder.OrderID != null)
+                            {
+                                var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
+                            }
                         }
                     }
-                    else if (statusshipcheck != null && status13!=null)// mat hang va da doi soat vs ghtk
+                    else//service
                     {
-                        /*var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
-                        if (comfim.Success)
+                        if (partner_id.Split('_')[1] == "user")// nguoiw mua gui hang di
                         {
-                            _momoReposity.Value.ConfimStoreShipLostOrder(shipOrder.OrderID);
-                        }*/
-                        DataExchangeStore exchangeStore = new DataExchangeStore();
-                        exchangeStore.Create_date = GetVnTime();
-                        exchangeStore.ExchangePrice = GetPriceItemOrder(order.OrderID);
-                        exchangeStore.OrderID = order.OrderID;
-                        exchangeStore.ExchangeStatusID = 3;
-                        exchangeStore.ExchangeStoreName = "Đơn hàng";
-                        _context.DataExchangeStores.Add(exchangeStore);
-                        _context.SaveChanges();
-                    }
-                    else if (statusshipcheck != null)
-                    {
-                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
+                            var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
+                            var order = _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == afterServiceID).OrderDetail.Order;
+
+                            //kt hàng đã trả cho supplier chưa
+                            var statusshipcheck = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Status_ID == "21");
+                            var status130 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "130");
+                            var status131 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "131");
+                            var status132 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "132");
+                            var status13 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Status_ID == "13");
+
+                            if (status130 != null && statusshipcheck != null)
+                            {
+                                if (shipOrder.AfterBuyServiceID != null)
+                                {
+                                    // giam tien don hang se giai ngan
+                                    //var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    
+                                }
+                            }
+                            //doi soat khi giao hang that bai
+                            else if ((status131 != null || status132 != null) && statusshipcheck != null)
+                            {
+                                if (shipOrder.AfterBuyServiceID != null)
+                                {
+                                    //giam tien don hang se giai ngan
+                                    var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, refundpre);
+                                }
+                            }
+                            else if (statusshipcheck == null && status13 != null)// mat hang va da doi soat vs ghtk
+                            {
+                                //tao doi soat vs user
+                                // hoan tien cho nguoi mua
+                                double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                                if (order.PaymentMethod != "COD")
+                                {
+                                    if (shipOrder.AfterBuyServiceID != null)
+                                    {
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    }
+                                }
+                                else
+                                {
+                                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                                    exchangeUser.Create_date = GetVnTime();
+                                    exchangeUser.ExchangePrice = price + afterService.FeeShip.Value;
+                                    exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                    exchangeUser.ExchangeStatusID = 3;
+                                    exchangeUser.ExchangeUserName = "Đơn đổi, trả hoàn";
+                                    _context.DataExchangeUsers.Add(exchangeUser);
+                                    _context.SaveChanges();
+                                }
+                                //giam tien khi giair ngan
+                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                store_Transaction.Price = store_Transaction.Price - price;
+                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                                //bt cho shop
+                                DataExchangeStore exchangeStore = new DataExchangeStore();
+                                exchangeStore.Create_date = GetVnTime();
+                                exchangeStore.ExchangePrice = price;
+                                exchangeStore.OrderID = order.OrderID;
+                                exchangeStore.ExchangeStatusID = 3;
+                                exchangeStore.ExchangeStoreName = "Đơn đổi, trả hoàn";
+                                _context.DataExchangeStores.Add(exchangeStore);
+                                _context.SaveChanges();
+
+                            }
+                            else if (statusshipcheck != null)//ko su li nhung trh khac
+                            {
+                                /*double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                                if (order.PaymentMethod != "COD")
+                                {
+                                    if (shipOrder.AfterBuyServiceID != null)
+                                    {
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    }
+                                }
+                                else
+                                {
+                                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                                    exchangeUser.Create_date = GetVnTime();
+                                    exchangeUser.ExchangePrice = price + afterService.FeeShip.Value;
+                                    exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                    exchangeUser.ExchangeStatusID = 3;
+                                    exchangeUser.ExchangeUserName = "Đơn đổi, trả hoàn";
+                                    _context.DataExchangeUsers.Add(exchangeUser);
+                                    _context.SaveChanges();
+                                }
+                                //giam tien khi giair ngan
+                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                store_Transaction.Price = store_Transaction.Price - price;
+                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+*/
+                            }
+                            afterService.ServicestatusID = 1;
+                            _context.SaveChanges();
+                        }
+                        else//shop gui hang di
+                        {
+                            var refundpre = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1).Refund_Precent;
+                            var order = _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == afterServiceID).OrderDetail.Order;
+                            //kt hàng đã trả cho supplier chưa
+                            var statusshipcheck = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Status_ID == "21");
+                            var status130 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "130");
+                            var status131 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "131");
+                            var status132 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "132");
+                            var status13 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Status_ID == "13");
+
+                            if (status130 != null && statusshipcheck != null)//Người nhận không đồng ý nhận sản phẩm-> 
+                            {
+                                if (shipOrder.AfterBuyServiceID != null)
+                                {
+                                    // giam tien don hang se giai ngan
+                                    var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                }
+                            }
+                            else if ((status131 != null || status132 != null) && statusshipcheck != null)
+                            {
+                                if (shipOrder.AfterBuyServiceID != null)
+                                {
+                                    //giam tien don hang se giai ngan
+                                    var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, refundpre);
+                                }
+                            }
+                            else if (statusshipcheck == null && status13 != null)// mat hang va da doi soat vs ghtk
+                            {
+                                // hoan tien cho nguoi mua
+                                double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                                if (order.PaymentMethod != "COD")
+                                {
+                                    if (shipOrder.AfterBuyServiceID != null)
+                                    {
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    }
+                                }
+                                else
+                                {
+                                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                                    exchangeUser.Create_date = GetVnTime();
+                                    exchangeUser.ExchangePrice = GetPriceItemOrderService(afterService.AfterBuyServiceID) + afterService.FeeShip.Value;
+                                    exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                    exchangeUser.ExchangeStatusID = 3;
+                                    exchangeUser.ExchangeUserName = "Bồi hoàn đơn đổi, trả hoàn";
+                                    _context.DataExchangeUsers.Add(exchangeUser);
+                                    _context.SaveChanges();
+                                }
+                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                store_Transaction.Price = store_Transaction.Price - price;
+                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                                //bt cho shop
+                                DataExchangeStore exchangeStore = new DataExchangeStore();
+                                exchangeStore.Create_date = GetVnTime();
+                                exchangeStore.ExchangePrice = price;
+                                exchangeStore.OrderID = order.OrderID;
+                                exchangeStore.ExchangeStatusID = 3;
+                                exchangeStore.ExchangeStoreName = "Bồi hoàn đơn đổi, trả hoàn";
+                                _context.DataExchangeStores.Add(exchangeStore);
+                                _context.SaveChanges();
+                            }
+                            else if (statusshipcheck != null)
+                            {
+                                double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                                if (order.PaymentMethod != "COD")
+                                {
+                                    if (shipOrder.AfterBuyServiceID != null)
+                                    {
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    }
+                                }
+                                else
+                                {
+                                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                                    exchangeUser.Create_date = GetVnTime();
+                                    exchangeUser.ExchangePrice = price + afterService.FeeShip.Value;
+                                    exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                    exchangeUser.ExchangeStatusID = 3;
+                                    exchangeUser.ExchangeUserName = "Đơn đổi, trả hoàn";
+                                    _context.DataExchangeUsers.Add(exchangeUser);
+                                    _context.SaveChanges();
+                                }
+                                //giam tien khi giair ngan
+                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                store_Transaction.Price = store_Transaction.Price - price;
+                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                            }
+                            afterService.ServicestatusID = 1;
+                            _context.SaveChanges();
+                        }
                     }
                 }
                 // không lấy được hàng
                 if (status_id == 7)
                 {
-                    var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID, 1);
+                    if (checkorder)
+                    {
+                        if (shipOrder.OrderID != null)
+                        {
+                            var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
+                        }
+                    }
+                    else
+                    {
+                        if (partner_id.Split('_')[1] == "store")
+                        {
+                            var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                            var order = _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == afterServiceID).OrderDetail.Order;
+                            double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                            if (order.PaymentMethod == "COD")
+                            {
+                                DataExchangeUser exchangeUser = new DataExchangeUser();
+                                exchangeUser.Create_date = GetVnTime();
+                                exchangeUser.ExchangePrice = GetPriceItemOrderService(afterService.AfterBuyServiceID) + afterService.FeeShip.Value;
+                                exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                exchangeUser.ExchangeStatusID = 3;
+                                exchangeUser.ExchangeUserName = "Bồi hoàn đơn đổi, trả hoàn";
+                                _context.DataExchangeUsers.Add(exchangeUser);
+                                _context.SaveChanges();
+                            }
+                            var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                            OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                            store_Transaction.Price = store_Transaction.Price - price;
+                            OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                            system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+
+                        }
+                        afterService.ServicestatusID = 1;
+                        _context.SaveChanges();
+                    }
                 }
-                _context.SaveChanges();
                 //thhong bao
                 var statustext = "";
                 var status = _context.ShipStatuses.SingleOrDefault(s => s.Status_ID == status_id + "");
@@ -146,13 +507,14 @@ namespace eSMP.Services.ShipRepo
                 {
                     statustext = status.Status_Name;
                 }
-                _notification.Value.CreateNotifiaction(order.UserID, "cập nhập trạng thái đơn hàng: " + statustext, null, orderID, null);
+                var ordernoty = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                _notification.Value.CreateNotifiaction(ordernoty.UserID, "cập nhập trạng thái đơn hàng: " + statustext, null, orderID, null);
                 Notification notification = new Notification
                 {
                     title = "Cập nhập đơn hàng " + orderID,
                     body = "Đơn hàng " + orderID + " đang trong trạng thái: " + shipOrder.ShipStatus.Status_Name,
                 };
-                var user = _context.Users.SingleOrDefault(u => u.UserID == order.UserID);
+                var user = _context.Users.SingleOrDefault(u => u.UserID == ordernoty.UserID);
                 FirebaseNotification firebaseNotification = new FirebaseNotification
                 {
                     notification = notification,
@@ -160,7 +522,7 @@ namespace eSMP.Services.ShipRepo
                 };
                 _notification.Value.PushUserNotificationAsync(firebaseNotification);
                 //supplier
-                var store=GetStore(orderID);
+                var store = GetStore(orderID);
                 _notification.Value.CreateNotifiaction(store.UserID, "cập nhập trạng thái đơn hàng: " + statustext, null, orderID, null);
                 Notification notificationsup = new Notification
                 {
@@ -265,7 +627,7 @@ namespace eSMP.Services.ShipRepo
                     tel = order.Tel,
                     value = (int)priceOrder,
                     transport = "road",
-                    pick_option="cod",
+                    pick_option = "cod",
                 };
                 if (order.PaymentMethod == "COD")
                 {
@@ -292,6 +654,7 @@ namespace eSMP.Services.ShipRepo
                         shipOrder.OrderID = int.Parse(Shipreponse.order.partner_id);
                         shipOrder.Reason_code = "";
                         order.Pick_Time = Shipreponse.order.estimated_pick_time;
+                        order.Deliver_time = Shipreponse.order.estimated_deliver_time;
                         _context.ShipOrders.Add(shipOrder);
                         _context.SaveChanges();
                     }
@@ -536,7 +899,7 @@ namespace eSMP.Services.ShipRepo
                 if (orderStatus != null)
                 {
                     Stream stream = GetTicketAsync(orderStatus.LabelID).Result;
-                    if(stream != null)
+                    if (stream != null)
                     {
                         byte[] m_Bytes = ReadToEnd(stream);
 
@@ -570,6 +933,120 @@ namespace eSMP.Services.ShipRepo
                 result.TotalPage = 1;
                 return result;
             }
+        }
+
+
+        public ShipReponse CreateOrderService(int ServiceID, string type)
+        {
+            try
+            {
+                var afterBuyService = _context.AfterBuyServices.SingleOrDefault(o => o.AfterBuyServiceID == ServiceID && o.ServicestatusID == 5);
+                var listoderdetai = _context.ServiceDetails.Where(sd => sd.AfterBuyServiceID == ServiceID);
+                var listproduct = new List<productsShip>();
+                foreach (var item in listoderdetai)
+                {
+                    productsShip pro = new productsShip
+                    {
+                        name = item.OrderDetail.Sub_Item.Sub_ItemName,
+                        price = (int)item.OrderDetail.PricePurchase,
+                        product_code = item.OrderDetail.Sub_ItemID,
+                        quantity = item.Amount,
+                        weight = GetWeightOfSubItem(item.OrderDetail.Sub_ItemID) / (double)1000,
+                    };
+                    listproduct.Add(pro);
+                }
+                var priceOrder = GetPriceItemOrderService(ServiceID);
+                orderrequest shiporder = new orderrequest();
+                if (type == "user")
+                {
+                    orderrequest shiporderuser = new orderrequest
+                    {
+                        id = afterBuyService.ServicestatusID + "_" + type + "_" + afterBuyService.ServiceType,
+                        pick_name = afterBuyService.User_Name,
+                        pick_address = afterBuyService.User_Address,
+                        pick_ward = afterBuyService.User_Ward,
+                        pick_district = afterBuyService.User_District,
+                        pick_province = afterBuyService.User_Province,
+                        pick_street = "",
+                        pick_tel = afterBuyService.User_Tel,
+                        pick_money = 0,
+                        is_freeship = 1,
+                        name = afterBuyService.Store_Name,
+                        address = afterBuyService.Store_Address,
+                        district = afterBuyService.Store_District,
+                        province = afterBuyService.Store_Province,
+                        hamlet = afterBuyService.Store_Address,
+                        street = "",
+                        ward = afterBuyService.Store_Ward,
+                        tel = afterBuyService.Store_Tel,
+                        value = (int)priceOrder,
+                        transport = "road",
+                        pick_option = "cod",
+                    };
+                }
+                else
+                {
+                    orderrequest shiporderuser = new orderrequest
+                    {
+                        id = afterBuyService.ServicestatusID + "_" + type + "_" + afterBuyService.ServiceType,
+                        pick_name = afterBuyService.Store_Name,
+                        pick_address = afterBuyService.Store_Address,
+                        pick_ward = afterBuyService.Store_Ward,
+                        pick_district = afterBuyService.Store_District,
+                        pick_province = afterBuyService.Store_Province,
+                        pick_street = "",
+                        pick_tel = afterBuyService.Store_Tel,
+                        pick_money = 0,
+                        is_freeship = 1,
+                        name = afterBuyService.User_Name,
+                        address = afterBuyService.User_Address,
+                        district = afterBuyService.User_District,
+                        province = afterBuyService.User_Province,
+                        hamlet = afterBuyService.User_Address,
+                        street = "",
+                        ward = afterBuyService.User_Ward,
+                        tel = afterBuyService.User_Tel,
+                        value = (int)priceOrder,
+                        transport = "road",
+                        pick_option = "cod",
+                    };
+                }
+                ShipOrderRequest request = new ShipOrderRequest
+                {
+                    order = shiporder,
+                    products = listproduct,
+                };
+                var Shipreponse = CreateOrderAsync(request).Result;
+
+                if (Shipreponse.success)
+                {
+                    ShipOrder shipOrder = new ShipOrder();
+                    shipOrder.Status_ID = "-2";
+                    DateTime datetime = GetVnTime();
+                    shipOrder.Create_Date = datetime;
+                    shipOrder.LabelID = Shipreponse.order.label;
+                    shipOrder.Reason = "";
+                    shipOrder.AfterBuyServiceID = int.Parse(Shipreponse.order.partner_id);
+                    shipOrder.Reason_code = "";
+                    afterBuyService.estimated_pick_time = Shipreponse.order.estimated_pick_time;
+                    afterBuyService.estimated_deliver_time = Shipreponse.order.estimated_deliver_time;
+                    _context.ShipOrders.Add(shipOrder);
+                    _context.SaveChanges();
+                }
+                return Shipreponse;
+            }
+            catch (Exception ex)
+            {
+                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+                role.RoleName = role.RoleName + ex.Message;
+                _context.SaveChanges();
+                return null;
+            }
+        }
+        public double GetPriceItemOrderService(int serviceID)
+        {
+            double price = _context.ServiceDetails.Where(s => s.AfterBuyServiceID == serviceID).Sum(s => s.Amount * s.OrderDetail.PricePurchase);
+            return price;
         }
     }
 }

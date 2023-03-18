@@ -1171,7 +1171,7 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, bool? isSupplier, int? itemStatusID)
+        public Result SearchItemForAdmin(string? search, double? min, double? max, double? rate, int? cateID, int? subCateID, int? brandID, int? brandModelID, string? sortBy, double? lat, double? lot, int? storeID, int? page, int? itemStatusID)
         {
             Result result = new Result();
             int numpage = 1;
@@ -1227,11 +1227,11 @@ namespace eSMP.Services.ItemRepo
 
                 }
                 // item khong bi block
-                if (isSupplier.HasValue)
+               /* if (isSupplier.HasValue)
                 {
                     if (isSupplier.Value)
                         listItem = listItem.Where(i => i.Item_StatusID != 2);
-                }
+                }*/
                 //store active
 
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
@@ -1487,7 +1487,7 @@ namespace eSMP.Services.ItemRepo
             int numpage = 1;
             try
             {
-                var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID).ItemID == itemID).AsQueryable();
+                var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && itemID==si.ItemID)!=null && od.Feedback_StatusID != null).AsQueryable();
                 if (page.HasValue)
                 {
                     numpage = (int)Math.Ceiling((double)listorderdetail.Count() / (double)PAGE_SIZE);

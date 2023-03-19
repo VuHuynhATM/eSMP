@@ -13,5 +13,7 @@ namespace eSMP.Services.StatusRepo
         public Status GetReportStatus(int statusID);
         public Status GetStoreDataExchangeStatus(int statusID);
         public Status GetUserDataExchangeStatus(int statusID);
+        public Status GetServiceStatus(int statusID);
+        public Status GetServiceType(int statusID);
     }
 }

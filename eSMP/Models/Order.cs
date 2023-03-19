@@ -31,5 +31,6 @@ namespace eSMP.Models
         public string? Deliver_time { get; set; }
         public string? PaymentMethod { get; set; }
         public double? RefundPrice { get; set; } 
+        public string? PackingLink { get; set; }
     }
 }

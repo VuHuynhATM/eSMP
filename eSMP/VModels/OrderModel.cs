@@ -63,6 +63,9 @@ namespace eSMP.VModels
         public string? FirebaseID { get; set; }
         public string PaymentMethod { get; set; }
         public double? RefundPrice { get; set; }
+        public string? PackingLink { get; set; }
+        public bool HasStoreDataExchange { get; set; }
+        public bool HasUserDataExchange { get; set; }
     }
     public class OrderDetailModel
     {
@@ -95,5 +98,10 @@ namespace eSMP.VModels
         public int Rate { get; set; }
         public string? Text { get; set; }
         public IFormFileCollection? feedbackImages { get; set; }
+    }
+    public class PakingOrderUpdateLink
+    {
+        public int OrderID { get; set; }
+        public string PakingLink { get; set; }
     }
 }

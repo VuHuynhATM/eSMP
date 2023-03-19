@@ -8,5 +8,6 @@ namespace eSMP.Services.AfterBuyServiceRepo
         public Result AcceptService(int serviceID);
         public Result CancelService(int serviceID, string reason);
         public Result WarningService(int serviceID);
+        public Result GetServices(int? serviceID, int? storeID, int? orderID, int? userID, DateTime? from, DateTime? to, int? serviceType, int? servicestatusID, int? page);
     }
 }

@@ -104,7 +104,7 @@ namespace eSMP.Services.ShipRepo
                     shipOrder.AfterBuyServiceID = afterServiceID;
                 shipOrder.Reason_code = reason_code;
                 _context.ShipOrders.Add(shipOrder);
-
+                _context.SaveChanges();
                 var afterService = _context.AfterBuyServices.SingleOrDefault(af => af.AfterBuyServiceID == afterServiceID);
                 //dối soát gh tk
                 if (status_id == 6)
@@ -134,6 +134,14 @@ namespace eSMP.Services.ShipRepo
                                 exchangeUser.ExchangeStatusID = 3;
                                 exchangeUser.ExchangeUserName = "Đối soát cho đơn đổi, trả hoàn";
                                 _context.DataExchangeUsers.Add(exchangeUser);
+                                //giam tien khi giair ngan
+                                double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                store_Transaction.Price = store_Transaction.Price - price;
+                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                                _context.SaveChanges();
                             }
                             afterService.ServicestatusID = 1;
                             order.OrderStatusID = 1;
@@ -158,7 +166,9 @@ namespace eSMP.Services.ShipRepo
                                         exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
                                         exchangeUser.ExchangeStatusID = 3;
                                         exchangeUser.ExchangeUserName = "Đối soát cho đơn đổi, trả hoàn";
+                                        afterService.FeeShipSercond = shipReponse.order.fee;
                                         _context.DataExchangeUsers.Add(exchangeUser);
+                                        _context.SaveChanges();
                                     }
                                     afterService.ServicestatusID = 1;
                                     order.OrderStatusID = 1;
@@ -191,12 +201,10 @@ namespace eSMP.Services.ShipRepo
                             var comfim = _momoReposity.Value.ConfimOrder(shipOrder.OrderID.Value);
                         }
                     }
-
                 }
                 //giao hang that bai
                 if (status_id == 11)
                 {
-                    afterService.ServicestatusID = 4;
                     if (checkorder)
                     {
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
@@ -274,7 +282,7 @@ namespace eSMP.Services.ShipRepo
                             var status132 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "132");
                             var status13 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Status_ID == "13");
 
-                            if (status130 != null && statusshipcheck != null)
+                            if (status130 != null && statusshipcheck != null)//nguoi mua tra hang ve nhung shop ko chap nhan ---> dich vu vo hieu
                             {
                                 if (shipOrder.AfterBuyServiceID != null)
                                 {
@@ -283,21 +291,45 @@ namespace eSMP.Services.ShipRepo
                                     
                                 }
                             }
-                            //doi soat khi giao hang that bai
-                            else if ((status131 != null || status132 != null) && statusshipcheck != null)
+                            else if ((status131 != null || status132 != null) && statusshipcheck != null)// người mua tra hàng ve nhung ko lien lac duoc vs shop
                             {
-                                if (shipOrder.AfterBuyServiceID != null)
+                                if (order.PaymentMethod != "COD")// tra tien dich vu cho nguoi thanh toan, tao doi soat cho người shipCOD giam tien doanh thu tu dơn hàng 
                                 {
-                                    //giam tien don hang se giai ngan
-                                    var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, refundpre);
+                                    if(shipOrder.AfterBuyServiceID != null)
+                                {
+                                        //giam tien don hang se giai ngan
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    }
                                 }
+                                else
+                                {
+                                    double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+
+                                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                                    exchangeUser.Create_date = GetVnTime();
+                                    exchangeUser.ExchangePrice = price;
+                                    exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                    exchangeUser.ExchangeStatusID = 3;
+                                    exchangeUser.ExchangeUserName = "Bồi hoàn đơn đổi, trả hoàn";
+                                    _context.DataExchangeUsers.Add(exchangeUser);
+
+                                    //giam tien khi giair ngan
+                                    var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                    OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                    store_Transaction.Price = store_Transaction.Price - price;
+                                    OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                    system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+
+                                    _context.SaveChanges();
+                                }
+                                
                             }
                             else if (statusshipcheck == null && status13 != null)// mat hang va da doi soat vs ghtk
                             {
                                 //tao doi soat vs user
                                 // hoan tien cho nguoi mua
                                 double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
-                                if (order.PaymentMethod != "COD")
+                                if (order.PaymentMethod != "COD")//tra tien dich vu cho nguoi thanh toan, tao doi soat cho người shipCOD giam tien doanh thu tu dơn hàng, tao đối sot vs shop
                                 {
                                     if (shipOrder.AfterBuyServiceID != null)
                                     {
@@ -308,31 +340,33 @@ namespace eSMP.Services.ShipRepo
                                 {
                                     DataExchangeUser exchangeUser = new DataExchangeUser();
                                     exchangeUser.Create_date = GetVnTime();
-                                    exchangeUser.ExchangePrice = price + afterService.FeeShip.Value;
+                                    exchangeUser.ExchangePrice = price + afterService.FeeShipFisrt.Value;
                                     exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
                                     exchangeUser.ExchangeStatusID = 3;
-                                    exchangeUser.ExchangeUserName = "Đơn đổi, trả hoàn";
+                                    exchangeUser.ExchangeUserName = "Mất hàng đơn đổi, trả hoàn";
                                     _context.DataExchangeUsers.Add(exchangeUser);
+                                    //_context.SaveChanges();
+                                    //giam tien khi giair ngan
+                                    var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                    OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                    store_Transaction.Price = store_Transaction.Price - price;
+                                    OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                    system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
                                     _context.SaveChanges();
                                 }
-                                //giam tien khi giair ngan
-                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
-                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
-                                store_Transaction.Price = store_Transaction.Price - price;
-                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
-                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                                
                                 //bt cho shop
                                 DataExchangeStore exchangeStore = new DataExchangeStore();
                                 exchangeStore.Create_date = GetVnTime();
                                 exchangeStore.ExchangePrice = price;
                                 exchangeStore.OrderID = order.OrderID;
                                 exchangeStore.ExchangeStatusID = 3;
-                                exchangeStore.ExchangeStoreName = "Đơn đổi, trả hoàn";
+                                exchangeStore.ExchangeStoreName = "Mất hàng đơn đổi, trả hoàn";
                                 _context.DataExchangeStores.Add(exchangeStore);
                                 _context.SaveChanges();
 
                             }
-                            else if (statusshipcheck != null)//ko su li nhung trh khac
+                            else if (statusshipcheck != null)//ngoai lỗi 2 lỗi của shop thì con lại là của người mua(người mua gủi di)
                             {
                                 /*double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
                                 if (order.PaymentMethod != "COD")
@@ -375,25 +409,71 @@ namespace eSMP.Services.ShipRepo
                             var status132 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Reason_code == "132");
                             var status13 = _context.ShipOrders.FirstOrDefault(so => so.AfterBuyServiceID == afterServiceID && so.Status_ID == "13");
 
-                            if (status130 != null && statusshipcheck != null)//Người nhận không đồng ý nhận sản phẩm-> 
+                            if (status130 != null && statusshipcheck != null)//Người mua không đồng ý nhận sản phẩm-> hoan tiền cho người mua,nếu ship cod tạo đối soát, giảm tiền lời đơn hàng
                             {
-                                if (shipOrder.AfterBuyServiceID != null)
+                                if (order.PaymentMethod != "COD")
                                 {
-                                    // giam tien don hang se giai ngan
-                                    var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    if (shipOrder.AfterBuyServiceID != null)
+                                    {
+                                        // giam tien don hang se giai ngan
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                                    }
                                 }
+                                else
+                                {
+                                    double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                                    exchangeUser.Create_date = GetVnTime();
+                                    exchangeUser.ExchangePrice = price;
+                                    exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                    exchangeUser.ExchangeStatusID = 3;
+                                    exchangeUser.ExchangeUserName = "Bồi hoàn đơn đổi, trả hoàn";
+                                    _context.DataExchangeUsers.Add(exchangeUser);
+
+                                    var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                    OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                    store_Transaction.Price = store_Transaction.Price - price;
+                                    OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                    system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+
+                                    _context.SaveChanges();
+                                }
+                                
                             }
-                            else if ((status131 != null || status132 != null) && statusshipcheck != null)
+                            else if ((status131 != null || status132 != null) && statusshipcheck != null)// lien hệ khong được người mua , hoàn tiền cho người mua , tạo đối soát cho ship cod, giảm lời đơn hàng chỉ hoản lại refundpre%%% 
                             {
-                                if (shipOrder.AfterBuyServiceID != null)
+                                if (order.PaymentMethod != "COD")
                                 {
-                                    //giam tien don hang se giai ngan
-                                    var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, refundpre);
+                                    if (shipOrder.AfterBuyServiceID != null)
+                                    {
+                                        //giam tien don hang se giai ngan
+                                        var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, refundpre);
+                                    }
                                 }
+                                else
+                                {
+                                    double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
+                                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                                    exchangeUser.Create_date = GetVnTime();
+                                    exchangeUser.ExchangePrice = price * refundpre;
+                                    exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
+                                    exchangeUser.ExchangeStatusID = 3;
+                                    exchangeUser.ExchangeUserName = "Bồi hoàn đơn đổi, trả hoàn";
+                                    _context.DataExchangeUsers.Add(exchangeUser);
+
+                                    var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                    OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                    store_Transaction.Price = store_Transaction.Price - price * refundpre;
+                                    OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                    system_Transaction.Price = system_Transaction.Price - (price * refundpre * system_Transaction.eSMP_System.Commission_Precent);
+
+                                    _context.SaveChanges();
+                                }
+                                
                             }
                             else if (statusshipcheck == null && status13 != null)// mat hang va da doi soat vs ghtk
                             {
-                                // hoan tien cho nguoi mua
+                                // hoan tien cho nguoi mua, tạo đối soát cho shipcod,tao đối soat có shop, giảm tiền lời
                                 double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
                                 if (order.PaymentMethod != "COD")
                                 {
@@ -406,18 +486,21 @@ namespace eSMP.Services.ShipRepo
                                 {
                                     DataExchangeUser exchangeUser = new DataExchangeUser();
                                     exchangeUser.Create_date = GetVnTime();
-                                    exchangeUser.ExchangePrice = GetPriceItemOrderService(afterService.AfterBuyServiceID) + afterService.FeeShip.Value;
+                                    exchangeUser.ExchangePrice = GetPriceItemOrderService(afterService.AfterBuyServiceID);
                                     exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
                                     exchangeUser.ExchangeStatusID = 3;
                                     exchangeUser.ExchangeUserName = "Bồi hoàn đơn đổi, trả hoàn";
                                     _context.DataExchangeUsers.Add(exchangeUser);
+
+                                    var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                    OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                    store_Transaction.Price = store_Transaction.Price - price;
+                                    OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                    system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                                    
                                     _context.SaveChanges();
                                 }
-                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
-                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
-                                store_Transaction.Price = store_Transaction.Price - price;
-                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
-                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                                
                                 //bt cho shop
                                 DataExchangeStore exchangeStore = new DataExchangeStore();
                                 exchangeStore.Create_date = GetVnTime();
@@ -428,7 +511,7 @@ namespace eSMP.Services.ShipRepo
                                 _context.DataExchangeStores.Add(exchangeStore);
                                 _context.SaveChanges();
                             }
-                            else if (statusshipcheck != null)
+                            else if (statusshipcheck != null)// ngoài trừ 2 lỗi của người mua(shop gửi đi) hoàn lại tiền cho người mua, tao doi soát cod
                             {
                                 double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
                                 if (order.PaymentMethod != "COD")
@@ -442,19 +525,20 @@ namespace eSMP.Services.ShipRepo
                                 {
                                     DataExchangeUser exchangeUser = new DataExchangeUser();
                                     exchangeUser.Create_date = GetVnTime();
-                                    exchangeUser.ExchangePrice = price + afterService.FeeShip.Value;
+                                    exchangeUser.ExchangePrice = price ;
                                     exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
                                     exchangeUser.ExchangeStatusID = 3;
                                     exchangeUser.ExchangeUserName = "Đơn đổi, trả hoàn";
                                     _context.DataExchangeUsers.Add(exchangeUser);
+                                    //giam tien khi giair ngan
+                                    var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                    OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                    store_Transaction.Price = store_Transaction.Price - price;
+                                    OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                    system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
                                     _context.SaveChanges();
                                 }
-                                //giam tien khi giair ngan
-                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
-                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
-                                store_Transaction.Price = store_Transaction.Price - price;
-                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
-                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+                                
                             }
                             afterService.ServicestatusID = 1;
                             _context.SaveChanges();
@@ -473,29 +557,35 @@ namespace eSMP.Services.ShipRepo
                     }
                     else
                     {
-                        if (partner_id.Split('_')[1] == "store")
+                        if (partner_id.Split('_')[1] == "store")//ko lấy được hàng tại shop> hoàn tiền
                         {
-                            var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                            
                             var order = _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == afterServiceID).OrderDetail.Order;
                             double price = GetPriceItemOrderService(afterService.AfterBuyServiceID);
                             if (order.PaymentMethod == "COD")
                             {
                                 DataExchangeUser exchangeUser = new DataExchangeUser();
                                 exchangeUser.Create_date = GetVnTime();
-                                exchangeUser.ExchangePrice = GetPriceItemOrderService(afterService.AfterBuyServiceID) + afterService.FeeShip.Value;
+                                exchangeUser.ExchangePrice = GetPriceItemOrderService(afterService.AfterBuyServiceID) + afterService.FeeShipSercond.Value;
                                 exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
                                 exchangeUser.ExchangeStatusID = 3;
                                 exchangeUser.ExchangeUserName = "Bồi hoàn đơn đổi, trả hoàn";
                                 _context.DataExchangeUsers.Add(exchangeUser);
+
+                                var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
+                                OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+                                store_Transaction.Price = store_Transaction.Price - price;
+                                OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+                                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+
                                 _context.SaveChanges();
                             }
-                            var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
-                            OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
-                            store_Transaction.Price = store_Transaction.Price - price;
-                            OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
-                            system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
-
+                            else
+                            {
+                                var comfim = _momoReposity.Value.RefundService(shipOrder.AfterBuyServiceID.Value, 1);
+                            }
                         }
+                        // cac truong hop còn lại là ko lấy được hàng tại người mua coi như sẻvicẻ đã hoan thành
                         afterService.ServicestatusID = 1;
                         _context.SaveChanges();
                     }
@@ -943,7 +1033,7 @@ namespace eSMP.Services.ShipRepo
                 var afterBuyService = _context.AfterBuyServices.SingleOrDefault(o => o.AfterBuyServiceID == ServiceID && o.ServicestatusID == 5);
                 var listoderdetai = _context.ServiceDetails.Where(sd => sd.AfterBuyServiceID == ServiceID);
                 var listproduct = new List<productsShip>();
-                foreach (var item in listoderdetai)
+                foreach (var item in listoderdetai.ToList())
                 {
                     productsShip pro = new productsShip
                     {

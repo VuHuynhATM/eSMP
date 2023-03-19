@@ -355,12 +355,38 @@ namespace eSMP.Controllers
             }
         }
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
         [Route("check_pay")]
         public IActionResult CheckOrderPay(int orderID)
         {
             try
             {
                 return Ok(_orderReposity.CheckPay(orderID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
+
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        [Route("add_paking_link")]
+        public IActionResult AddPakingLing(PakingOrderUpdateLink orderLink)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userIdOfOrder = _orderReposity.GetUserIDByOrderID(orderLink.OrderID);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                if (userId != userIdOfOrder + "")
+                {
+                    return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
+                }
+                return Ok(_orderReposity.UpdateLinkPakingOrder(orderLink));
             }
             catch
             {

@@ -9,7 +9,8 @@ namespace eSMP.Models
         [Key]
         public int AfterBuyServiceID { get; set; }
         public DateTime Create_Date { get; set; }
-        public double? FeeShip { get; set; }
+        public double? FeeShipFisrt { get; set; }
+        public double? FeeShipSercond { get; set; }
         public string User_Province { get; set; }
         public string User_District { get; set; }
         public string User_Ward { get; set; }
@@ -28,5 +29,6 @@ namespace eSMP.Models
         public int ServiceType { get; set; }
         public string? estimated_pick_time { get; set; }
         public string? estimated_deliver_time { get; set; }
+        public string PackingLinkCus { get; set; }
     }
 }

@@ -26,5 +26,6 @@ namespace eSMP.Services.OrderRepo
         public int GetSuppilerIDByOrderID(int orderID);
         public int GetUserIDByOrderDetailID(int orderDetailID);
         public int GetSuppilerIDByOrderDetailID(int orderDetailID);
+        public Result UpdateLinkPakingOrder(PakingOrderUpdateLink orderLink);
     }
 }

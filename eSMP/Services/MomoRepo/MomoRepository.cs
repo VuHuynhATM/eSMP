@@ -1041,14 +1041,16 @@ namespace eSMP.Services.MomoRepo
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
             var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent);
             var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>();
+
+            afterService.RefundPrice = price;
+            OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
+            store_Transaction.Price = store_Transaction.Price - price;
+            OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
+            system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
+            _context.SaveChanges();
+
             if (contents.Result.resultCode == 0)
             {
-                afterService.RefundPrice = price;
-                OrderStore_Transaction store_Transaction=_context.OrderStore_Transactions.SingleOrDefault(os=>os.OrderStore_TransactionID == ordertransaction.TransactionID);
-                store_Transaction.Price= store_Transaction.Price-price;
-                OrderSystem_Transaction system_Transaction=_context.OrderSystem_Transactions.SingleOrDefault(so=>so.OrderStore_TransactionID== store_Transaction.OrderStore_TransactionID);
-                system_Transaction.Price = system_Transaction.Price - (price * system_Transaction.eSMP_System.Commission_Precent);
-                _context.SaveChanges();
                 return contents.Result;
             }//đối soat hoan thât bại
             DataExchangeUser exchangeUser = new DataExchangeUser();

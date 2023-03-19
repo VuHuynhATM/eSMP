@@ -985,12 +985,11 @@ namespace eSMP.Services.OrderRepo
                             );
                             break;
                         case "7":
-                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "6" && o.OrderStatusID==5||
-                            o.OrderStatusID==3
+                            orders = orders.Where(o => o.OrderStatusID==5
                             );
                             break;
                         case "8":
-                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Reason_code == "129"
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "13") !=null
                             );
                             break;
                     }
@@ -1045,6 +1044,16 @@ namespace eSMP.Services.OrderRepo
                     List<OrderModelView> list = new List<OrderModelView>();
                     foreach (var order in orders.ToList())
                     {
+                        bool hasStoreDatachange = false;
+                        bool hasUsersDatachange = false;
+                        if (_context.DataExchangeStores.FirstOrDefault(ds => ds.OrderID == orderID) != null)
+                        {
+                            hasStoreDatachange = true;
+                        }
+                        if (_context.DataExchangeUsers.FirstOrDefault(ds => ds.OrderID == orderID) != null)
+                        {
+                            hasUsersDatachange = true;
+                        }
                         OrderModelView model = new OrderModelView
                         {
                             OrderID = order.OrderID,
@@ -1070,10 +1079,13 @@ namespace eSMP.Services.OrderRepo
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             Reason = order.Reason,
                             Pick_Time = order.Pick_Time,
-                            Deliver_time= order.Deliver_time,
+                            Deliver_time = order.Deliver_time,
                             FirebaseID = order.User.FirebaseID,
                             PaymentMethod = order.PaymentMethod,
-                            RefundPrice=order.RefundPrice,
+                            RefundPrice = order.RefundPrice,
+                            HasStoreDataExchange = hasStoreDatachange,
+                            HasUserDataExchange = hasUsersDatachange,
+                            PackingLink = order.PackingLink,
                         };
                         list.Add(model);
                     }
@@ -1455,6 +1467,39 @@ namespace eSMP.Services.OrderRepo
             var orderdetail = _context.OrderDetails.FirstOrDefault(od => od.OrderDetailID == orderDetailID);
             var store = GetStoreBySubItemID(orderdetail.Sub_ItemID);
             return store.User.UserID;
+        }
+
+        public Result UpdateLinkPakingOrder(PakingOrderUpdateLink orderLink)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderLink.OrderID && o.OrderStatusID != 2);
+                if (order != null)
+                {
+                    order.PackingLink = orderLink.PakingLink;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thanh toán thành công";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Thanh toán thất bại";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
         }
     }
 }

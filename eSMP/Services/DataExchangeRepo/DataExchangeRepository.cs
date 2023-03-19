@@ -42,6 +42,16 @@ namespace eSMP.Services.DataExchangeRepo
                     img.Path = path;
                     img.IsActive = true;
                     Exchange.Image = img;
+                    if (Exchange.OrderID != null)
+                    {
+                        var store = _context.Stores.SingleOrDefault(s => _context.OrderDetails.FirstOrDefault(od => od.OrderID == Exchange.OrderID && od.Sub_Item.Item.StoreID == s.StoreID) != null);
+                        store.Asset = store.Asset + Exchange.ExchangePrice;
+                    }
+                    if (Exchange.AfterBuyServiceID != null)
+                    {
+                        var store = _context.Stores.SingleOrDefault(s => _context.ServiceDetails.FirstOrDefault(od => od.AfterBuyServiceID == Exchange.AfterBuyServiceID && od.OrderDetail.Sub_Item.Item.StoreID == s.StoreID) != null);
+                        store.Asset = store.Asset + Exchange.ExchangePrice;
+                    }
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";
@@ -73,7 +83,7 @@ namespace eSMP.Services.DataExchangeRepo
             return VnTime;
         }
 
-        public Result GetStoreDataExchanges(int? storeID, int? orderID, DateTime? from, DateTime? to, int? page)
+        public Result GetStoreDataExchanges(int? storeID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? page)
         {
             Result result = new Result();
             int numpage = 1;
@@ -87,6 +97,10 @@ namespace eSMP.Services.DataExchangeRepo
                 if (orderID.HasValue)
                 {
                     listExchange = listExchange.Where(de => de.OrderID == orderID);
+                }
+                if (serviceID.HasValue)
+                {
+                    listExchange = listExchange.Where(de => de.AfterBuyServiceID == serviceID);
                 }
                 if (from.HasValue)
                 {
@@ -138,7 +152,7 @@ namespace eSMP.Services.DataExchangeRepo
             }
         }
 
-        public Result GetUserDataExchanges(int? UserID, int? orderID, DateTime? from, DateTime? to, int? page)
+        public Result GetUserDataExchanges(int? UserID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? page)
         {
             Result result = new Result();
             int numpage = 1;
@@ -152,6 +166,10 @@ namespace eSMP.Services.DataExchangeRepo
                 if (orderID.HasValue)
                 {
                     listExchange = listExchange.Where(de => de.OrderID == orderID);
+                }
+                if (serviceID.HasValue)
+                {
+                    listExchange=listExchange.Where(de=>de.AfterBuyServiceID==serviceID);
                 }
                 if (from.HasValue)
                 {

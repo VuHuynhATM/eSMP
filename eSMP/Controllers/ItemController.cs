@@ -95,11 +95,11 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         [Route("item_feedback")]
-        public IActionResult GetListFeedback(int itemID, int? page)
+        public IActionResult GetListFeedback(int itemID, int? page, int? role)
         {
             try
             {
-                var result = _itemReposity.GetListFeedback(itemID,page);
+                var result = _itemReposity.GetListFeedback(itemID,page, role);
                 return Ok(result);
             }
             catch

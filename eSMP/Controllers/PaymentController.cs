@@ -65,13 +65,13 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
-        [Authorize(AuthenticationSchemes = "AuthDemo")]
+        //[Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("cancel_order")]
         public IActionResult CancelOrder(int orderID, string reason)
         {
             try
             {
-                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                /*var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var roleid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
                 var userIdOfOrder = _orderReposity.GetUserIDByOrderID(orderID);
                 var supplierIDOfOrder = _orderReposity.GetSuppilerIDByOrderID(orderID);
@@ -92,7 +92,7 @@ namespace eSMP.Controllers
                     {
                         return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", TotalPage = 1 });
                     }
-                }
+                }*/
                 return Ok(_momoReposity.CancelOrder(orderID, reason));
             }
             catch
@@ -148,6 +148,19 @@ namespace eSMP.Controllers
             if (resultCode == 0)
                 _momoReposity.PayStoreINP(payINP);
             return Ok();
+        }
+        [HttpGet]
+        [Route("info")]
+        public IActionResult infoOrder(int orderID)
+        {
+            try
+            {
+                return Ok(_momoReposity.InfoPay(orderID));
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
     }
 }

@@ -475,11 +475,11 @@ namespace eSMP.Services.MomoRepo
             long price = 0;
             if (numrefund == 1)
             {
-                price = (long)(Gettotalprice(orderID) +order.FeeShip);
+                price = (long)Gettotalprice(orderID);
             }
             else
             {
-                price = (long)(Gettotalprice(orderID) * numrefund);
+                price = (long)((Gettotalprice(orderID)-order.FeeShip)* numrefund);
             }
             string myuuidAsString = myuuid.ToString();
             request.orderId = orderID + myuuidAsString;
@@ -500,9 +500,15 @@ namespace eSMP.Services.MomoRepo
             if (contents.Result.resultCode == 0)
             {
                 OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
-                store_Transaction.IsActive=false;
+                if(store_Transaction != null)
+                {
+                    store_Transaction.IsActive = false;
+                }
                 OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
-                system_Transaction.IsActive=false;
+                if(system_Transaction != null)
+                {
+                    system_Transaction.IsActive = false;
+                }
 
                 order.RefundPrice = price;
                 ordertransaction.ResultCode = -1;
@@ -1079,6 +1085,58 @@ namespace eSMP.Services.MomoRepo
                 result.Success = false;
                 result.Message = refundReponse.message;
                 result.Data = refundReponse.resultCode;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                return result;
+            }
+        }
+
+        public async Task<InfoReponse> GetInfoAsync(int orderID)
+        {
+            Guid myuuid = Guid.NewGuid();
+            string myuuidAsString = myuuid.ToString();
+
+            var order=_context.orderBuy_Transacsions.SingleOrDefault(ob=>ob.OrderID == orderID);
+
+            infoRequest request = new infoRequest();
+            //https://esmp.page.link/view
+            request.partnerCode = partnerCode;
+            request.orderId = order.OrderIDGateway;
+            request.requestId = myuuidAsString;
+            request.lang = "vi";
+
+
+            var rawSignature = "accessKey="+accessKey+"&orderId="+request.orderId+"&partnerCode="+partnerCode+"&requestId="+ request.requestId;
+            request.signature = getSignature(rawSignature, secretKey);
+            var client = new HttpClient();
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+
+            var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/query", httpContent);
+            var contentss = quickPayResponse.Content.ReadAsStringAsync();
+            var contents = quickPayResponse.Content.ReadFromJsonAsync<InfoReponse>();
+            return contents.Result;
+        }
+        public Result InfoPay(int orderID)
+        {
+            Result result = new Result();
+            try
+            {
+                InfoReponse info = GetInfoAsync(orderID).Result;
+                if (info.resultCode == 0)
+                {
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = info.resultCode;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = info.message;
+                result.Data = info.resultCode;
                 return result;
             }
             catch

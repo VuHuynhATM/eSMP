@@ -343,7 +343,7 @@ namespace eSMP.Controllers
         [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("edit_birth")]
-        public IActionResult EditBirth([FromForm] EditBirth birth)
+        public IActionResult EditBirth(EditBirth birth)
         {
             try
             {

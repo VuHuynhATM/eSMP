@@ -25,7 +25,7 @@ namespace eSMP.Services.ItemRepo
         public Result UpdateBrandModel(int itemID, int[] brandmodelIDs);
         public Result RemoveBrandModel(int itemID, int[] brandmodelIDs);
         public Result UpdateDiscount(int Sub_ItemID, double discsount);
-        public Result GetListFeedback(int itemID, int? page);
+        public Result GetListFeedback(int itemID, int? page, int? role);
         public int GetSupplierIDByItemID(int itemID);
         public int GetSupplierIDBySubItemID(int SubItemID);
     }

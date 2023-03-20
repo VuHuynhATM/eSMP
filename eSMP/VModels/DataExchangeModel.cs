@@ -36,7 +36,6 @@ namespace eSMP.VModels
     public class DataExchangeUserFinish
     {
         public int ExchangeUserID { get; set; }
-        public double Price { get; set; }
         public IFormFile File { get; set; }
     }
     public class DataExchangeUserAddCard

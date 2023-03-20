@@ -340,7 +340,7 @@ namespace eSMP.Services.ShipRepo
                                 {
                                     DataExchangeUser exchangeUser = new DataExchangeUser();
                                     exchangeUser.Create_date = GetVnTime();
-                                    exchangeUser.ExchangePrice = price + afterService.FeeShipFisrt.Value;
+                                    exchangeUser.ExchangePrice = price;
                                     exchangeUser.AfterBuyServiceID = afterService.AfterBuyServiceID;
                                     exchangeUser.ExchangeStatusID = 3;
                                     exchangeUser.ExchangeUserName = "Mất hàng đơn đổi, trả hoàn";

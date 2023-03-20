@@ -13,5 +13,6 @@ namespace eSMP.Services.MomoRepo
         public Result RefundOrder(int orderID, double numrefund);
         public Result ConfimStoreShipOrder(int orderID);
         public Result RefundService(int serviceID, double numrefund);
+        public Result InfoPay(int orderID);
     }
 }

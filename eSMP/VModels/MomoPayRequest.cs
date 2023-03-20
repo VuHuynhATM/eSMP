@@ -95,4 +95,37 @@
         public string description { get; set; }
         public string signature { get; set; }
     }
+
+    public class infoRequest
+    {
+        public string partnerCode { get; set; }
+        public string requestId { get; set; }
+        public string orderId { get; set; }
+        public string signature { get; set; }
+        public string lang { get; set; }
+    }
+
+    public class InfoReponse
+    {
+        public string partnerCode { get; set; }
+        public string orderId { get; set; }
+        public string requestId { get; set; }
+        public string extraData { get; set; }
+        public string payType { get; set; }
+        public long amount { get; set; }
+        public long transId { get; set; }
+        public int resultCode { get; set; }
+        public refundTrans[] refundTrans { get; set; }
+        public string message { get; set; }
+        public long responseTime { get; set; }
+    }
+
+    public class refundTrans
+    {
+        public string orderId { get; set; }
+        public long amount { get; set; }
+        public int resultCode { get; set; }
+        public long transId { get; set; }
+        public long createdTime { get; set; }
+    }
 }

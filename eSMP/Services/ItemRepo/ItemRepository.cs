@@ -1481,13 +1481,26 @@ namespace eSMP.Services.ItemRepo
             }
         }
 
-        public Result GetListFeedback(int itemID, int? page)
+        public Result GetListFeedback(int itemID, int? page, int? role)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
                 var listorderdetail = _context.OrderDetails.Where(od => _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && itemID==si.ItemID)!=null && od.Feedback_StatusID != null).AsQueryable();
+                if (role == 3)
+                {
+                    listorderdetail = listorderdetail.Where(od=>od.Feedback_StatusID!=2);
+                }
+                else if(role == 1)
+                {
+                    
+                }
+                else
+                {
+                    listorderdetail = listorderdetail.Where(od => od.Feedback_StatusID == 1);
+                }
+                listorderdetail = listorderdetail.OrderByDescending(od => od.FeedBack_Date);
                 if (page.HasValue)
                 {
                     numpage = (int)Math.Ceiling((double)listorderdetail.Count() / (double)PAGE_SIZE);

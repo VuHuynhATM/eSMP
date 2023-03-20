@@ -83,7 +83,7 @@ namespace eSMP.Services.DataExchangeRepo
             return VnTime;
         }
 
-        public Result GetStoreDataExchanges(int? storeID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? page)
+        public Result GetStoreDataExchanges(int? storeID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? exchangeStatusID, int? page)
         {
             Result result = new Result();
             int numpage = 1;
@@ -109,6 +109,10 @@ namespace eSMP.Services.DataExchangeRepo
                 if (to.HasValue)
                 {
                     listExchange = listExchange.Where(de => de.Create_date <= to);
+                }
+                if (exchangeStatusID.HasValue)
+                {
+                    listExchange = listExchange.Where(de => de.ExchangeStatusID == exchangeStatusID);
                 }
                 if (page.HasValue)
                 {
@@ -152,7 +156,7 @@ namespace eSMP.Services.DataExchangeRepo
             }
         }
 
-        public Result GetUserDataExchanges(int? UserID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? page)
+        public Result GetUserDataExchanges(int? UserID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? exchangeStatusID, int? page)
         {
             Result result = new Result();
             int numpage = 1;
@@ -178,6 +182,10 @@ namespace eSMP.Services.DataExchangeRepo
                 if (to.HasValue)
                 {
                     listExchange = listExchange.Where(de => de.Create_date <= to);
+                }
+                if (exchangeStatusID.HasValue)
+                {
+                    listExchange = listExchange.Where(de => de.ExchangeStatusID == exchangeStatusID);
                 }
                 if (page.HasValue)
                 {
@@ -244,7 +252,6 @@ namespace eSMP.Services.DataExchangeRepo
                     img.Path = path;
                     img.IsActive = true;
                     Exchange.Image = img;
-                    Exchange.ExchangePrice= DataExchange.Price;
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";
@@ -279,6 +286,7 @@ namespace eSMP.Services.DataExchangeRepo
                     Exchange.CardNum = DataExchange.CardNum;
                     Exchange.CardHoldName = DataExchange.CardHoldName;
                     Exchange.BankName=DataExchange.BankName;
+                    Exchange.ExchangeStatusID = 4;
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Thành công";

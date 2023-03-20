@@ -27,7 +27,7 @@ namespace eSMP.Controllers
         }
         [HttpGet]
         //[Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1, 3")]
-        public IActionResult GetStoreDataExchanges(int? storeID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? page)
+        public IActionResult GetStoreDataExchanges(int? storeID, int? orderID, int? serviceID, DateTime? from, DateTime? to,int? exchangeStatusID, int? page)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace eSMP.Controllers
                         return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác ", Data = "", TotalPage = 1 });
                     }
                 }*/
-                return Ok(_dataExchangeReposity.GetStoreDataExchanges(storeID, orderID, serviceID, from, to, page));
+                return Ok(_dataExchangeReposity.GetStoreDataExchanges(storeID, orderID, serviceID, from, to,exchangeStatusID, page));
             }
             catch
             {
@@ -78,7 +78,7 @@ namespace eSMP.Controllers
         [HttpGet]
         [Route("user")]
         //[Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1, 2")]
-        public IActionResult GetUserDataExchanges(int? userID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? page)
+        public IActionResult GetUserDataExchanges(int? userID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? exchangeStatusID, int? page)
         {
             try
             {
@@ -95,7 +95,7 @@ namespace eSMP.Controllers
                         return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác ", Data = "", TotalPage = 1 });
                     }
                 }*/
-                return Ok(_dataExchangeReposity.GetStoreDataExchanges(userID, orderID, serviceID, from, to, page));
+                return Ok(_dataExchangeReposity.GetUserDataExchanges(userID, orderID, serviceID, from, to, exchangeStatusID, page));
             }
             catch
             {

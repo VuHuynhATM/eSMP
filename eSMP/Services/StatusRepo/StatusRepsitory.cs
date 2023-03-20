@@ -294,7 +294,7 @@ namespace eSMP.Services.StatusRepo
                     status = new Status
                     {
                         Item_StatusID = statusID,
-                        StatusName = "Hoạt động"
+                        StatusName = "Đã đối soát"
                     };
                     break;
                 case 2:
@@ -327,7 +327,7 @@ namespace eSMP.Services.StatusRepo
                     status = new Status
                     {
                         Item_StatusID = statusID,
-                        StatusName = "Hoạt động"
+                        StatusName = "Đã đối soát"
                     };
                     break;
                 case 2:
@@ -338,6 +338,13 @@ namespace eSMP.Services.StatusRepo
                     };
                     break;
                 case 3:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Chờ xác nhận"
+                    };
+                    break;
+                case 4:
                     status = new Status
                     {
                         Item_StatusID = statusID,

@@ -400,7 +400,7 @@ namespace eSMP.Services.StoreAssetRepo
                     Store_Withdrawal withdrawal = new Store_Withdrawal();
                     withdrawal.Withdrawal_StatusID = 1;
                     withdrawal.Price = request.Price;
-                    withdrawal.BankID = request.BankID;
+                    withdrawal.BankName = request.BankName;
                     withdrawal.NumBankCart = request.NumBankCart;
                     withdrawal.OwnerBankCart = request.OwnerBankCart;
                     withdrawal.Reason = "";
@@ -523,6 +523,8 @@ namespace eSMP.Services.StoreAssetRepo
                     image.Crete_date = GetVnTime();
 
                     storeWitdrawal.Image = image;
+                    var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeWitdrawal.StoreID);
+                    store.Asset = store.Asset = storeWitdrawal.Price;
 
                     _context.SaveChanges();
                     result.Success = true;
@@ -588,7 +590,7 @@ namespace eSMP.Services.StoreAssetRepo
                     {
                         Store_WithdrawalModel model = new Store_WithdrawalModel
                         {
-                            Bank = item.BankSupport,
+                            BankName = item.BankName,
                             NumBankCart = item.NumBankCart,
                             OwnerBankCart = item.OwnerBankCart,
                             Create_Date = item.Create_Date,
@@ -618,7 +620,7 @@ namespace eSMP.Services.StoreAssetRepo
             }
         }
 
-        public Result GetBankSupport()
+        /*public Result GetBankSupport()
         {
             Result result = new Result();
             int numpage = 1;
@@ -649,7 +651,7 @@ namespace eSMP.Services.StoreAssetRepo
                 result.TotalPage = numpage;
                 return result;
             }
-        }
+        }*/
 
         public Result GetStoreReveneuForChart(int storeID, int? year)
         {

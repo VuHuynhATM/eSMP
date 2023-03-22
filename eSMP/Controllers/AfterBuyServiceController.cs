@@ -28,7 +28,7 @@ namespace eSMP.Controllers
         }
         [HttpPost]
         //[Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
-        public IActionResult CreateService([FromForm] AfterBuyServiceModel request)
+        public IActionResult CreateService( AfterBuyServiceModel request)
         {
             try
             {

@@ -42,7 +42,7 @@ namespace eSMP.Controllers
             }
         }*/
         [HttpPut]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
         [Route("update_subitem")]
         public IActionResult UpdatesubItem(SubItemUpdate subItem)
         {

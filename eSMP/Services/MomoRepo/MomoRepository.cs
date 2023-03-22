@@ -175,6 +175,8 @@ namespace eSMP.Services.MomoRepo
                             var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID && si.Amount >= item.Amount && si.SubItem_StatusID == 1 && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).Store_StatusID == 1).Item_StatusID == 1);
                             if (subItem != null)
                             {
+                                item.ReturnAndExchange = subItem.ReturnAndExchange;
+                                _context.SaveChanges();
                                 checkout++;
                             }
                             else
@@ -1096,7 +1098,7 @@ namespace eSMP.Services.MomoRepo
             }
         }
 
-        public async Task<InfoReponse> GetInfoAsync(int orderID)
+        public async Task<string> GetInfoAsync(int orderID)
         {
             Guid myuuid = Guid.NewGuid();
             string myuuidAsString = myuuid.ToString();
@@ -1119,24 +1121,24 @@ namespace eSMP.Services.MomoRepo
             var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/query", httpContent);
             var contentss = quickPayResponse.Content.ReadAsStringAsync();
             var contents = quickPayResponse.Content.ReadFromJsonAsync<InfoReponse>();
-            return contents.Result;
+            return contentss.Result;
         }
         public Result InfoPay(int orderID)
         {
             Result result = new Result();
             try
             {
-                InfoReponse info = GetInfoAsync(orderID).Result;
-                if (info.resultCode == 0)
+                var info = GetInfoAsync(orderID).Result;
+               /* if (info.resultCode == 0)
                 {
                     result.Success = true;
                     result.Message = "Thành công";
                     result.Data = info.resultCode;
                     return result;
-                }
-                result.Success = false;
-                result.Message = info.message;
-                result.Data = info.resultCode;
+                }*/
+                result.Success = true;
+                result.Message = "";
+                result.Data = info;
                 return result;
             }
             catch

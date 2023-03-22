@@ -1481,13 +1481,13 @@ namespace eSMP.Services.OrderRepo
                     order.PackingLink = orderLink.PakingLink;
                     _context.SaveChanges();
                     result.Success = true;
-                    result.Message = "Thanh toán thành công";
+                    result.Message = "Thành công";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;
                 }
                 result.Success = false;
-                result.Message = "Thanh toán thất bại";
+                result.Message = "Thất bại";
                 result.Data = "";
                 result.TotalPage = numpage;
                 return result;

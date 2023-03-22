@@ -54,14 +54,14 @@ namespace eSMP.Controllers
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo")]
         [Route("ship_status")]
-        public IActionResult GetShipstatus(int orderID)
+        public IActionResult GetShipstatus(int? orderID, int? serviceID)
         {
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!_userReposity.CheckUser(int.Parse(userId)))
             {
                 return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
             }
-            return Ok(_shipReposity.GetShipstatus(orderID));
+            return Ok(_shipReposity.GetShipstatus(orderID, serviceID));
         }
 
         /*[HttpPut]

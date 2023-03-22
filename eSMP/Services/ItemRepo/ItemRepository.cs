@@ -785,7 +785,7 @@ namespace eSMP.Services.ItemRepo
                 }
                 result.Success = false;
                 result.Message = "subItemID không hợp lệ";
-                result.Data = "";
+                result.Data = GetSubItem(subItem.SubItemID);
                 result.TotalPage = numpage;
                 return result;
             }
@@ -872,7 +872,7 @@ namespace eSMP.Services.ItemRepo
                 }
                 result.Success = false;
                 result.Message = "SubItemID không tồn tại";
-                result.Data = "";
+                result.Data = GetSubItem(subitemID);
                 result.TotalPage = numpage;
                 return result;
             }
@@ -950,7 +950,7 @@ namespace eSMP.Services.ItemRepo
                 }
                 result.Success = false;
                 result.Message = "SubItemID không tồn tại";
-                result.Data = "";
+                result.Data = GetSubItem(subitemID);
                 result.TotalPage = numpage;
                 return result;
             }
@@ -1028,7 +1028,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Ẩn thành công";
-                    result.Data = _statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
+                    result.Data = GetSubItem(subitemID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -1110,7 +1110,7 @@ namespace eSMP.Services.ItemRepo
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Huỷ ẩn thành công";
-                    result.Data = _statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
+                    result.Data = GetSubItem(subitemID);
                     result.TotalPage = numpage;
                     return result;
                 }
@@ -1572,6 +1572,29 @@ namespace eSMP.Services.ItemRepo
             {
                 return -1;
             }
+        }
+
+        public SubItemModel GetSubItem(int subitemID)
+        {
+            var sub = _context.Sub_Items.SingleOrDefault(s => s.Sub_ItemID == subitemID);
+            if (sub!=null)
+            {
+                    SubItemModel model = new SubItemModel
+                    {
+                        Sub_ItemID = sub.Sub_ItemID,
+                        Amount = sub.Amount,
+                        SubItem_Status = _statusReposity.GetSubItemStatus(sub.SubItem_StatusID),
+                        Price = sub.Price,
+                        Sub_ItemName = sub.Sub_ItemName,
+                        Image = sub.Image,
+                        WarrantiesTime = sub.WarrantiesTime,
+                        Discount = sub.Discount,
+                        ReturnAndExchange = sub.ReturnAndExchange,
+                        StatusText = sub.StatusText,
+                    };
+                return model;
+            }
+            return null;
         }
     }
 }

@@ -814,46 +814,87 @@ namespace eSMP.Services.ShipRepo
             return _context.ShipStatuses.SingleOrDefault(ss => ss.Status_ID.Equals(statusID));
         }
 
-        public Result GetShipstatus(int orderID)
+        public Result GetShipstatus(int? orderID, int? serviceID)
         {
             Result result = new Result();
             int numpage = 1;
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID != 2);
-                if (order != null)
+                if (orderID.HasValue)
                 {
-                    var liststatus = _context.ShipOrders.AsQueryable();
-                    liststatus = liststatus.Where(so => so.OrderID == orderID);
-                    liststatus = liststatus.OrderBy(so => so.Create_Date);
-                    ShipModel model = new ShipModel();
-                    List<ShipStatusModel> list = new List<ShipStatusModel>();
-                    if (liststatus.Count() > 0)
+                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID != 2);
+                    if (order != null)
                     {
-                        foreach (var item in liststatus.ToList())
+                        var liststatus = _context.ShipOrders.AsQueryable();
+                        liststatus = liststatus.Where(so => so.OrderID == orderID);
+                        liststatus = liststatus.OrderBy(so => so.Create_Date);
+                        ShipModel model = new ShipModel();
+                        List<ShipStatusModel> list = new List<ShipStatusModel>();
+                        if (liststatus.Count() > 0)
                         {
-                            if (list.Count() == 0)
+                            foreach (var item in liststatus.ToList())
                             {
-                                model.orderID = item.OrderID;
-                                model.LabelID = item.LabelID;
+                                if (list.Count() == 0)
+                                {
+                                    model.orderID = item.OrderID;
+                                    model.LabelID = item.LabelID;
+                                }
+                                ShipStatusModel statusModel = new ShipStatusModel
+                                {
+                                    status = GetShipStatus(item.Status_ID).Status_Name,
+                                    Create_Date = item.Create_Date,
+                                    Reason = item.Reason,
+                                    Reason_code = item.Reason_code
+                                };
+                                list.Add(statusModel);
                             }
-                            ShipStatusModel statusModel = new ShipStatusModel
-                            {
-                                status = GetShipStatus(item.Status_ID).Status_Name,
-                                Create_Date = item.Create_Date,
-                                Reason = item.Reason,
-                                Reason_code = item.Reason_code
-                            };
-                            list.Add(statusModel);
+                            model.shipStatusModels = list;
+                            result.Success = true;
+                            result.Message = "Thành công";
+                            result.Data = model;
+                            result.TotalPage = numpage;
+                            return result;
                         }
-                        model.shipStatusModels = list;
-                        result.Success = true;
-                        result.Message = "Thành công";
-                        result.Data = model;
-                        result.TotalPage = numpage;
-                        return result;
                     }
                 }
+                if (serviceID.HasValue)
+                {
+                    var service = _context.AfterBuyServices.SingleOrDefault(o => o.AfterBuyServiceID == serviceID);
+                    if (service != null)
+                    {
+                        var liststatus = _context.ShipOrders.AsQueryable();
+                        liststatus = liststatus.Where(so => so.AfterBuyServiceID == serviceID);
+                        liststatus = liststatus.OrderBy(so => so.Create_Date);
+                        ShipModel model = new ShipModel();
+                        List<ShipStatusModel> list = new List<ShipStatusModel>();
+                        if (liststatus.Count() > 0)
+                        {
+                            foreach (var item in liststatus.ToList())
+                            {
+                                if (list.Count() == 0)
+                                {
+                                    model.orderID = item.OrderID;
+                                    model.LabelID = item.LabelID;
+                                }
+                                ShipStatusModel statusModel = new ShipStatusModel
+                                {
+                                    status = GetShipStatus(item.Status_ID).Status_Name,
+                                    Create_Date = item.Create_Date,
+                                    Reason = item.Reason,
+                                    Reason_code = item.Reason_code
+                                };
+                                list.Add(statusModel);
+                            }
+                            model.shipStatusModels = list;
+                            result.Success = true;
+                            result.Message = "Thành công";
+                            result.Data = model;
+                            result.TotalPage = numpage;
+                            return result;
+                        }
+                    }
+                }
+                
                 result.Success = false;
                 result.Message = "Đơn hàng không tồn tại";
                 result.Data = "";

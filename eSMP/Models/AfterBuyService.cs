@@ -30,5 +30,6 @@ namespace eSMP.Models
         public string? estimated_pick_time { get; set; }
         public string? estimated_deliver_time { get; set; }
         public string PackingLinkCus { get; set; }
+        public string Text { get; set; }
     }
 }

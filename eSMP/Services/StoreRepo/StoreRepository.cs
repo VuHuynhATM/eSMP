@@ -362,13 +362,13 @@ namespace eSMP.Services.StoreRepo
                                 img.Path = path;
                             }
                         }
-                        _context.SaveChanges();
-                        result.Success = true;
-                        result.Message = "Chỉnh sửa cửa hàng thành công";
-                        result.Data = GetStore(store.UserID);
-                        result.TotalPage = numpage;
-                        return result;
                     }
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Chỉnh sửa cửa hàng thành công";
+                    result.Data = GetStore(store.UserID);
+                    result.TotalPage = numpage;
+                    return result;
                 }
                 result.Success = false;
                 result.Message = "Cửa hàng không tồn tại";
@@ -661,6 +661,12 @@ namespace eSMP.Services.StoreRepo
                         FCM_Firebase = store.User.FCM_Firebase,
                         FirebaseID = store.User.FirebaseID,
                         StatusText = store.StatusText,
+                        TotalActiveItem = GetTotalItemActive(store.StoreID),
+                        TotalBlockItem = GetTotalItemBlock(store.StoreID),
+                        TotalWatingItem = GetTotalItemWatting(store.StoreID),
+                        TotalOrder = GetTotalOrder(store.StoreID),
+                        TotalCancelOrder = GetTotalCancelOrder(store.StoreID),
+                        TotalRating = GetTotalRating(store.StoreID),
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -759,7 +765,7 @@ namespace eSMP.Services.StoreRepo
             try
             {
                 double num = 0;
-                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && i.StoreID == storeID) != null) != null) != null && o.OrderStatusID != 3); ;
+                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && i.StoreID == storeID) != null) != null) != null && o.OrderStatusID != 3); 
                 return listorder.Count();
             }
             catch

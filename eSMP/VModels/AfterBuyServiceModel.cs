@@ -10,6 +10,8 @@ namespace eSMP.VModels
         public int OrderID { get; set; }
         public int AddressID { get; set; }
         public int ServiceType { get; set; }
+        public string Text { get; set; }
+
     }
     public class ServiceDetaiAdd
     {
@@ -55,6 +57,7 @@ namespace eSMP.VModels
         public bool HasUserDataExchange { get; set; }
         public string? PackingLink { get; set; }
         public string? PackingLinkCus { get; set; }
+        public string Text { get; set; }
 
     }
     public class AfterBuyServiceDetailModel
@@ -66,5 +69,6 @@ namespace eSMP.VModels
         public int Sub_ItemID { get; set; }
         public string Sub_ItemName { get; set; }
         public string sub_ItemImage { get; set; }
+        public int ItemID { get; set; }
     }
 }

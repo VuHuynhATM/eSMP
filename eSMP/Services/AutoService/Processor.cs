@@ -24,8 +24,9 @@ namespace eSMP.Services.AutoService
                 var role = _context.Roles.SingleOrDefault(r => r.RoleID == 5);
                 role.RoleName = DateTime.Now.ToString();
                 _context.SaveChanges();
-                ControlOfRevenues()*/;
+                ControlOfRevenues()*/
                 await _worker.DoWork(stoppingToken);
+
             }
         }
         public async Task StartAsync(CancellationToken cancellationToken)

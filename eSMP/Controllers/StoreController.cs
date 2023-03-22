@@ -90,7 +90,7 @@ namespace eSMP.Controllers
             {
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var store = _storeReposity.GetStore(int.Parse(userId));
-                if (!_storeReposity.CheckStoreActive(store.StoreID))
+                if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
                         return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
@@ -164,7 +164,7 @@ namespace eSMP.Controllers
             {
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var store = _storeReposity.GetStore(int.Parse(userId));
-                if (!_storeReposity.CheckStoreActive(store.StoreID))
+                if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
@@ -191,7 +191,7 @@ namespace eSMP.Controllers
             {
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var store = _storeReposity.GetStore(int.Parse(userId));
-                if (!_storeReposity.CheckStoreActive(store.StoreID))
+                if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
@@ -218,7 +218,7 @@ namespace eSMP.Controllers
             {
                 var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var store = _storeReposity.GetStore(int.Parse(userId));
-                if (!_storeReposity.CheckStoreActive(store.StoreID))
+                if (!_storeReposity.CheckStoreActive(int.Parse(userId)))
                 {
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }

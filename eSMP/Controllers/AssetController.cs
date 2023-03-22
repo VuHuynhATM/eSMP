@@ -255,7 +255,7 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
-        [HttpGet]
+        /*[HttpGet]
         [Route("bank")]
         public IActionResult GetBank()
         {
@@ -267,7 +267,7 @@ namespace eSMP.Controllers
             {
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", });
             }
-        }
+        }*/
         [HttpGet]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "3")]
         [Route("store_chart_reveneu")]

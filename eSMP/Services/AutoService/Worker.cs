@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace eSMP.Services.AutoService
 {
-    public class Worker:IWorker
+    public class Worker : IWorker
     {
         private readonly WebContext _context;
 
@@ -18,13 +18,21 @@ namespace eSMP.Services.AutoService
             //1000*60*15
             while (!cancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(1000 * 5);
+                try
+                {
+                    await Task.Delay(1000 * 5* 60);
 
-                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 5);
-                role.RoleName = DateTime.Now.ToString();
-                _context.SaveChanges();
-                ControlOfRevenues();
-                UpdateOrderstatus();
+                    var role = _context.Roles.SingleOrDefault(r => r.RoleID == 5);
+                    role.RoleName = DateTime.Now.ToString();
+                    _context.SaveChanges();
+                    ControlOfRevenues();
+                    UpdateOrderstatus();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
             }
         }
         public DateTime GetVnTime()
@@ -39,19 +47,19 @@ namespace eSMP.Services.AutoService
         {
             try
             {
-                var listShipFinish = _context.ShipOrders.Where(so => so.Status_ID == "6" && so.Order.OrderStatusID == 1);
+                var listShipFinish = _context.ShipOrders.Where(so => so.Status_ID == "6" && so.Order.OrderStatusID == 1).AsQueryable();
                 if (listShipFinish.Count() > 0)
                 {
-                    foreach (var ship in listShipFinish)
+                    foreach (var ship in listShipFinish.ToList())
                     {
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == ship.OrderID);
                         order.OrderStatusID = 5;
                         var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == ship.OrderID);
                         //layas thoi gian giai ngan
-                        var maxReturnTime=_context.OrderDetails.Where(od=>od.OrderID==order.OrderID).Max(od=>od.ReturnAndExchange);
+                        var maxReturnTime = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).Max(od => od.ReturnAndExchange);
                         DateTime now = GetVnTime();
-                        DateTime timeCanReturn=order.Create_Date.AddDays(maxReturnTime);
-                        if (confirmReponse.ResultCode == 0 && timeCanReturn<=now)
+                        DateTime timeCanReturn = order.Create_Date.AddDays(maxReturnTime);
+                        if (confirmReponse.ResultCode == 0 && timeCanReturn <= now)
                         {
                             //ghi nhan doanh thu
                             //store
@@ -67,8 +75,9 @@ namespace eSMP.Services.AutoService
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return;
             }
         }
@@ -115,11 +124,19 @@ namespace eSMP.Services.AutoService
 
         public void UpdateOrderstatus()
         {
-            var listorderServicepending = _context.Orders.Where(o => o.OrderStatusID == 6 && _context.ServiceDetails.FirstOrDefault(sd => sd.OrderDetail.OrderID == o.OrderID && sd.AfterBuyService.ServicestatusID != 1) == null);
-            foreach (var item in listorderServicepending)
+            try
             {
-                item.OrderStatusID = 1;
-                _context.SaveChanges();
+                var listorderServicepending = _context.Orders.Where(o => o.OrderStatusID == 6 && _context.ServiceDetails.FirstOrDefault(sd => sd.OrderDetail.OrderID == o.OrderID && sd.AfterBuyService.ServicestatusID == 1|| sd.AfterBuyService.ServicestatusID == 2) == null).AsQueryable();
+                foreach (var item in listorderServicepending.ToList())
+                {
+                    item.OrderStatusID = 1;
+                    _context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return;
             }
         }
     }

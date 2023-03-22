@@ -71,7 +71,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
                     return result;
                 }
                 //kt detail cos hopwj le hay khong
-                if (!CheckDetailService(orderDetails, (List<ServiceDetaiAdd>)listServiceDetail, ordership.Create_Date))
+                if (!CheckDetailService(orderDetails, (List<ServiceDetaiAdd>)listServiceDetail))
                 {
                     result.Success = false;
                     result.Message = "Mã đơn chi tiết không đúng";
@@ -88,7 +88,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
                         {
                             price = price + orderDetail.PricePurchase * (1 - orderDetail.DiscountPurchase) * 100 * serviceDetail.Amount;
                             //kiem tra han tra hang
-                            if (currentDate < ordership.Create_Date.AddDays(orderDetail.ReturnAndExchange))
+                            if (currentDate > ordership.Create_Date.AddDays(orderDetail.ReturnAndExchange))
                             {
                                 result.Success = false;
                                 result.Message = "Đơn hàng " + orderDetail.Sub_Item.Sub_ItemName + "(Mã:" + orderDetail.OrderDetailID + " )" + "Hết hạn trả hàng";
@@ -146,6 +146,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
                     User_Tel = Cusaddress.Phone,
                     User_Ward = Cusaddress.Ward,
                     ServicestatusID = 3,
+                    Text=serviceCreate.Text,
                     PackingLinkCus=serviceCreate.PackingLinkCus,
                 };
                 foreach (var serviceDetail in listServiceDetail.ToList())
@@ -181,15 +182,14 @@ namespace eSMP.Services.AfterBuyServiceRepo
                 return result;
             }
         }
-        public bool CheckDetailService(List<OrderDetail> listdetail, List<ServiceDetaiAdd> listservicedetail, DateTime rereceiveDate)
+        public bool CheckDetailService(List<OrderDetail> listdetail, List<ServiceDetaiAdd> listservicedetail)
         {
             int num = 0;
-            DateTime currentDate = GetVnTime();
             foreach (var serviceDetail in listservicedetail)
             {
                 foreach (var orderDetail in listdetail)
                 {
-                    if (orderDetail.OrderDetailID == serviceDetail.DetailID && currentDate > rereceiveDate.AddDays(orderDetail.ReturnAndExchange))
+                    if (orderDetail.OrderDetailID == serviceDetail.DetailID)
                     {
                         num++;
                     }
@@ -432,7 +432,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
                             OrderShip = GetShipOrder(service.AfterBuyServiceID),
                             Servicestatus = _statusReposity.GetServiceStatus(service.ServicestatusID),
                             ServiceType = _statusReposity.GetServiceType(service.ServiceType),
-                            StoreView = GetStoreViewModel(service.ServicestatusID),
+                            StoreView = GetStoreViewModel(service.AfterBuyServiceID),
                             Details = GetServiceDetailModels(service.AfterBuyServiceID),
                             Reason = service.Reason,
                             Pick_Time = service.estimated_pick_time,
@@ -443,7 +443,8 @@ namespace eSMP.Services.AfterBuyServiceRepo
                             HasUserDataExchange = hasUsersDatachange,
                             PackingLinkCus=service.PackingLinkCus,
                             PackingLink= order.PackingLink,
-                            OrderID= order.OrderID
+                            OrderID= order.OrderID,
+                            Text=service.Text,
                         };
                         list.Add(model);
                     }
@@ -491,7 +492,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
         {
             try
             {
-                var orderdetail = _context.OrderDetails.FirstOrDefault(od => _context.ServiceDetails.FirstOrDefault(sd => sd.OrderDetailID == od.OrderID) != null);
+                var orderdetail = _context.OrderDetails.FirstOrDefault(od => _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == serviceID && od.OrderDetailID==sd.OrderDetailID) != null);
                 var store = GetStoreBySubItemID(orderdetail.Sub_ItemID);
                 StoreViewModel model = _storeReposity.GetStoreModel(store.StoreID);
                 return model;
@@ -531,6 +532,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
                             Sub_ItemID=serviceDetail.OrderDetail.Sub_ItemID,
                             sub_ItemImage=serviceDetail.OrderDetail.Sub_Item.Image.Path,
                             Sub_ItemName= serviceDetail.OrderDetail.Sub_Item.Sub_ItemName,
+                            ItemID=serviceDetail.OrderDetail.Sub_Item.ItemID
                         };
                         list.Add(model);
                     }

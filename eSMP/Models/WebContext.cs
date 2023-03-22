@@ -34,7 +34,7 @@ namespace eSMP.Models
         public DbSet<eSMP_System> eSMP_Systems { get; set; }
         public DbSet<System_Withdrawal> System_Withdrawals { get; set; }
         public DbSet<Store_Withdrawal> Store_Withdrawals { get; set; }
-        public DbSet<BankSupport> BankSupports { get; set; }
+        //public DbSet<BankSupport> BankSupports { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AddressVn> addressVns { get; set; }

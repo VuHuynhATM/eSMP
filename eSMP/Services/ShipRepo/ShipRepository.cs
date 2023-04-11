@@ -727,6 +727,13 @@ namespace eSMP.Services.ShipRepo
                     shiporder.is_freeship = 0;
                     shiporder.pick_money = (int)GetPriceItemOrder(orderID);
                 }
+                var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+                if (system != null){
+                    if (system.Co_Examination)
+                    {
+                        shiporder.tags = new int[1] { 11 };
+                    }
+                }
                 if (order != null)
                 {
                     ShipOrderRequest request = new ShipOrderRequest

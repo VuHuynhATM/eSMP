@@ -164,5 +164,19 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
+
+        [HttpGet]
+        [Route("ship")]
+        public IActionResult GetServiceship(int? page)
+        {
+            try
+            {
+                return Ok(_afterBuyServiceReposity.GetServicesShip(page));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
     }
 }

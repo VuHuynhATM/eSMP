@@ -393,5 +393,24 @@ namespace eSMP.Controllers
                 return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
             }
         }
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
+        [Route("update_co_examination")]
+        public IActionResult UpdateCo_Examination(Boolean Co_Examination)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                return Ok(_assetReposity.UpdateCo_Examination(Co_Examination));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
     }
 }

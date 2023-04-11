@@ -20,7 +20,7 @@ namespace eSMP.Services.AutoService
             {
                 try
                 {
-                    await Task.Delay(1000 * 5* 60);
+                    await Task.Delay(1000 * 5 *60);
 
                     var role = _context.Roles.SingleOrDefault(r => r.RoleID == 5);
                     role.RoleName = DateTime.Now.ToString();

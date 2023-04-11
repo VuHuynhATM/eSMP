@@ -20,7 +20,9 @@ namespace eSMP.Services.OrderRepo
         public Result GetlistFeedback(int? page, bool isFeedback, int? userID);
         public Result GetFeedbackDetail(int orderDetailID);
         public Result HiddenFeedback(int orderDetailID);
+        public Result UnHiddenFeedback(int orderDetailID);
         public Result BlockFeedback(int orderDetailID);
+        public Result ActiveFeedback(int orderDetailID);
         public Result CheckPay(int orderID);
         public int GetUserIDByOrderID(int orderID);
         public int GetSuppilerIDByOrderID(int orderID);

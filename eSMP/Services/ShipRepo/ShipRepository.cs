@@ -111,7 +111,7 @@ namespace eSMP.Services.ShipRepo
                 {
                     if (checkorder)
                     {
-                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID!=6);
                         order.OrderStatusID = 1;
                         _context.SaveChanges();
                     }
@@ -149,7 +149,7 @@ namespace eSMP.Services.ShipRepo
                         }
                         else if (partner_id.Split('_')[1] == "user" && afterService.ServiceType == 1)
                         {
-                            ShipReponse shipReponse = CreateOrderService(afterService.ServicestatusID, "store");
+                            ShipReponse shipReponse = CreateOrderService(afterService.AfterBuyServiceID, "store");
                             if(shipReponse != null)// tao doi hang khac gui cho nguoi mua
                             {
                                 if (!shipReponse.success)
@@ -251,6 +251,9 @@ namespace eSMP.Services.ShipRepo
                             exchangeStore.ExchangeStoreName = "Đơn hàng";
                             _context.DataExchangeStores.Add(exchangeStore);
                             _context.SaveChanges();
+                            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 6);
+                            role.RoleName = "tao doisoatvs store e";
+                            _context.SaveChangesAsync();
                             // hoan tien cho nguoi mua
                             if (order.PaymentMethod != "COD")
                             {
@@ -630,7 +633,7 @@ namespace eSMP.Services.ShipRepo
             }
             catch (Exception ex)
             {
-                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 6);
                 role.RoleName = ex.Message;
                 _context.SaveChangesAsync();
                 return false;
@@ -894,7 +897,6 @@ namespace eSMP.Services.ShipRepo
                         }
                     }
                 }
-                
                 result.Success = false;
                 result.Message = "Đơn hàng không tồn tại";
                 result.Data = "";
@@ -1082,17 +1084,17 @@ namespace eSMP.Services.ShipRepo
                         price = (int)item.OrderDetail.PricePurchase,
                         product_code = item.OrderDetail.Sub_ItemID,
                         quantity = item.Amount,
-                        weight = GetWeightOfSubItem(item.OrderDetail.Sub_ItemID) / (double)1000,
+                        weight = GetWeightOfSubItem(item.OrderDetail.Sub_Item.ItemID) / (double)1000,
                     };
                     listproduct.Add(pro);
                 }
                 var priceOrder = GetPriceItemOrderService(ServiceID);
-                orderrequest shiporder = new orderrequest();
+                orderrequest shiporderuser = new orderrequest();
                 if (type == "user")
                 {
-                    orderrequest shiporderuser = new orderrequest
+                    shiporderuser = new orderrequest
                     {
-                        id = afterBuyService.ServicestatusID + "_" + type + "_" + afterBuyService.ServiceType,
+                        id = afterBuyService.AfterBuyServiceID + "_" + type + "_" + afterBuyService.ServiceType,
                         pick_name = afterBuyService.User_Name,
                         pick_address = afterBuyService.User_Address,
                         pick_ward = afterBuyService.User_Ward,
@@ -1117,9 +1119,9 @@ namespace eSMP.Services.ShipRepo
                 }
                 else
                 {
-                    orderrequest shiporderuser = new orderrequest
+                    shiporderuser = new orderrequest
                     {
-                        id = afterBuyService.ServicestatusID + "_" + type + "_" + afterBuyService.ServiceType,
+                        id = afterBuyService.AfterBuyServiceID + "_" + type + "_" + afterBuyService.ServiceType,
                         pick_name = afterBuyService.Store_Name,
                         pick_address = afterBuyService.Store_Address,
                         pick_ward = afterBuyService.Store_Ward,
@@ -1144,7 +1146,7 @@ namespace eSMP.Services.ShipRepo
                 }
                 ShipOrderRequest request = new ShipOrderRequest
                 {
-                    order = shiporder,
+                    order = shiporderuser,
                     products = listproduct,
                 };
                 var Shipreponse = CreateOrderAsync(request).Result;
@@ -1157,7 +1159,7 @@ namespace eSMP.Services.ShipRepo
                     shipOrder.Create_Date = datetime;
                     shipOrder.LabelID = Shipreponse.order.label;
                     shipOrder.Reason = "";
-                    shipOrder.AfterBuyServiceID = int.Parse(Shipreponse.order.partner_id);
+                    shipOrder.AfterBuyServiceID = afterBuyService.AfterBuyServiceID;
                     shipOrder.Reason_code = "";
                     afterBuyService.estimated_pick_time = Shipreponse.order.estimated_pick_time;
                     afterBuyService.estimated_deliver_time = Shipreponse.order.estimated_deliver_time;

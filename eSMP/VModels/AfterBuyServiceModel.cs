@@ -58,6 +58,7 @@ namespace eSMP.VModels
         public string? PackingLink { get; set; }
         public string? PackingLinkCus { get; set; }
         public string Text { get; set; }
+        public string partner_id { get; set; }
 
     }
     public class AfterBuyServiceDetailModel

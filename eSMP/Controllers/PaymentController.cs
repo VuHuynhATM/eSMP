@@ -37,7 +37,7 @@ namespace eSMP.Controllers
         {
             int resultCode = payINP.resultCode;
             if (resultCode == 0)
-                _momoReposity.PayOrderINP(payINP);
+                _momoReposity.PayOrderINPAsync(payINP);
             return Ok();
         }
         [HttpGet]
@@ -161,6 +161,12 @@ namespace eSMP.Controllers
             {
                 return BadRequest();
             }
+        }
+        [HttpGet]
+        [Route("test")]
+        public IActionResult test(int id)
+        {
+            return Ok(_momoReposity.RefundService(id, 1));
         }
     }
 }

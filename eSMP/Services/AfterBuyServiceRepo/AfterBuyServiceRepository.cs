@@ -208,19 +208,26 @@ namespace eSMP.Services.AfterBuyServiceRepo
             try
             {
                 AfterBuyService afterBuyService = _context.AfterBuyServices.SingleOrDefault(afs => afs.AfterBuyServiceID == serviceID);
-                if (afterBuyService != null)
+                int temp = afterBuyService.ServicestatusID;
+                afterBuyService.ServicestatusID = 5;
+                _context.SaveChanges();
+                if (afterBuyService == null)
                 {
+                    afterBuyService.ServicestatusID = temp;
+                    _context.SaveChanges();
                     result.Success = false;
                     result.Message = "Dịch vụ không tồn tại";
                     result.Data = "";
                     result.TotalPage = 1;
                     return result;
                 }
-                ShipReponse shipReponse = _shipReposity.CreateOrderService(afterBuyService.ServicestatusID, "user");
-                if (shipReponse != null)
+                ShipReponse shipReponse = _shipReposity.CreateOrderService(afterBuyService.AfterBuyServiceID, "user");
+                if (shipReponse == null)
                 {
+                    afterBuyService.ServicestatusID = temp;
+                    _context.SaveChanges();
                     result.Success = false;
-                    result.Message = "Lỗi hệ thống";
+                    result.Message = "Hệ thống giao hàng gặp sự cố thử lại sau";
                     result.Data = "";
                     result.TotalPage = 1;
                     return result;
@@ -238,6 +245,8 @@ namespace eSMP.Services.AfterBuyServiceRepo
                 }
                 else
                 {
+                    afterBuyService.ServicestatusID = temp;
+                    _context.SaveChanges();
                     result.Success = false;
                     result.Message = shipReponse.message;
                     result.Data = "";
@@ -373,7 +382,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
                 }
                 if (to.HasValue)
                 {
-                    afterbuyservices = afterbuyservices.Where(afs => afs.Create_Date <= to);
+                    afterbuyservices = afterbuyservices.Where(afs => afs.Create_Date < to.Value.AddDays(1));
                 }
                 if (serviceType.HasValue)
                 {
@@ -409,7 +418,7 @@ namespace eSMP.Services.AfterBuyServiceRepo
                         {
                             hasUsersDatachange = true;
                         }
-                        var order = _context.Orders.FirstOrDefault(o => _context.ServiceDetails.FirstOrDefault(sd => sd.OrderDetail.OrderID == o.OrderID) != null);
+                        var order = _context.Orders.FirstOrDefault(o => _context.ServiceDetails.FirstOrDefault(sd => sd.OrderDetail.OrderID == o.OrderID && sd.AfterBuyServiceID== service.AfterBuyServiceID) != null);
                         AfterBuyServiceModelView model = new AfterBuyServiceModelView
                         {
                             AfterBuyServiceID = service.AfterBuyServiceID,
@@ -553,6 +562,112 @@ namespace eSMP.Services.AfterBuyServiceRepo
             catch
             {
                 return null;
+            }
+        }
+
+        public Result GetServicesShip(int? page)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var afterbuyservices = _context.AfterBuyServices.Where(s=>_context.ShipOrders.FirstOrDefault(so=>so.AfterBuyServiceID==s.AfterBuyServiceID)!=null).AsQueryable();
+                afterbuyservices = afterbuyservices.OrderByDescending(afs => afs.Create_Date);
+                if (page.HasValue)
+                {
+                    numpage = (int)Math.Ceiling((double)afterbuyservices.Count() / (double)PAGE_SIZE);
+                    if (numpage == 0)
+                    {
+                        numpage = 1;
+                    }
+                    afterbuyservices = afterbuyservices.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+                }
+                if (afterbuyservices.Count() > 0)
+                {
+                    List<AfterBuyServiceModelView> list = new List<AfterBuyServiceModelView>();
+                    foreach (var service in afterbuyservices.ToList())
+                    {
+                        var user = GetUser(service.AfterBuyServiceID);
+                        bool hasStoreDatachange = false;
+                        bool hasUsersDatachange = false;
+                        if (_context.DataExchangeStores.FirstOrDefault(ds => ds.AfterBuyServiceID == service.AfterBuyServiceID) != null)
+                        {
+                            hasStoreDatachange = true;
+                        }
+                        if (_context.DataExchangeUsers.FirstOrDefault(ds => ds.AfterBuyServiceID == service.AfterBuyServiceID) != null)
+                        {
+                            hasUsersDatachange = true;
+                        }
+                        var order = _context.Orders.FirstOrDefault(o => _context.ServiceDetails.FirstOrDefault(sd => sd.OrderDetail.OrderID == o.OrderID && sd.AfterBuyServiceID == service.AfterBuyServiceID) != null);
+                        var shiporder=_context.ShipOrders.Where(so=>so.AfterBuyServiceID==service.AfterBuyServiceID && so.Status_ID=="-2");
+                        string texttype = "";
+                        if (shiporder.Count() == 1)
+                        {
+                            texttype = "user";
+                        }
+                        if (shiporder.Count() == 2)
+                        {
+                            texttype = "store";
+                        }
+                        var partner_id = service.AfterBuyServiceID + "_" + texttype + "_"+service.ServiceType;
+                        AfterBuyServiceModelView model = new AfterBuyServiceModelView
+                        {
+                            AfterBuyServiceID = service.AfterBuyServiceID,
+                            Create_Date = service.Create_Date,
+                            UserID = user.UserID,
+                            Store_Address = service.Store_Address,
+                            Store_Province = service.Store_Province,
+                            Store_District = service.Store_District,
+                            Store_Ward = service.Store_Ward,
+                            Store_Name = service.Store_Name,
+                            Store_Tel = service.Store_Tel,
+                            User_Address = service.User_Address,
+                            User_District = service.User_District,
+                            User_Province = service.User_Province,
+                            User_Ward = service.User_Ward,
+                            User_Name = service.User_Name,
+                            User_Tel = service.User_Tel,
+                            FeeShipFisrt = service.FeeShipFisrt,
+                            FeeShipSercond = service.FeeShipSercond,
+                            OrderShip = GetShipOrder(service.AfterBuyServiceID),
+                            Servicestatus = _statusReposity.GetServiceStatus(service.ServicestatusID),
+                            ServiceType = _statusReposity.GetServiceType(service.ServiceType),
+                            StoreView = GetStoreViewModel(service.AfterBuyServiceID),
+                            Details = GetServiceDetailModels(service.AfterBuyServiceID),
+                            Reason = service.Reason,
+                            Pick_Time = service.estimated_pick_time,
+                            Deliver_time = service.estimated_deliver_time,
+                            FirebaseID = user.FirebaseID,
+                            RefundPrice = service.RefundPrice,
+                            HasStoreDataExchange = hasStoreDatachange,
+                            HasUserDataExchange = hasUsersDatachange,
+                            PackingLinkCus = service.PackingLinkCus,
+                            PackingLink = order.PackingLink,
+                            OrderID = order.OrderID,
+                            Text = service.Text,
+                            partner_id= partner_id,
+                        };
+                        list.Add(model);
+                    }
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = list;
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = new ArrayList();
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
             }
         }
     }

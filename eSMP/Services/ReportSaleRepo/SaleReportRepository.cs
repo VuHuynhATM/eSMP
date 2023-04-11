@@ -30,7 +30,7 @@ namespace eSMP.Services.ReportSaleRepo
                     listItem = listItem.Where(i => _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.SingleOrDefault(si => si.ItemID == i.ItemID).Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID && _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == o.OrderID && obt.Create_Date.Year == year) != null) != null)!=null);
                     if (month.HasValue)
                     {
-                        listItem = listItem.Where(i => _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.SingleOrDefault(si => si.ItemID == i.ItemID).Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID && _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == o.OrderID && obt.Create_Date.Year == year && obt.Create_Date.Month == month) != null) != null) != null);
+                        listItem = listItem.Where(i => _context.OrderDetails.Where(od => od.Sub_ItemID == _context.Sub_Items.SingleOrDefault(si => si.ItemID == i.ItemID).Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID && _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == o.OrderID && obt.Create_Date.Month == month) != null) != null) != null);
                     }
                 }
                 if (hot)

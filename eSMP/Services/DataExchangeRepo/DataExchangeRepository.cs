@@ -108,12 +108,13 @@ namespace eSMP.Services.DataExchangeRepo
                 }
                 if (to.HasValue)
                 {
-                    listExchange = listExchange.Where(de => de.Create_date <= to);
+                    listExchange = listExchange.Where(de => de.Create_date < to.Value.AddDays(1));
                 }
                 if (exchangeStatusID.HasValue)
                 {
                     listExchange = listExchange.Where(de => de.ExchangeStatusID == exchangeStatusID);
                 }
+                listExchange = listExchange.OrderByDescending(de => de.Create_date);
                 if (page.HasValue)
                 {
                     numpage = (int)Math.Ceiling((double)listExchange.Count() / (double)PAGE_SIZE);
@@ -165,7 +166,7 @@ namespace eSMP.Services.DataExchangeRepo
                 var listExchange = _context.DataExchangeUsers.AsQueryable();
                 if (UserID.HasValue)
                 {
-                    listExchange = listExchange.Where(de => de.Order.UserID==UserID);
+                    listExchange = listExchange.Where(de => de.Order.UserID==UserID || _context.ServiceDetails.FirstOrDefault(sd=>sd.OrderDetail.Order.UserID==UserID)!=null);
                 }
                 if (orderID.HasValue)
                 {
@@ -181,12 +182,13 @@ namespace eSMP.Services.DataExchangeRepo
                 }
                 if (to.HasValue)
                 {
-                    listExchange = listExchange.Where(de => de.Create_date <= to);
+                    listExchange = listExchange.Where(de => de.Create_date < to.Value.AddDays(1));
                 }
                 if (exchangeStatusID.HasValue)
                 {
                     listExchange = listExchange.Where(de => de.ExchangeStatusID == exchangeStatusID);
                 }
+                listExchange = listExchange.OrderByDescending(de => de.Create_date);
                 if (page.HasValue)
                 {
                     numpage = (int)Math.Ceiling((double)listExchange.Count() / (double)PAGE_SIZE);

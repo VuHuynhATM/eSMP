@@ -336,6 +336,42 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2, 3")]
+        [Route("unhidden_feedback")]
+        public IActionResult UnHiddenFeedback(int orderDetailID)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var roleid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                var userIdOfOrder = _orderReposity.GetUserIDByOrderDetailID(orderDetailID);
+                var SupplierIdOfOrder = _orderReposity.GetSuppilerIDByOrderDetailID(orderDetailID);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                else if (roleid == "2")
+                {
+                    if (userId != userIdOfOrder + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
+                    }
+                }
+                else if (roleid == "3")
+                {
+                    if (userId != SupplierIdOfOrder + "")
+                    {
+                        return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của cửa hàng khác", Data = "", TotalPage = 1 });
+                    }
+                }
+                return Ok(_orderReposity.UnHiddenFeedback(orderDetailID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
+        [HttpPut]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
         [Route("block_feedback")]
         public IActionResult BlockFeedback(int orderDetailID)
@@ -348,6 +384,25 @@ namespace eSMP.Controllers
                     return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
                 }
                 return Ok(_orderReposity.BlockFeedback(orderDetailID));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
+        [Route("active_feedback")]
+        public IActionResult ActiveFeedback(int orderDetailID)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                return Ok(_orderReposity.ActiveFeedback(orderDetailID));
             }
             catch
             {

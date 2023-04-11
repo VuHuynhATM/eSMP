@@ -711,7 +711,7 @@ namespace eSMP.Services.ItemRepo
                     {
                         double lo = lot.Value;
                         double la = lat.Value;
-                        listItem = listItem.OrderBy(i =>
+                        listItem = listItem.OrderBy(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Min(si => si.Price)).ThenBy(i =>
                                         6371 * 2 * Math.Atan2(Math.Sqrt(Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Latitude * (Math.PI / 180))
                                         * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)), Math.Sqrt(1 - Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) * Math.Sin((la - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude) * (Math.PI / 180) / 2) + Math.Cos(_context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Latitude * (Math.PI / 180))
                                         * Math.Cos(la * (Math.PI / 180)) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2) * Math.Sin((lo - _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID == a.AddressID).Longitude) * (Math.PI / 180) / 2)))
@@ -774,8 +774,26 @@ namespace eSMP.Services.ItemRepo
                 var si = _context.Sub_Items.SingleOrDefault(i => i.Sub_ItemID == subItem.SubItemID);
                 if (si != null)
                 {
-                    si.Amount = subItem.Amount;
-                    si.Price = subItem.Price;
+                    if (subItem.Discount.HasValue)
+                    {
+                        si.Discount = subItem.Discount.Value;
+                    }
+                    if (subItem.Amount.HasValue)
+                    {
+                        si.Amount = subItem.Amount.Value;
+                    }
+                    if(subItem.Price.HasValue)
+                    {
+                        si.Price = subItem.Price.Value;
+                    }
+                    if (subItem.ReturnAndExchange.HasValue)
+                    {
+                        si.ReturnAndExchange = subItem.ReturnAndExchange.Value;
+                    }
+                    if (subItem.WarrantiesTime.HasValue)
+                    {
+                        si.WarrantiesTime = subItem.WarrantiesTime.Value;
+                    }
                     _context.SaveChanges();
                     result.Success = true;
                     result.Message = "Cập nhập thành công";
@@ -942,6 +960,12 @@ namespace eSMP.Services.ItemRepo
                     subitem.StatusText = statusText;
                     subitem.SubItem_StatusID = 2;
                     _context.SaveChanges();
+                    var item = _context.Items.SingleOrDefault(i => _context.Sub_Items.FirstOrDefault(si => si.ItemID == i.ItemID && si.SubItem_StatusID == 1) == null && i.ItemID == subitem.ItemID);
+                    if (item != null)
+                    {
+                        item.Item_StatusID = 2;
+                        _context.SaveChanges();
+                    }
                     result.Success = true;
                     result.Message = "Khoá thành công";
                     result.Data = _statusReposity.GetSubItemStatus(subitem.SubItem_StatusID);
@@ -1224,14 +1248,18 @@ namespace eSMP.Services.ItemRepo
                 if (itemStatusID.HasValue)
                 {
                     listItem = listItem.Where(i => i.Item_StatusID == itemStatusID);
+                    if (itemStatusID == 3)
+                    {
+                        listItem = listItem.OrderByDescending(o => o.Create_date);
+                    }
 
                 }
                 // item khong bi block
-               /* if (isSupplier.HasValue)
-                {
-                    if (isSupplier.Value)
-                        listItem = listItem.Where(i => i.Item_StatusID != 2);
-                }*/
+                /* if (isSupplier.HasValue)
+                 {
+                     if (isSupplier.Value)
+                         listItem = listItem.Where(i => i.Item_StatusID != 2);
+                 }*/
                 //store active
 
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
@@ -1528,6 +1556,7 @@ namespace eSMP.Services.ItemRepo
                             model.Comment = item.Feedback_Title;
                             model.ImagesFB = GetListImageFB(item.OrderDetailID);
                             model.Create_Date = item.FeedBack_Date;
+                            model.Feedback_Status = _statusReposity.GetfeedbackStatus(item.Feedback_StatusID.Value);
                             list.Add(model);
                         }
                     }

@@ -148,7 +148,7 @@ namespace eSMP.Services.StoreRepo
                     TotalOrder = GetTotalOrder(store.StoreID),
                     TotalCancelOrder = GetTotalCancelOrder(store.StoreID),
                     TotalRating = GetTotalRating(store.StoreID),
-                    StatusText=store.StatusText,
+                    StatusText = store.StatusText,
                 };
                 return model;
             }
@@ -294,7 +294,7 @@ namespace eSMP.Services.StoreRepo
                         TotalOrder = GetTotalOrder(storeID),
                         TotalCancelOrder = GetTotalCancelOrder(storeID),
                         TotalRating = GetTotalRating(storeID),
-                        StatusText=store.StatusText,
+                        StatusText = store.StatusText,
                     };
                     result.Success = true;
                     result.Message = "Thành Công";
@@ -765,7 +765,16 @@ namespace eSMP.Services.StoreRepo
             try
             {
                 double num = 0;
-                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && i.StoreID == storeID) != null) != null) != null && o.OrderStatusID != 3); 
+                var listorder = _context.Orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID &&
+                _context.Sub_Items.FirstOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && i.StoreID == storeID) != null) != null) != null &&
+                (o.OrderStatusID == 3 ||
+                _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-1" ||
+                _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "-3" ||
+                _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "127" ||
+                _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "9" ||
+                _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "7" ||
+                 _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "49")
+                );
                 return listorder.Count();
             }
             catch

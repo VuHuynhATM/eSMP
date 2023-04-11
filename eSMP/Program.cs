@@ -169,7 +169,10 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.DisplayRequestDuration();
+    });
 }
 
 //app.UseHttpsRedirection();

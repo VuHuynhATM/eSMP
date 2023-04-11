@@ -94,10 +94,10 @@ namespace eSMP.VModels
     public class SubItemUpdate
     {
         public int SubItemID { get; set; }
-        public int Amount { get; set; }
-        public double Discount { get; set; }
-        public int WarrantiesTime { get; set; }
-        public double Price { get; set; }
-        public int ReturnAndExchange { get; set; }
+        public int? Amount { get; set; }
+        public double? Discount { get; set; }
+        public int? WarrantiesTime { get; set; }
+        public double? Price { get; set; }
+        public int? ReturnAndExchange { get; set; }
     }
 }

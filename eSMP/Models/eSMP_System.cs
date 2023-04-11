@@ -13,5 +13,6 @@ namespace eSMP.Models
         public double AmountActive { get; set; }
         public double Refund_Precent { get; set; }
         public Boolean IsActive { get; set; }
+        public Boolean Co_Examination { get; set; }
     }
 }

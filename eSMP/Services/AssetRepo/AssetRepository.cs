@@ -200,7 +200,7 @@ namespace eSMP.Services.StoreAssetRepo
             int numpage = 1;
             try
             {
-                var listReveneu = _context.OrderSystem_Transactions.Where(ost=>ost.OrderStore_Transaction.Order.OrderStatusID==5).AsQueryable();
+                var listReveneu = _context.OrderSystem_Transactions.Where(ost=>ost.OrderStore_Transaction.Order.OrderStatusID==5&& ost.Price>0).AsQueryable();
                 if (From.HasValue)
                 {
                     listReveneu = listReveneu.Where(ost => ost.Create_Date >= From);
@@ -284,6 +284,7 @@ namespace eSMP.Services.StoreAssetRepo
                     systeminfo.Commission_Precent = eSMp.Commission_Precent;
                     systeminfo.IsActive = eSMp.IsActive;
                     systeminfo.Asset = eSMp.Asset;
+                    systeminfo.Co_Examination = eSMp.Co_Examination;
                 }
                 if (cus != null)
                 {
@@ -524,7 +525,7 @@ namespace eSMP.Services.StoreAssetRepo
 
                     storeWitdrawal.Image = image;
                     var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeWitdrawal.StoreID);
-                    store.Asset = store.Asset = storeWitdrawal.Price;
+                    store.Asset = store.Asset - storeWitdrawal.Price;
 
                     _context.SaveChanges();
                     result.Success = true;
@@ -874,6 +875,31 @@ namespace eSMP.Services.StoreAssetRepo
             {
                 var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
                 eSMP.Refund_Precent = refund_Precent;
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = eSMP;
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+        }
+
+        public Result UpdateCo_Examination(bool Co_Examination)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var eSMP = _context.eSMP_Systems.SingleOrDefault(es => es.SystemID == 1);
+                eSMP.Co_Examination = Co_Examination;
                 _context.SaveChanges();
                 result.Success = true;
                 result.Message = "Thành công";

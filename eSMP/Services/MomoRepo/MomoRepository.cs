@@ -1,4 +1,5 @@
 ﻿using eSMP.Models;
+using eSMP.Services.AutoService;
 using eSMP.Services.NotificationRepo;
 using eSMP.Services.OrderRepo;
 using eSMP.Services.ShipRepo;
@@ -18,6 +19,7 @@ namespace eSMP.Services.MomoRepo
         private readonly Lazy<IShipReposity> _shipReposity;
         private readonly Lazy<IOrderReposity> _orderReposity;
         private readonly Lazy<INotificationReposity> _notification;
+        private static readonly object looker = new object();
         string accessKey = "klm05TvNBzhg7h7j";
         string secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
         string partnerCode = "MOMOBKUN20180529";
@@ -46,7 +48,7 @@ namespace eSMP.Services.MomoRepo
 
             MomoPayRequest request = new MomoPayRequest();
             //https://esmp.page.link/view
-            request.orderInfo = "Thanh toan";
+            request.orderInfo = "Thanh toan cho don hang cua eSMP";
             request.partnerCode = partnerCode;
             request.redirectUrl = firebaseReponse.Result.shortLink;
             request.ipnUrl = "https://esmpfree-001-site1.etempurl.com/api/Payment";
@@ -181,7 +183,12 @@ namespace eSMP.Services.MomoRepo
                             }
                             else
                             {
-                                itemerro = itemerro + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                if (itemerro == "")
+                                {
+                                    itemerro = GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                }
+                                else
+                                    itemerro = itemerro + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
                             }
                         }
                         if (checkout == listdetail.Count)
@@ -218,66 +225,100 @@ namespace eSMP.Services.MomoRepo
                                 }
                                 else
                                 {
-                                    var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
-                                    if (shipReponse != null)
+                                    lock (looker)
                                     {
-                                        if (shipReponse.success)
+                                        checkout = 0;
+                                        string itemerrolook = "";
+                                        foreach (var item in listdetail)
                                         {
-                                            order.OrderStatusID = 4;
-                                            order.FeeShip = shipReponse.order.fee;
-                                            order.Create_Date = GetVnTime();
-                                            //tạo status
-                                            _context.SaveChanges();
-                                            //updateamount
-                                            var listdetailnew = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
-                                            foreach (var detail in listdetailnew)
+                                            var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID && si.Amount >= item.Amount && si.SubItem_StatusID == 1 && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).Store_StatusID == 1).Item_StatusID == 1);
+                                            if (subItem != null)
                                             {
-                                                var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == detail.Sub_ItemID);
-                                                detail.WarrantiesTime = subItem.WarrantiesTime;
-                                                subItem.Amount = subItem.Amount - detail.Amount;
+                                                item.ReturnAndExchange = subItem.ReturnAndExchange;
                                                 _context.SaveChanges();
+                                                checkout++;
                                             }
-                                            //thong bao
-                                            _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thành công", null, order.OrderID, null);
-                                            Notification notification = new Notification
+                                            else
                                             {
-                                                title = "Đặt hàng",
-                                                body = "Đặt hàng " + order.OrderID + " thành công",
-                                            };
-                                            FirebaseNotification firebaseNotification = new FirebaseNotification
-                                            {
-                                                notification = notification,
-                                                to = order.User.FCM_Firebase,
-                                            };
-                                            _notification.Value.PushUserNotificationAsync(firebaseNotification);
-                                            // supplier
-                                            var store = GetStoreByorderID(order.OrderID);
-                                            _notification.Value.CreateNotifiaction(store.UserID, "Đơn hàng mới: ", null, order.OrderID, null);
-                                            Notification notificationOfSup = new Notification
-                                            {
-                                                title = "Đơn hàng",
-                                                body = "Đơn hàng mới",
-                                            };
-                                            FirebaseNotification firebaseNotificationSupp = new FirebaseNotification
-                                            {
-                                                notification = notificationOfSup,
-                                                to = store.User.FCM_Firebase,
-                                            };
-                                            _notification.Value.PushUserNotificationAsync(firebaseNotificationSupp);
-                                            result.Success = true;
-                                            result.Message = "Đặt hàng thành công";
+                                                if (itemerrolook == "")
+                                                {
+                                                    itemerrolook = GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                                }
+                                                else
+                                                    itemerrolook = itemerrolook + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                            }
+                                        }
+                                        if (checkout != listdetail.Count)
+                                        {
+                                            result.Success = false;
+                                            result.Message = "Số lượng của sản phầm " + itemerrolook + " không đủ";
                                             result.Data = "";
+                                            result.TotalPage = 1;
                                             return result;
                                         }
-                                        else
+                                            var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
+                                        if (shipReponse != null)
                                         {
+                                            if (shipReponse.success)
+                                            {
+                                                order.OrderStatusID = 4;
+                                                order.FeeShip = shipReponse.order.fee;
+                                                order.Create_Date = GetVnTime();
+                                                //tạo status
+                                                _context.SaveChanges();
+                                                //updateamount
+                                                var listdetailnew = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
+                                                foreach (var detail in listdetailnew)
+                                                {
+                                                    var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == detail.Sub_ItemID);
+                                                    detail.WarrantiesTime = subItem.WarrantiesTime;
+                                                    subItem.Amount = subItem.Amount - detail.Amount;
+                                                    _context.SaveChanges();
+                                                }
+                                                //thong bao
+                                                _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thành công", null, order.OrderID, null);
+                                                Notification notification = new Notification
+                                                {
+                                                    title = "Đặt hàng",
+                                                    body = "Đặt hàng " + order.OrderID + " thành công",
+                                                };
+                                                FirebaseNotification firebaseNotification = new FirebaseNotification
+                                                {
+                                                    notification = notification,
+                                                    to = order.User.FCM_Firebase,
+                                                };
+                                                _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                                                // supplier
+                                                var store = GetStoreByorderID(order.OrderID);
+                                                _notification.Value.CreateNotifiaction(store.UserID, "Đơn hàng mới: ", null, order.OrderID, null);
+                                                Notification notificationOfSup = new Notification
+                                                {
+                                                    title = "Đơn hàng",
+                                                    body = "Đơn hàng mới",
+                                                };
+                                                FirebaseNotification firebaseNotificationSupp = new FirebaseNotification
+                                                {
+                                                    notification = notificationOfSup,
+                                                    to = store.User.FCM_Firebase,
+                                                };
+                                                _notification.Value.PushUserNotificationAsync(firebaseNotificationSupp);
+                                                result.Success = true;
+                                                result.Message = "Đặt hàng thành công";
+                                                result.Data = "";
+                                                result.TotalPage = 1;
+                                                return result;
+                                            }
+                                            else
+                                            {
 
-                                            order.OrderStatusID = 2;
-                                            _context.SaveChanges();
-                                            result.Success = false;
-                                            result.Message = "Hệ thống giao hàng bảo trì, thử lại sau";
-                                            result.Data = "";
-                                            return result;
+                                                order.OrderStatusID = 2;
+                                                _context.SaveChanges();
+                                                result.Success = false;
+                                                result.Message = "Hệ thống giao hàng bảo trì, thử lại sau";
+                                                result.Data = "";
+                                                result.TotalPage = 1;
+                                                return result;
+                                            }
                                         }
                                     }
                                 }
@@ -287,6 +328,7 @@ namespace eSMP.Services.MomoRepo
                                 result.Success = false;
                                 result.Message = "Địa điểm giao hàng chưa được hỗ trợ";
                                 result.Data = "";
+                                result.TotalPage = 1;
                                 return result;
                             }
                         }
@@ -295,6 +337,7 @@ namespace eSMP.Services.MomoRepo
                             result.Success = false;
                             result.Message = "Số lượng của sản phầm " + itemerro + " không đủ";
                             result.Data = "";
+                            result.TotalPage = 1;
                             return result;
                         }
                     }
@@ -302,6 +345,7 @@ namespace eSMP.Services.MomoRepo
                 result.Success = false;
                 result.Message = "Đơn hàng không tồn tại";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
             catch
@@ -309,60 +353,133 @@ namespace eSMP.Services.MomoRepo
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
+                result.TotalPage = 1;
                 return result;
             }
         }
-        public void PayOrderINP(MomoPayINP payINP)
+        public void PayOrderINPAsync(MomoPayINP payINP)
         {
             try
             {
-                if (payINP.resultCode == 0)
+                lock (looker)
                 {
-                    var orderid = payINP.orderId.Split('-')[0];
-                    var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
-                    if (order != null)
+                    if (payINP.resultCode == 0)
                     {
-                        OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
-                        transacsion.OrderID = order.OrderID;
-                        DateTime dateTime = new DateTime();
-                        dateTime = dateTime.AddYears(1969);
-                        dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToUniversalTime();
-
-                        string vnTimeZoneKey = "SE Asia Standard Time";
-                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
-                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
-                        transacsion.Create_Date = VnTime;
-                        transacsion.ResultCode = payINP.resultCode;
-                        transacsion.TransactionID = payINP.transId;
-                        transacsion.OrderIDGateway = payINP.orderId;
-                        transacsion.RequestID = payINP.requestId;
-                        _context.orderBuy_Transacsions.Add(transacsion);
-                        _context.SaveChanges();
-
-                        //create ship
-                        var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
-                        if (shipReponse != null)
+                        var orderid = payINP.orderId.Split('-')[0];
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
+                        if (order != null)
                         {
-                            if (shipReponse.success)
+                            var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
+                            var checkout = 0;
+                            var itemerro = "";
+                            if (listdetail.Count > 0)
                             {
-                                order.OrderStatusID = 1;
-                                order.FeeShip = shipReponse.order.fee;
-                                order.Create_Date = GetVnTime();
-                                _context.SaveChanges();
-                                //updateamount
-                                var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
-                                foreach (var detail in listdetail)
+                                foreach (var item in listdetail)
                                 {
-                                    var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == detail.Sub_ItemID);
-                                    subItem.Amount = subItem.Amount - detail.Amount;
-                                    _context.SaveChanges();
+                                    var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == item.Sub_ItemID && si.Amount >= item.Amount && si.SubItem_StatusID == 1 && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID && _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).Store_StatusID == 1).Item_StatusID == 1);
+                                    if (subItem != null)
+                                    {
+                                        item.ReturnAndExchange = subItem.ReturnAndExchange;
+                                        _context.SaveChanges();
+                                        checkout++;
+                                    }
+                                    else
+                                    {
+                                        if (itemerro == "")
+                                        {
+                                            itemerro= GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                        }else
+                                        itemerro = itemerro + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                    }
                                 }
-                                //thong bao
-                                _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thành công", null, order.OrderID, null);
+                            }
+                            if (checkout == listdetail.Count)
+                            {
+                                //create ship
+                                var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
+                                if (shipReponse != null)
+                                {
+                                    if (shipReponse.success)
+                                    {
+                                        OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
+                                        transacsion.OrderID = order.OrderID;
+                                        DateTime dateTime = new DateTime();
+                                        dateTime = dateTime.AddYears(1969);
+                                        dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToUniversalTime();
+
+                                        string vnTimeZoneKey = "SE Asia Standard Time";
+                                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
+                                        transacsion.Create_Date = VnTime;
+                                        transacsion.ResultCode = payINP.resultCode;
+                                        transacsion.TransactionID = payINP.transId;
+                                        transacsion.OrderIDGateway = payINP.orderId;
+                                        transacsion.RequestID = payINP.requestId;
+                                        _context.orderBuy_Transacsions.Add(transacsion);
+                                        _context.SaveChanges();
+
+                                        order.OrderStatusID = 1;
+                                        order.FeeShip = shipReponse.order.fee;
+                                        order.Create_Date = GetVnTime();
+                                        _context.SaveChanges();
+                                        //updateamount
+                                        //var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
+                                        foreach (var detail in listdetail)
+                                        {
+                                            var subItem = _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == detail.Sub_ItemID);
+                                            subItem.Amount = subItem.Amount - detail.Amount;
+                                            _context.SaveChanges();
+                                        }
+                                        //thong bao
+                                        _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thành công", null, order.OrderID, null);
+                                        Notification notification = new Notification
+                                        {
+                                            title = "Thanh toán",
+                                            body = "Đơn hàng " + order.OrderID + " thành công",
+                                        };
+                                        FirebaseNotification firebaseNotification = new FirebaseNotification
+                                        {
+                                            notification = notification,
+                                            to = order.User.FCM_Firebase,
+                                        };
+                                        _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                                        // supplier
+                                        var store = GetStoreByorderID(order.OrderID);
+                                        _notification.Value.CreateNotifiaction(store.UserID, "Đơn hàng mới: ", null, order.OrderID, null);
+                                        Notification notificationOfSup = new Notification
+                                        {
+                                            title = "Đơn hàng",
+                                            body = "Đơn hàng mới",
+                                        };
+                                        FirebaseNotification firebaseNotificationSupp = new FirebaseNotification
+                                        {
+                                            notification = notificationOfSup,
+                                            to = store.User.FCM_Firebase,
+                                        };
+                                        _notification.Value.PushUserNotificationAsync(firebaseNotificationSupp);
+                                    }
+                                    else
+                                    {
+                                        refundnow(order.OrderID, payINP.amount, payINP.transId, order.UserID, order.User.FirebaseID);
+
+                                        /*var refund = RefundOrder(order.OrderID, 1);
+                                        if (refund.Success)
+                                        {
+                                            order.OrderStatusID = 3;
+                                            order.Create_Date = GetVnTime();
+                                            order.Reason = shipReponse.message;
+                                            _context.SaveChanges();
+                                        }*/
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thất bại", null, null, null);
                                 Notification notification = new Notification
                                 {
-                                    title = "Thanh toán",
-                                    body = "Đơn hàng " + order.OrderID + " thành công",
+                                    title = "Đơn hàng",
+                                    body = itemerro+ " Không đủ hàng",
                                 };
                                 FirebaseNotification firebaseNotification = new FirebaseNotification
                                 {
@@ -370,38 +487,14 @@ namespace eSMP.Services.MomoRepo
                                     to = order.User.FCM_Firebase,
                                 };
                                 _notification.Value.PushUserNotificationAsync(firebaseNotification);
-                                // supplier
-                                var store = GetStoreByorderID(order.OrderID);
-                                _notification.Value.CreateNotifiaction(store.UserID, "Đơn hàng mới: ", null, order.OrderID, null);
-                                Notification notificationOfSup = new Notification
-                                {
-                                    title = "Đơn hàng",
-                                    body = "Đơn hàng mới",
-                                };
-                                FirebaseNotification firebaseNotificationSupp = new FirebaseNotification
-                                {
-                                    notification = notificationOfSup,
-                                    to = store.User.FCM_Firebase,
-                                };
-                                _notification.Value.PushUserNotificationAsync(firebaseNotificationSupp);
+                                refundnow(order.OrderID, payINP.amount, payINP.transId, order.UserID, order.User.FirebaseID);
+
                             }
-                            else
-                            {
-                                //ConfimCancelOrder(order.OrderID);
-                                var refund = RefundOrder(order.OrderID, 1);
-                                if (refund.Success)
-                                {
-                                    order.OrderStatusID = 3;
-                                    //order.FeeShip = shipReponse.order.fee;
-                                    order.Create_Date = GetVnTime();
-                                    order.Reason = shipReponse.message;
-                                    _context.SaveChanges();
-                                    //_context.orderBuy_Transacsions.Remove(transacsion);
-                                }
-                            }
+
                         }
                     }
                 }
+                
             }
             catch (Exception ex)
             {
@@ -409,6 +502,53 @@ namespace eSMP.Services.MomoRepo
                 role.RoleName = ex.Message;
                 _context.SaveChanges();
                 return;
+            }
+        }
+        public async void refundnow(int orderID, long amount, long transId, int userID,  string FCM_Firebase)
+        {
+            RefundRequest request = new RefundRequest();
+            Guid myuuid = Guid.NewGuid();
+            string myuuidAsString = myuuid.ToString();
+            request.orderId = orderID + myuuidAsString;
+            request.requestId = myuuidAsString;
+            request.partnerCode = partnerCode;
+            request.lang = "vi";
+            request.amount = amount;
+            request.description = "";
+            request.transId = transId;
+
+            var rawSignature = "accessKey=" + accessKey + "&amount=" + request.amount + "&description=" + request.description + "&orderId=" + request.orderId + "&partnerCode=" + request.partnerCode + "&requestId=" + request.requestId + "&transId=" + request.transId;
+
+            request.signature = getSignature(rawSignature, secretKey);
+            var client = new HttpClient();
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+            var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent);
+            var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>().Result;
+            if (contents != null)
+            {
+                if (contents.resultCode != 0)
+                {
+                    DataExchangeUser exchangeUser = new DataExchangeUser();
+                    exchangeUser.Create_date = GetVnTime();
+                    exchangeUser.ExchangePrice = amount;
+                    exchangeUser.ExchangeStatusID = 3;
+                    exchangeUser.ExchangeUserName = "Hoàn tiền thanh toán đơn hàng thất bại";
+                    _context.DataExchangeUsers.Add(exchangeUser);
+                    _context.SaveChanges();
+
+                    _notification.Value.CreateNotifiaction(userID, "Hoàn tiền thanh toán thất bại", null, null, null);
+                    Notification notification = new Notification
+                    {
+                        title = "Hoàn tiền",
+                        body = "Hoàn tiền thanh toán thất bại",
+                    };
+                    FirebaseNotification firebaseNotification = new FirebaseNotification
+                    {
+                        notification = notification,
+                        to = FCM_Firebase,
+                    };
+                    _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                }
             }
         }
         public async Task<ConfirmReponse> confirmCancel(int orderID)
@@ -801,7 +941,7 @@ namespace eSMP.Services.MomoRepo
             var store = _context.Stores.SingleOrDefault(s => s.StoreID == storeID);
             MomoPayRequest request = new MomoPayRequest();
             //https://esmp.page.link/view
-            request.orderInfo = "Thanh Toan";
+            request.orderInfo = "Thanh toan mo gian hang tren eSMP";
             request.partnerCode = partnerCode;
             request.redirectUrl = "https://gsp23-se-37-supplier.vercel.app/#/";
             request.ipnUrl = "http://esmpfree-001-site1.etempurl.com/api/Payment/store";
@@ -1029,9 +1169,9 @@ namespace eSMP.Services.MomoRepo
             
             long price = 0;
             var listServiceDetai = _context.ServiceDetails.Where(sd => sd.AfterBuyServiceID == ServiceID);
-            foreach (var item in listServiceDetai)
+            foreach (var item in listServiceDetai.ToList())
             {
-                price = (long)(price + item.OrderDetail.PricePurchase * item.OrderDetail.DiscountPurchase * numrefund);
+                price = (long)(price + item.OrderDetail.PricePurchase * (1-item.OrderDetail.DiscountPurchase) * item.Amount  * numrefund);
             }
             string myuuidAsString = myuuid.ToString();
             request.orderId = afterService.AfterBuyServiceID + myuuidAsString;

@@ -12,6 +12,7 @@
         public int TotalSupplier { get; set; }
         public int TotalItem { get; set; }
         public int TotalOrder { get; set; }
+        public Boolean Co_Examination { get; set; }
     }
 }
  

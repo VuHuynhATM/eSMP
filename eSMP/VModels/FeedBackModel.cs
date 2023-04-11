@@ -13,6 +13,7 @@ namespace eSMP.VModels
         public double? Rate { get; set; }
         public string? Comment { get; set; }
         public DateTime? Create_Date { get; set; }
+        public Status? Feedback_Status { get; set; }
     }
     public class FeedbackViewModel
     {

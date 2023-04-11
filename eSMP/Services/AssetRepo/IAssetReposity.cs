@@ -22,5 +22,6 @@ namespace eSMP.Services.StoreAssetRepo
         public Result UpdateCommission_Precent(double commission_Precent);
         public Result UpdateAmountActive(double amount_Active);
         public Result UpdateRefund_Precent(double refund_Precent);
+        public Result UpdateCo_Examination(Boolean Co_Examination);
     }
 }

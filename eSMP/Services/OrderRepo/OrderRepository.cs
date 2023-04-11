@@ -855,7 +855,6 @@ namespace eSMP.Services.OrderRepo
                             subItemImage = orderdetail.Sub_Item.Image.Path,
                             Sub_itemName = orderdetail.Sub_Item.Sub_ItemName,
                             ImagesFB = GetListImageFB(orderdetail.OrderDetailID),
-
                         };
                         _context.SaveChanges();
                         result.Success = true;
@@ -1171,7 +1170,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 var orderDetail = _context.OrderDetails.AsQueryable();
-                orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID) != null) != null);
+                orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => (o.OrderStatusID == 1||o.OrderStatusID == 5) && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID) != null) != null);
                 if (userID.HasValue)
                 {
                     orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.UserID == userID && o.OrderID == od.OrderID) != null);
@@ -1182,7 +1181,7 @@ namespace eSMP.Services.OrderRepo
                 }
                 else
                 {
-                    orderDetail = orderDetail.Where(od => od.Feedback_StatusID == null && _context.Orders.SingleOrDefault(o => o.OrderStatusID == 1 && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "5") != null) != null);
+                    orderDetail = orderDetail.Where(od => od.Feedback_StatusID == null && _context.Orders.SingleOrDefault(o => (o.OrderStatusID == 1 || o.OrderStatusID == 5) && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "5") != null) != null);
                 }
 
                 if (page.HasValue)
@@ -1200,7 +1199,7 @@ namespace eSMP.Services.OrderRepo
                 {
                     foreach (var detail in orderDetail.ToList())
                     {
-                        var orderstatus = _context.ShipOrders.SingleOrDefault(so => so.OrderID == detail.OrderID && so.Status_ID == "5");
+                        var orderstatus = _context.ShipOrders.FirstOrDefault(so => so.OrderID == detail.OrderID && so.Status_ID == "5");
                         if (detail.Feedback_StatusID != null)
                         {
                             FeedbackViewModel model = new FeedbackViewModel
@@ -1357,7 +1356,51 @@ namespace eSMP.Services.OrderRepo
                 return result;
             }
         }
-
+        public Result UnHiddenFeedback(int orderDetailID)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID != null);
+                if (orderDetail != null)
+                {
+                    if (orderDetail.Feedback_StatusID == 3)
+                    {
+                        orderDetail.Feedback_StatusID = 1;
+                        _context.SaveChanges();
+                        result.Success = true;
+                        result.Message = "Ẩn đánh giá thành công";
+                    }
+                    else if(orderDetail.Feedback_StatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "Đánh giá hiện bị khóa";
+                    }
+                    else
+                    {
+                        result.Success = false;
+                        result.Message = "Đánh giá đã được hiển thị";
+                    }
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Đơn hàng chưa được đánhh giá";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+        }
         public Result BlockFeedback(int orderDetailID)
         {
             Result result = new Result();
@@ -1370,7 +1413,7 @@ namespace eSMP.Services.OrderRepo
                     orderDetail.Feedback_StatusID = 2;
                     _context.SaveChanges();
                     result.Success = true;
-                    result.Message = "Ẩn đánh giá thành công";
+                    result.Message = "khóa đánh giá thành công";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;
@@ -1488,6 +1531,39 @@ namespace eSMP.Services.OrderRepo
                 }
                 result.Success = false;
                 result.Message = "Thất bại";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+        }
+
+        public Result ActiveFeedback(int orderDetailID)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID ==2);
+                if (orderDetail != null)
+                {
+                    orderDetail.Feedback_StatusID = 1;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Mở khóa đánh giá thành công";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Đơn hàng chưa được đánhh giá";
                 result.Data = "";
                 result.TotalPage = numpage;
                 return result;

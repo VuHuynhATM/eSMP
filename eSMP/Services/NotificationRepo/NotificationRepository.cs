@@ -65,6 +65,7 @@ namespace eSMP.Services.NotificationRepo
                     }
                     listNotification = listNotification.Skip((page.Value - 1) * PAGE_SIZE).Take(PAGE_SIZE);
                 }
+                listNotification= listNotification.OrderByDescending(n => n.Create_Date);
                 List<NotificationModel> list = new List<NotificationModel>();
                 foreach (var notification in listNotification.ToList())
                 {

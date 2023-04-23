@@ -622,7 +622,8 @@ namespace eSMP.Services.StoreRepo
                         item.Pick_Address = address;
                         item.Pick_Name = name;
                         item.Pick_Tel = tel;
-                        item.FeeShip = _shipReposity.Value.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.Value.GetWeightOrder(item.OrderID)).fee.fee;
+                        var priceitem = _orderReposity.Value.GetPriceItemOrder(item.OrderID);
+                        item.FeeShip = _shipReposity.Value.GetFeeAsync(item.Province, item.District, provine, district, _orderReposity.Value.GetWeightOrder(item.OrderID),priceitem).fee.fee;
                     }
                 }
                 _context.SaveChanges();
@@ -712,7 +713,7 @@ namespace eSMP.Services.StoreRepo
         {
             try
             {
-                var store = _context.Stores.SingleOrDefault(s => s.User.isActive && s.Store_StatusID == 1 && s.UserID == userID);
+                var store = _context.Stores.SingleOrDefault(s => s.User.isActive && (s.Store_StatusID == 1|| s.Store_StatusID == 4) && s.UserID == userID);
                 if (store != null)
                 {
                     return true;

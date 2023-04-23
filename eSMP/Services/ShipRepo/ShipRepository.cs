@@ -41,18 +41,28 @@ namespace eSMP.Services.ShipRepo
             return VnTime;
         }
 
-        public async Task<FeeReponse> GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight, string deliver_option)
+        public async Task<FeeReponse> GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight, string deliver_option,double price)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Token", TOKEN);
-            var shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/shipment/fee?pick_province=" + pick_province + "&pick_district=" + pick_district + "&province=" + province + "&district=" + district + "&weight=" + weight + "&deliver_option=" + deliver_option + "&transport=road");
+            string tags = "";
+            var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+            if (system != null)
+            {
+                if (system.Co_Examination)
+                {
+                    tags= "&tags%5B%5D=11";
+                }
+            }
+            var shipResponse = await client.GetAsync("https://services-staging.ghtklab.com/services/shipment/fee?pick_province=" + pick_province + "&pick_district=" + pick_district + "&province=" + province + "&district=" + district + "&weight=" + weight + "&deliver_option=" + deliver_option +"&value="+ price + "&transport=road"+ tags);
             var content = shipResponse.Content.ReadFromJsonAsync<FeeReponse>();
             return content.Result;
         }
 
-        public FeeReponse GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight)
+        public FeeReponse GetFeeAsync(string province, string district, string pick_province, string pick_district, int weight, double price)
         {
-            return GetFeeAsync(province, district, pick_province, pick_district, weight, deliver_option).Result;
+            var ship= GetFeeAsync(province, district, pick_province, pick_district, weight, deliver_option, price).Result;
+            return ship;
         }
 
         public bool CallBackAsync(string label_id, string partner_id, int status_id, string action_time, string reason_code, string reason)

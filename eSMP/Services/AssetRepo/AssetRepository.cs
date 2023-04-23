@@ -661,6 +661,15 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
                 List<ChartStoreModel> list = new List<ChartStoreModel>();
+                var checkreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID);
+                if (checkreveneu.Count() == 0)
+                {
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = list;
+                    result.TotalPage = numpage;
+                    return result;
+                }
                 if (year.HasValue)
                 {
                     for (int i = 1; i < 13; i++)
@@ -729,6 +738,15 @@ namespace eSMP.Services.StoreAssetRepo
                 else
                 {
                     var yearStart = _context.Stores.Where(ost => ost.Actice_Date!=null).OrderBy(ost => ost.Actice_Date).First().Actice_Date.Value.Year;
+                    if (yearStart == null)
+                    {
+                        result.Success = false;
+                        result.Message = "Chưa có dữ liệu doanh thu";
+                        result.Data = "";
+                        result.TotalPage = numpage;
+                        return result;
+
+                    }
                     var yearCrrent = GetVnTime().Year;
                     for (int i = yearStart; i < yearCrrent + 1; i++)
                     {

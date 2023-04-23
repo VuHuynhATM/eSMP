@@ -20,13 +20,10 @@ namespace eSMP.Services.AutoService
             {
                 try
                 {
-                    await Task.Delay(1000 * 5 *60);
-
-                    var role = _context.Roles.SingleOrDefault(r => r.RoleID == 5);
-                    role.RoleName = DateTime.Now.ToString();
-                    _context.SaveChanges();
                     ControlOfRevenues();
                     UpdateOrderstatus();
+                    await Task.Delay(1000 * 60);
+
                 }
                 catch (Exception ex)
                 {
@@ -55,23 +52,27 @@ namespace eSMP.Services.AutoService
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == ship.OrderID);
                         order.OrderStatusID = 5;
                         var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == ship.OrderID);
-                        //layas thoi gian giai ngan
-                        var maxReturnTime = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).Max(od => od.ReturnAndExchange);
-                        DateTime now = GetVnTime();
-                        DateTime timeCanReturn = order.Create_Date.AddDays(maxReturnTime);
-                        if (confirmReponse.ResultCode == 0 && timeCanReturn <= now)
+                        if (confirmReponse != null)
                         {
-                            //ghi nhan doanh thu
-                            //store
-                            var store = GetStoreByorderID(ship.OrderID.Value);
-                            var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
-                            var orderStore_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderID == order.OrderID);
-                            store.Asset = store.Asset + orderStore_Transaction.Price;
-                            //sys
-                            var orderSystem_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == orderStore_Transaction.OrderStore_TransactionID);
-                            system.Asset = system.Asset + orderSystem_Transaction.Price;
-                            _context.SaveChanges();
+                            //layas thoi gian giai ngan
+                            var maxReturnTime = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).Max(od => od.ReturnAndExchange);
+                            DateTime now = GetVnTime();
+                            DateTime timeCanReturn = order.Create_Date.AddDays(maxReturnTime);
+                            if (confirmReponse.ResultCode == 0 && timeCanReturn <= now)
+                            {
+                                //ghi nhan doanh thu
+                                //store
+                                var store = GetStoreByorderID(ship.OrderID.Value);
+                                var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+                                var orderStore_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderID == order.OrderID);
+                                store.Asset = store.Asset + orderStore_Transaction.Price;
+                                //sys
+                                var orderSystem_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == orderStore_Transaction.OrderStore_TransactionID);
+                                system.Asset = system.Asset + orderSystem_Transaction.Price;
+                                _context.SaveChanges();
+                            }
                         }
+                        
                     }
                 }
             }

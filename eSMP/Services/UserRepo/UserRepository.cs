@@ -857,7 +857,7 @@ namespace eSMP.Services.UserRepo
                         string path = _fileReposity.UploadFile(file, filename).Result;
                         string pathDelete = img.Path;
                         string imageDelete = img.FileName;
-                        if (pathDelete != "https://firebasestorage.googleapis.com/v0/b/esmp-4b85e.appspot.com/o/images%2F16-1c8843e5-4dd0-4fb7-b061-3a9fcbd68c0d?alt=media&token=0c8838a5-d3c4-4c31-82ed-d9b91d8c11d9")
+                        if (pathDelete != "https://firebasestorage.googleapis.com/v0/b/esmp-4b85e.appspot.com/o/images%2F2-5d887447-257a-4b45-8fbd-11e299762b65?alt=media&token=acc782a0-8136-4eaa-8276-1969870e7937")
                         {
                             if (_fileReposity.DeleteFileASYNC(imageDelete).Result)
                             {

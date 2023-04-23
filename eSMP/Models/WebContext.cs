@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using eSMP.VModels;
+using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 using System.Reflection.Metadata;
 
@@ -87,10 +88,27 @@ namespace eSMP.Models
                 .HasOne(e => e.Specification)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<System_Withdrawal>()
+                .HasOne(e => e.eSMP_System)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<System_Withdrawal>()
+                .HasOne(e => e.Image)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Item_Image>()
                 .HasOne(e => e.Item)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Item_Image>()
+               .HasOne(e => e.Image)
+               .WithMany()
+               .OnDelete(DeleteBehavior.Restrict);
+            /* modelBuilder.Entity<Item_Image>()
+                 .HasIndex(e => new { e.ImageID, e.ItemID })
+                 .IsUnique();*/
+
             modelBuilder.Entity<Sub_Item>()
                 .HasOne(e => e.Image)
                 .WithMany()
@@ -122,12 +140,19 @@ namespace eSMP.Models
             modelBuilder.Entity<Model_Item>()
                 .HasIndex(e => new { e.ItemID, e.Brand_ModelID})
                 .IsUnique();
+
             modelBuilder.Entity<SubCate_Specification>()
-                .HasIndex(e => new { e.SpecificationID, e.Sub_CategoryID})
-                .IsUnique();
-            modelBuilder.Entity<Item_Image>()
-                .HasIndex(e => new { e.ImageID, e.ItemID })
-                .IsUnique();
+                .HasOne(e => e.Specification)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SubCate_Specification>()
+                .HasOne(e => e.Sub_Category)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+           /* modelBuilder.Entity<SubCate_Specification>()
+                .HasIndex(e => new { e.SpecificationID, e.Sub_CategoryID })
+                .IsUnique();*/
+            
             modelBuilder.Entity<Specification_Value>()
                 .HasIndex(e => new { e.SpecificationID, e.ItemID })
                 .IsUnique();

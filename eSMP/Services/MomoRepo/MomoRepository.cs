@@ -6,6 +6,7 @@ using eSMP.Services.ShipRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using FirebaseAdmin.Messaging;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -94,15 +95,16 @@ namespace eSMP.Services.MomoRepo
                 if (order != null)
                 {
                     var feeShip = 0;
+                    var priceitem = _orderReposity.Value.GetPriceItemOrder(orderID);
                     if (order.OrderStatusID != 2)
                     {
                         feeShip = (int)order.FeeShip;
                     }
                     else
                     {
-                        feeShip = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(orderID)).fee.fee;
+                        feeShip = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(orderID), priceitem).fee.fee;
                     }
-                    var priceitem = _orderReposity.Value.GetPriceItemOrder(orderID);
+                    
                     if (feeShip != 0 && priceitem != 0)
                     {
                         return (long)(feeShip + priceitem);
@@ -134,7 +136,8 @@ namespace eSMP.Services.MomoRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(order.OrderID));
+                    var priceitem = _orderReposity.Value.GetPriceItemOrder(orderID);
+                    var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(order.OrderID),priceitem);
                     if (ship != null)
                     {
                         if (ship.success && ship.fee.delivery)
@@ -156,6 +159,14 @@ namespace eSMP.Services.MomoRepo
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+                if (_orderReposity.Value.GetPriceItemOrder(order.OrderID)>= 20000000)
+                {
+                    result.Success = false;
+                    result.Message = "Tổng đơn hàng không được quá 20.000.000 VND";
+                    result.Data = "";
+                    result.TotalPage = 1;
+                    return result;
+                }
                 order.PaymentMethod = paymentMethod;
                 _context.SaveChanges();
                 if (order != null)
@@ -190,6 +201,15 @@ namespace eSMP.Services.MomoRepo
                                 else
                                     itemerro = itemerro + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
                             }
+                        }
+                        var totalweight = _orderReposity.Value.GetWeightOrder(order.OrderID);
+                        if (totalweight >= 20000)
+                        {
+                            result.Success = false;
+                            result.Message = "khối lượng của đơn hàng phải dưới 20 kg";
+                            result.Data = "";
+                            result.TotalPage = 1;
+                            return result;
                         }
                         if (checkout == listdetail.Count)
                         {
@@ -256,7 +276,7 @@ namespace eSMP.Services.MomoRepo
                                             result.TotalPage = 1;
                                             return result;
                                         }
-                                            var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
+                                        var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
                                         if (shipReponse != null)
                                         {
                                             if (shipReponse.success)
@@ -387,9 +407,10 @@ namespace eSMP.Services.MomoRepo
                                     {
                                         if (itemerro == "")
                                         {
-                                            itemerro= GetSub_Item(item.Sub_ItemID).Sub_ItemName;
-                                        }else
-                                        itemerro = itemerro + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                            itemerro = GetSub_Item(item.Sub_ItemID).Sub_ItemName;
+                                        }
+                                        else
+                                            itemerro = itemerro + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
                                     }
                                 }
                             }
@@ -479,7 +500,7 @@ namespace eSMP.Services.MomoRepo
                                 Notification notification = new Notification
                                 {
                                     title = "Đơn hàng",
-                                    body = itemerro+ " Không đủ hàng",
+                                    body = itemerro + " Không đủ hàng",
                                 };
                                 FirebaseNotification firebaseNotification = new FirebaseNotification
                                 {
@@ -494,7 +515,7 @@ namespace eSMP.Services.MomoRepo
                         }
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -504,7 +525,7 @@ namespace eSMP.Services.MomoRepo
                 return;
             }
         }
-        public async void refundnow(int orderID, long amount, long transId, int userID,  string FCM_Firebase)
+        public async void refundnow(int orderID, long amount, long transId, int userID, string FCM_Firebase)
         {
             RefundRequest request = new RefundRequest();
             Guid myuuid = Guid.NewGuid();
@@ -613,7 +634,7 @@ namespace eSMP.Services.MomoRepo
             RefundRequest request = new RefundRequest();
             Guid myuuid = Guid.NewGuid();
             var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == orderID);
-            var order=_context.Orders.SingleOrDefault(o => o.OrderID == orderID);
+            var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
             long price = 0;
             if (numrefund == 1)
             {
@@ -621,7 +642,7 @@ namespace eSMP.Services.MomoRepo
             }
             else
             {
-                price = (long)((Gettotalprice(orderID)-order.FeeShip)* numrefund);
+                price = (long)((Gettotalprice(orderID) - order.FeeShip) * numrefund);
             }
             string myuuidAsString = myuuid.ToString();
             request.orderId = orderID + myuuidAsString;
@@ -642,12 +663,12 @@ namespace eSMP.Services.MomoRepo
             if (contents.Result.resultCode == 0)
             {
                 OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
-                if(store_Transaction != null)
+                if (store_Transaction != null)
                 {
                     store_Transaction.IsActive = false;
                 }
                 OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
-                if(system_Transaction != null)
+                if (system_Transaction != null)
                 {
                     system_Transaction.IsActive = false;
                 }
@@ -680,7 +701,7 @@ namespace eSMP.Services.MomoRepo
                     result.Data = "";
                     return result;
                 }
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1 && _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID == "-2" || _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID == "1");
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && (o.OrderStatusID == 1 || o.OrderStatusID == 4) && _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID == "-2" || _context.ShipOrders.OrderByDescending(so => so.Create_Date).LastOrDefault(so => so.OrderID == orderID).Status_ID == "1");
                 if (order != null)
                 {
                     var shipReponse = _shipReposity.Value.CancelOrder(orderID);
@@ -708,7 +729,7 @@ namespace eSMP.Services.MomoRepo
                             _context.SaveChanges();
                             //thong bao
                             var store = GetStoreByorderID(orderID);
-                            _notification.Value.CreateNotifiaction(store.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                            _notification.Value.CreateNotifiaction(store.UserID, "Huỷ đơn hàng " + orderID, null, order.OrderID, null);
                             Notification notification = new Notification
                             {
                                 title = "Huỷ đơn",
@@ -728,11 +749,11 @@ namespace eSMP.Services.MomoRepo
                                 result.Message = "Hoàn tiền chờ đối soát";
                                 result.Data = "";
                                 // user
-                                _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                                _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng " + orderID, null, order.OrderID, null);
                                 Notification notificationOfuser = new Notification
                                 {
                                     title = "Huỷ đơn",
-                                    body = "Huỷ đơn hàng " + order.OrderID+" thành công, chờ đối soát hoàn tiền",
+                                    body = "Huỷ đơn hàng " + order.OrderID + " thành công, chờ đối soát hoàn tiền",
                                 };
                                 FirebaseNotification firebaseNotificationuser = new FirebaseNotification
                                 {
@@ -742,7 +763,7 @@ namespace eSMP.Services.MomoRepo
                                 _notification.Value.PushUserNotificationAsync(firebaseNotificationuser);
                                 //admin
                                 var admin = _context.Users.FirstOrDefault(u => u.RoleID == 1);
-                                _notification.Value.CreateNotifiaction(admin.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                                _notification.Value.CreateNotifiaction(admin.UserID, "Huỷ đơn hàng " + orderID, null, order.OrderID, null);
                                 Notification notificationOfAD = new Notification
                                 {
                                     title = "Đối soát - Huỷ đơn",
@@ -756,9 +777,9 @@ namespace eSMP.Services.MomoRepo
                                 _notification.Value.PushUserNotificationAsync(firebaseNotificationAD);
                                 return result;
                             }
-                            
+
                             // user
-                            _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng" + orderID, null, order.OrderID, null);
+                            _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng " + orderID, null, order.OrderID, null);
                             Notification notificationOfU = new Notification
                             {
                                 title = "Huỷ đơn",
@@ -1163,15 +1184,15 @@ namespace eSMP.Services.MomoRepo
         {
             RefundRequest request = new RefundRequest();
             Guid myuuid = Guid.NewGuid();
-            var afterService=_context.AfterBuyServices.SingleOrDefault(af=>af.AfterBuyServiceID==ServiceID);
-            var order = _context.ServiceDetails.FirstOrDefault(sd=>sd.AfterBuyServiceID==ServiceID).OrderDetail.Order;
+            var afterService = _context.AfterBuyServices.SingleOrDefault(af => af.AfterBuyServiceID == ServiceID);
+            var order = _context.ServiceDetails.FirstOrDefault(sd => sd.AfterBuyServiceID == ServiceID).OrderDetail.Order;
             var ordertransaction = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == order.OrderID);
-            
+
             long price = 0;
             var listServiceDetai = _context.ServiceDetails.Where(sd => sd.AfterBuyServiceID == ServiceID);
             foreach (var item in listServiceDetai.ToList())
             {
-                price = (long)(price + item.OrderDetail.PricePurchase * (1-item.OrderDetail.DiscountPurchase) * item.Amount  * numrefund);
+                price = (long)(price + item.OrderDetail.PricePurchase * (1 - item.OrderDetail.DiscountPurchase) * item.Amount * numrefund);
             }
             string myuuidAsString = myuuid.ToString();
             request.orderId = afterService.AfterBuyServiceID + myuuidAsString;
@@ -1243,7 +1264,7 @@ namespace eSMP.Services.MomoRepo
             Guid myuuid = Guid.NewGuid();
             string myuuidAsString = myuuid.ToString();
 
-            var order=_context.orderBuy_Transacsions.SingleOrDefault(ob=>ob.OrderID == orderID);
+            var order = _context.orderBuy_Transacsions.SingleOrDefault(ob => ob.OrderID == orderID);
 
             infoRequest request = new infoRequest();
             //https://esmp.page.link/view
@@ -1253,7 +1274,7 @@ namespace eSMP.Services.MomoRepo
             request.lang = "vi";
 
 
-            var rawSignature = "accessKey="+accessKey+"&orderId="+request.orderId+"&partnerCode="+partnerCode+"&requestId="+ request.requestId;
+            var rawSignature = "accessKey=" + accessKey + "&orderId=" + request.orderId + "&partnerCode=" + partnerCode + "&requestId=" + request.requestId;
             request.signature = getSignature(rawSignature, secretKey);
             var client = new HttpClient();
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
@@ -1269,13 +1290,13 @@ namespace eSMP.Services.MomoRepo
             try
             {
                 var info = GetInfoAsync(orderID).Result;
-               /* if (info.resultCode == 0)
-                {
-                    result.Success = true;
-                    result.Message = "Thành công";
-                    result.Data = info.resultCode;
-                    return result;
-                }*/
+                /* if (info.resultCode == 0)
+                 {
+                     result.Success = true;
+                     result.Message = "Thành công";
+                     result.Data = info.resultCode;
+                     return result;
+                 }*/
                 result.Success = true;
                 result.Message = "";
                 result.Data = info;

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSMP.Models;
 
@@ -11,9 +12,10 @@ using eSMP.Models;
 namespace eSMP.Migrations
 {
     [DbContext(typeof(WebContext))]
-    partial class WebContextModelSnapshot : ModelSnapshot
+    [Migration("20230422194845_v46")]
+    partial class v46
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -499,9 +501,10 @@ namespace eSMP.Migrations
 
                     b.HasKey("Item_ImageID");
 
-                    b.HasIndex("ImageID");
-
                     b.HasIndex("ItemID");
+
+                    b.HasIndex("ImageID", "ItemID")
+                        .IsUnique();
 
                     b.ToTable("Item_Image");
                 });
@@ -1227,9 +1230,10 @@ namespace eSMP.Migrations
 
                     b.HasKey("SubCate_SpecificationID");
 
-                    b.HasIndex("SpecificationID");
-
                     b.HasIndex("Sub_CategoryID");
+
+                    b.HasIndex("SpecificationID", "Sub_CategoryID")
+                        .IsUnique();
 
                     b.ToTable("SubCate_Specification");
                 });
@@ -1784,7 +1788,7 @@ namespace eSMP.Migrations
                     b.HasOne("eSMP.Models.Sub_Category", "Sub_Category")
                         .WithMany()
                         .HasForeignKey("Sub_CategoryID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Specification");
@@ -1797,13 +1801,13 @@ namespace eSMP.Migrations
                     b.HasOne("eSMP.Models.Image", "Image")
                         .WithMany()
                         .HasForeignKey("ImageID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("eSMP.Models.eSMP_System", "eSMP_System")
                         .WithMany()
                         .HasForeignKey("SystemID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Image");

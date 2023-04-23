@@ -31,7 +31,7 @@ namespace eSMP.VModels
         public string? Pick_Time { get; set; }
         public string? ShipOrderID { get; set; }
         public string? FirebaseID { get; set; }
-        public string PaymentMethod { get; set; }
+        public string? PaymentMethod { get; set; }
         public double? RefundPrice { get; set; }
     }
     public class OrderModelView

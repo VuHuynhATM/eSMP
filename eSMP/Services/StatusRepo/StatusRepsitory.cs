@@ -125,6 +125,13 @@ namespace eSMP.Services.StatusRepo
                         StatusName = "Đang xử lý đổi, trả, hoàn"
                     };
                     break;
+                case 7:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Mua ngay"
+                    };
+                    break;
                 default:
                     status = null;
                     break;

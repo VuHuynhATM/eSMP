@@ -102,7 +102,7 @@ namespace eSMP.Services.ItemRepo
                     sub.Price = itemsub.price;
                     sub.Item = newItem;
                     sub.WarrantiesTime = itemsub.warrantiesTime;
-                    sub.Discount = itemsub.discount;
+                    sub.Discount = itemsub.discount/(double)100;
                     sub.ReturnAndExchange = itemsub.returnAndExchange;
 
                     Image i = new Image();
@@ -214,8 +214,11 @@ namespace eSMP.Services.ItemRepo
                 result.TotalPage = numpage;
                 return result;
             }
-            catch
+            catch(Exception ex)
             {
+                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 5);
+                role.RoleName = ex.Message;
+                _context.SaveChanges();
                 result.Success = false;
                 result.Message = "Lỗi hệ thống";
                 result.Data = "";
@@ -644,7 +647,8 @@ namespace eSMP.Services.ItemRepo
                 listItem = listItem.Where(i => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID && s.Store_StatusID == 1) != null);
                 //item count>0
                 listItem = listItem.Where(i => _context.Sub_Items.Where(si => si.ItemID == i.ItemID).Sum(si => si.Amount) > 0);
-
+                //cate active
+                listItem = listItem.Where(i => i.Sub_Category.IsActive && i.Sub_Category.Category.IsActive);
                 //Sort i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID) != null).Longitude
 
                 //listItem = listItem.OrderByDescending(i => _context.Addresss.SingleOrDefault(a => _context.Stores.SingleOrDefault(s => s.StoreID == i.StoreID).AddressID==a.AddressID).Longitude);

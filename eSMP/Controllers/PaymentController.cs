@@ -41,13 +41,13 @@ namespace eSMP.Controllers
             return Ok();
         }
         [HttpGet]
-        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
+        //[Authorize(AuthenticationSchemes = "AuthDemo", Roles = "2")]
         [Route("order_pay_url")]
         public IActionResult PayOrder(int orderID, string paymentMethod)
         {
             try
             {
-                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                /*var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var userIdOfOrder = _orderReposity.GetUserIDByOrderID(orderID);
                 if (!_userReposity.CheckUser(int.Parse(userId)))
                 {
@@ -56,7 +56,7 @@ namespace eSMP.Controllers
                 else if (userId != userIdOfOrder + "")
                 {
                     return Ok(new Result { Success = false, Message = "Bạn không được phép truy cập thông tin của người khác", Data = "", TotalPage = 1 });
-                }
+                }*/
                 return Ok(_momoReposity.GetPayUrl(orderID,paymentMethod));
             }
             catch

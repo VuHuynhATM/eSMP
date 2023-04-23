@@ -4,6 +4,7 @@ using eSMP.Services.ShipRepo;
 using eSMP.Services.StatusRepo;
 using eSMP.Services.StoreRepo;
 using eSMP.VModels;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Collections;
 
@@ -62,17 +63,27 @@ namespace eSMP.Services.OrderRepo
                     var odexist = _context.OrderDetails.SingleOrDefault(od => od.Sub_ItemID == orderDetail.Sub_ItemID && _context.Orders.SingleOrDefault(o => o.OrderID == od.OrderID && o.UserID == orderDetail.UserID).OrderStatusID == 2);
                     if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount + odexist.Amount))
                     {
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
                         var sub = GetSub_Item(orderDetail.Sub_ItemID);
+                        if (GetPriceItemOrder(order.OrderID) + sub.Price * (1 - sub.Discount) >= 20000000)
+                        {
+                            result.Success = false;
+                            result.Message = "Tổng đơn hàng không được quá 20.000.000 VND";
+                            result.Data = "";
+                            result.TotalPage = numpage;
+                            return result;
+                        }
                         odexist.Amount = odexist.Amount + orderDetail.Amount;
                         odexist.DiscountPurchase = sub.Discount;
                         odexist.PricePurchase = sub.Price;
-                        odexist.WarrantiesTime=sub.WarrantiesTime;
+                        odexist.WarrantiesTime = sub.WarrantiesTime;
                         odexist.ReturnAndExchange = sub.ReturnAndExchange;
+                        _context.SaveChanges();
                         //ship
-                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == odexist.OrderID);
                         int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
                         int weightOrder = GetWeightOrder(order.OrderID);
-                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
+                        var priceitem = GetPriceItemOrder(order.OrderID);
+                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder, priceitem);
                         if (ship.success)
                         {
                             order.FeeShip = ship.fee.fee;
@@ -104,20 +115,18 @@ namespace eSMP.Services.OrderRepo
                     var order = _context.Orders.SingleOrDefault(o => o.OrderStatusID == 2 && o.UserID == orderDetail.UserID && _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == storeID) != null) != null);
                     if (order != null)
                     {
-                        int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
-                        int weightOrder = GetWeightOrder(order.OrderID);
-                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder);
-                        if (ship.success)
-                        {
-                            order.FeeShip = ship.fee.fee;
-                        }
-                        else
-                        {
-                            order.FeeShip = 0;
-                        }
+                        
                         if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount))
                         {
                             var sub = GetSub_Item(orderDetail.Sub_ItemID);
+                            if (GetPriceItemOrder(order.OrderID) + sub.Price * (1 - sub.Discount) >= 20000000)
+                            {
+                                result.Success = false;
+                                result.Message = "Tổng đơn hàng không được quá 20.000.000 VND";
+                                result.Data = "";
+                                result.TotalPage = numpage;
+                                return result;
+                            }
                             OrderDetail newod = new OrderDetail();
                             newod.OrderID = order.OrderID;
                             newod.PricePurchase = sub.Price;
@@ -127,6 +136,19 @@ namespace eSMP.Services.OrderRepo
                             newod.Sub_ItemID = orderDetail.Sub_ItemID;
 
                             _context.OrderDetails.Add(newod);
+                            _context.SaveChanges();
+                            var priceitem = GetPriceItemOrder(order.OrderID);
+                            int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
+                            int weightOrder = GetWeightOrder(order.OrderID);
+                            var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, weight + weightOrder,priceitem);
+                            if (ship.success)
+                            {
+                                order.FeeShip = ship.fee.fee;
+                            }
+                            else
+                            {
+                                order.FeeShip = 0;
+                            }
                             _context.SaveChanges();
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
@@ -165,17 +187,7 @@ namespace eSMP.Services.OrderRepo
                         o.Create_Date = GetVnTime();
                         o.OrderStatusID = 2;
                         o.UserID = orderDetail.UserID;
-                        //ship
-                        int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
-                        var ship = _shipReposity.Value.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight);
-                        if (ship.success)
-                        {
-                            o.FeeShip = ship.fee.fee;
-                        }
-                        else
-                        {
-                            o.FeeShip = 0;
-                        }
+                        
                         if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount))
                         {
                             var sub = GetSub_Item(orderDetail.Sub_ItemID);
@@ -188,6 +200,19 @@ namespace eSMP.Services.OrderRepo
                             od.Sub_ItemID = orderDetail.Sub_ItemID;
 
                             _context.OrderDetails.Add(od);
+                            _context.SaveChanges();
+                            //ship
+                            int weight = GetWeightOfSubItem(item.ItemID) * orderDetail.Amount;
+                            var priceitem = GetPriceItemOrder(o.OrderID);
+                            var ship = _shipReposity.Value.GetFeeAsync(o.Province, o.District, o.Pick_Province, o.Pick_District, weight,priceitem);
+                            if (ship.success)
+                            {
+                                o.FeeShip = ship.fee.fee;
+                            }
+                            else
+                            {
+                                o.FeeShip = 0;
+                            }
                             _context.SaveChanges();
                             result.Success = true;
                             result.Message = "Thêm vào giỏ hàng thành công";
@@ -233,8 +258,16 @@ namespace eSMP.Services.OrderRepo
         }
         public int GetWeightOfSubItem(int itemID)
         {
-            var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
-            return int.Parse(weight);
+            try
+            {
+                var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
+                return int.Parse(weight);
+            }
+            catch
+            {
+                return 0;
+            }
+            
         }
 
         public Store GetStoreBySubItemID(int sub_itemID)
@@ -252,7 +285,7 @@ namespace eSMP.Services.OrderRepo
         {
             try
             {
-                return _context.Sub_Items.SingleOrDefault(si=>si.Sub_ItemID==sub_ItemID).Discount;
+                return _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == sub_ItemID).Discount;
             }
             catch
             {
@@ -399,7 +432,7 @@ namespace eSMP.Services.OrderRepo
                     foreach (var orderDetail in listOrderDetails.ToList())
                     {
                         var subitem = GetSub_Item(orderDetail.Sub_ItemID);
-                        if (orderStatusID != 2)
+                        if (orderStatusID != 2 && orderStatusID != 7)
                         {
                             if (orderDetail.Feedback_StatusID != null)
                             {
@@ -416,8 +449,8 @@ namespace eSMP.Services.OrderRepo
                                     Sub_ItemID = subitem.Sub_ItemID,
                                     Sub_ItemName = subitem.Sub_ItemName,
                                     sub_ItemImage = subitem.Image.Path,
-                                    WarrantiesTime=orderDetail.WarrantiesTime,
-                                    ReturnAndExchange=orderDetail.ReturnAndExchange,
+                                    WarrantiesTime = orderDetail.WarrantiesTime,
+                                    ReturnAndExchange = orderDetail.ReturnAndExchange,
                                     ItemID = subitem.ItemID,
                                     ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
                                 };
@@ -439,14 +472,14 @@ namespace eSMP.Services.OrderRepo
                                     Sub_ItemName = subitem.Sub_ItemName,
                                     sub_ItemImage = subitem.Image.Path,
                                     ItemID = subitem.ItemID,
-                                    WarrantiesTime= orderDetail.WarrantiesTime,
-                                    ReturnAndExchange= orderDetail.ReturnAndExchange,
+                                    WarrantiesTime = orderDetail.WarrantiesTime,
+                                    ReturnAndExchange = orderDetail.ReturnAndExchange,
                                     ListImageFb = GetListImageFB(orderDetail.OrderDetailID),
                                 };
                                 list.Add(model);
                             }
-                            
-                            
+
+
                         }
                         else
                         {
@@ -516,10 +549,10 @@ namespace eSMP.Services.OrderRepo
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             FeeShip = order.FeeShip,
                             Reason = order.Reason,
-                            Pick_Time= order.Pick_Time,
-                            Deliver_time= order.Deliver_time,
-                            PaymentMethod=order.PaymentMethod,
-                            RefundPrice= order.RefundPrice,
+                            Pick_Time = order.Pick_Time,
+                            Deliver_time = order.Deliver_time,
+                            PaymentMethod = order.PaymentMethod,
+                            RefundPrice = order.RefundPrice,
                         };
                         list.Add(model);
                     }
@@ -554,9 +587,19 @@ namespace eSMP.Services.OrderRepo
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    if (order.OrderStatusID == 2)
+                    if (order.OrderStatusID == 2 || order.OrderStatusID == 7)
                     {
-                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, GetWeightOrder(order.OrderID));
+                        var listdetail=_context.OrderDetails.Where(od=>od.OrderID == orderID).ToList();
+                        foreach(var detail in listdetail)
+                        {
+                            detail.DiscountPurchase = detail.Sub_Item.Discount;
+                            detail.PricePurchase= detail.Sub_Item.Price;
+                            detail.ReturnAndExchange = detail.ReturnAndExchange;
+                            detail.WarrantiesTime = detail.WarrantiesTime;
+                        }
+                        _context.SaveChanges();
+                        var priceitem = GetPriceItemOrder(order.OrderID);
+                        var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, GetWeightOrder(order.OrderID), priceitem);
                         if (ship.success)
                             order.FeeShip = ship.fee.fee;
                         else
@@ -593,9 +636,9 @@ namespace eSMP.Services.OrderRepo
                             Pick_Time = order.Pick_Time,
                             Deliver_time = order.Deliver_time,
                             ShipOrderID = shiporder.ShipStatusID,
-                            FirebaseID=order.User.FirebaseID,
-                            PaymentMethod=order.PaymentMethod,
-                            RefundPrice=order.RefundPrice,
+                            FirebaseID = order.User.FirebaseID,
+                            PaymentMethod = order.PaymentMethod,
+                            RefundPrice = order.RefundPrice,
                         };
                         result.Success = true;
                         result.Message = "Thành công";
@@ -627,7 +670,7 @@ namespace eSMP.Services.OrderRepo
                             Tel = order.Tel,
                             Details = GetOrderDetailModels(order.OrderID, order.OrderStatusID),
                             FeeShip = order.FeeShip,
-                            PaymentMethod=order.PaymentMethod,
+                            PaymentMethod = order.PaymentMethod,
                             RefundPrice = order.RefundPrice,
                         };
                         result.Success = true;
@@ -636,7 +679,7 @@ namespace eSMP.Services.OrderRepo
                         result.TotalPage = numpage;
                         return result;
                     }
-                    
+
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
@@ -670,7 +713,8 @@ namespace eSMP.Services.OrderRepo
                     order.Ward = address.Ward;
                     order.Name = address.UserName;
                     order.Tel = address.Phone;
-                    FeeReponse shipModel = _shipReposity.Value.GetFeeAsync(order.Province, order.District, address.Province, address.District, GetWeightOrder(orderID));
+                    var priceitem = GetPriceItemOrder(orderID);
+                    FeeReponse shipModel = _shipReposity.Value.GetFeeAsync(order.Province, order.District, address.Province, address.District, GetWeightOrder(orderID), priceitem);
                     if (shipModel.success)
                     {
                         if (shipModel.fee.delivery)
@@ -779,7 +823,8 @@ namespace eSMP.Services.OrderRepo
                     {
                         foreach (var item in listorderdetail.ToList())
                         {
-                            total = total + GetSub_Item(item.Sub_ItemID).Price * item.Amount * (1 - GetDiscount(item.Sub_ItemID));
+                            var subitem = GetSub_Item(item.Sub_ItemID);
+                            total = total + subitem.Price * item.Amount * (1 - subitem.Discount);
                         }
                     }
                 }
@@ -883,7 +928,7 @@ namespace eSMP.Services.OrderRepo
                         result.TotalPage = numpage;
                         return result;
                     }
-                    
+
                 }
                 result.Success = false;
                 result.Message = "đơn hàng không tồn tại";
@@ -908,7 +953,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 var orders = _context.Orders.AsQueryable();
-                orders = orders.Where(o => o.OrderStatusID != 2);
+                orders = orders.Where(o => o.OrderStatusID != 2 && o.OrderStatusID != 7);
                 var num = orders.Count();
                 if (userID.HasValue)
                 {
@@ -918,13 +963,13 @@ namespace eSMP.Services.OrderRepo
                 {
                     orders = orders.Where(o => _context.OrderDetails.FirstOrDefault(od => od.OrderID == o.OrderID && _context.Sub_Items.SingleOrDefault(si => si.Sub_ItemID == od.Sub_ItemID && _context.Items.SingleOrDefault(i => i.ItemID == si.ItemID).StoreID == storeID) != null) != null);
                 }
-                if (userName!=null)
+                if (userName != null)
                 {
                     orders = orders.Where(o => EF.Functions.Collate(o.User.UserName, "SQL_Latin1_General_CP1_CI_AI").Contains(userName));
                 }
                 if (orderID.HasValue)
                 {
-                    orders = orders.Where(o => o.OrderID==orderID);
+                    orders = orders.Where(o => o.OrderID == orderID);
                 }
                 if (shipOrderStatus.HasValue)
                 {
@@ -980,15 +1025,15 @@ namespace eSMP.Services.OrderRepo
                             orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "11" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "13" ||
                                                         _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "20" ||
-                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "21" 
+                                                        _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID).Status_ID == "21"
                             );
                             break;
                         case "7":
-                            orders = orders.Where(o => o.OrderStatusID==5
+                            orders = orders.Where(o => o.OrderStatusID == 5
                             );
                             break;
                         case "8":
-                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "13") !=null
+                            orders = orders.Where(o => _context.ShipOrders.OrderBy(so => so.Create_Date).LastOrDefault(so => so.OrderID == o.OrderID && so.Status_ID == "13") != null
                             );
                             break;
                     }
@@ -1170,7 +1215,7 @@ namespace eSMP.Services.OrderRepo
             try
             {
                 var orderDetail = _context.OrderDetails.AsQueryable();
-                orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => (o.OrderStatusID == 1||o.OrderStatusID == 5) && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID) != null) != null);
+                orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => (o.OrderStatusID == 1 || o.OrderStatusID == 5) && o.OrderID == od.OrderID && _context.ShipOrders.SingleOrDefault(so => so.OrderID == o.OrderID) != null) != null);
                 if (userID.HasValue)
                 {
                     orderDetail = orderDetail.Where(od => _context.Orders.SingleOrDefault(o => o.UserID == userID && o.OrderID == od.OrderID) != null);
@@ -1267,7 +1312,7 @@ namespace eSMP.Services.OrderRepo
                         FeedbackDetailModel mode = new FeedbackDetailModel
                         {
                             UserID = order.UserID,
-                            ItemID=orderDetail.Sub_Item.ItemID,
+                            ItemID = orderDetail.Sub_Item.ItemID,
                             UserName = order.User.UserName,
                             Useravatar = order.User.Image.Path,
                             orderDetaiID = orderDetail.OrderDetailID,
@@ -1372,7 +1417,7 @@ namespace eSMP.Services.OrderRepo
                         result.Success = true;
                         result.Message = "Ẩn đánh giá thành công";
                     }
-                    else if(orderDetail.Feedback_StatusID == 2)
+                    else if (orderDetail.Feedback_StatusID == 2)
                     {
                         result.Success = false;
                         result.Message = "Đánh giá hiện bị khóa";
@@ -1496,7 +1541,7 @@ namespace eSMP.Services.OrderRepo
         {
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => _context.OrderDetails.FirstOrDefault(od=>od.OrderDetailID==orderDetailID).OrderID==o.OrderID);
+                var order = _context.Orders.SingleOrDefault(o => _context.OrderDetails.FirstOrDefault(od => od.OrderDetailID == orderDetailID).OrderID == o.OrderID);
                 return order.UserID;
             }
             catch
@@ -1518,7 +1563,7 @@ namespace eSMP.Services.OrderRepo
             int numpage = 1;
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderLink.OrderID && o.OrderStatusID != 2);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderLink.OrderID && o.OrderStatusID != 2 && o.OrderStatusID != 7);
                 if (order != null)
                 {
                     order.PackingLink = orderLink.PakingLink;
@@ -1551,7 +1596,7 @@ namespace eSMP.Services.OrderRepo
             int numpage = 1;
             try
             {
-                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID ==2);
+                var orderDetail = _context.OrderDetails.SingleOrDefault(od => od.OrderDetailID == orderDetailID && od.Feedback_StatusID == 2);
                 if (orderDetail != null)
                 {
                     orderDetail.Feedback_StatusID = 1;
@@ -1566,6 +1611,107 @@ namespace eSMP.Services.OrderRepo
                 result.Message = "Đơn hàng chưa được đánhh giá";
                 result.Data = "";
                 result.TotalPage = numpage;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = numpage;
+                return result;
+            }
+        }
+
+        public Result CreateOrderFast(int orderID)
+        {
+            Result result = new Result();
+            int numpage = 1;
+            try
+            {
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID != 2);
+                if (order != null)
+                {
+                    var orderDetails = _context.OrderDetails.Where(od => od.OrderID == order.OrderID);
+                    int checkAmount = 0;
+                    string erramount = "";
+                    foreach (var orderDetail in orderDetails.ToList())
+                    {
+                        if (CheckAmount(orderDetail.Sub_ItemID, orderDetail.Amount))
+                        {
+                            checkAmount++;
+                        }
+                        else
+                        {
+                            if (erramount == "")
+                            {
+                                erramount = orderDetail.Sub_Item.Sub_ItemName;
+                            }
+                            else
+                                erramount = erramount + ", " + orderDetail.Sub_Item.Sub_ItemName;
+                        }
+                    }
+                    if (checkAmount != orderDetails.Count())
+                    {
+                        result.Success = false;
+                        result.Message = "Đơn hàng không đủ số lượng: " + erramount;
+                        result.Data = "";
+                        result.TotalPage = numpage;
+                        return result;
+                    }
+                    var ordercheck = _context.Orders.SingleOrDefault(o => o.OrderStatusID == 7);
+                    if (ordercheck != null)
+                    {
+                        var orderdetailremoves = _context.OrderDetails.Where(od => od.OrderID == ordercheck.OrderID);
+                        foreach (var orderdetail in orderdetailremoves)
+                        {
+                            _context.OrderDetails.Remove(orderdetail);
+                        }
+                        _context.Orders.Remove(ordercheck);
+                        _context.SaveChanges();
+                    }
+                    Address storeAddress = GetStoreAddress(orderDetails.First().Sub_ItemID);
+                    Address userAddress = GetAddressDefault(order.UserID);
+                    Order o = new Order();
+                    o.Pick_Name = storeAddress.UserName;
+                    o.Pick_Province = storeAddress.Province;
+                    o.Pick_District = storeAddress.District;
+                    o.Pick_Ward = storeAddress.Ward;
+                    o.Pick_Address = storeAddress.Context;
+                    o.Pick_Tel = storeAddress.Phone;
+
+                    o.Name = userAddress.UserName;
+                    o.Province = userAddress.Province;
+                    o.District = userAddress.District;
+                    o.Ward = userAddress.Ward;
+                    o.Address = userAddress.Context;
+                    o.Tel = userAddress.Phone;
+
+                    o.Create_Date = GetVnTime();
+                    o.OrderStatusID = 7;
+                    o.UserID = order.UserID;
+                    foreach (var orderDetail in orderDetails.ToList())
+                    {
+                        OrderDetail newod = new OrderDetail();
+                        newod.Order = o;
+                        newod.PricePurchase = orderDetail.Sub_Item.Price;
+                        newod.Amount = orderDetail.Amount;
+                        newod.DiscountPurchase = orderDetail.Sub_Item.Discount;
+                        newod.WarrantiesTime = orderDetail.Sub_Item.WarrantiesTime;
+                        newod.Sub_ItemID = orderDetail.Sub_ItemID;
+
+                        _context.OrderDetails.Add(newod);
+                    }
+                    _context.SaveChanges();
+                    result = GetOrderInfo(o.OrderID);
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Message = "không thể mua lại đơn hàng này";
+                    result.Data = "";
+                    result.TotalPage = numpage;
+                }
                 return result;
             }
             catch

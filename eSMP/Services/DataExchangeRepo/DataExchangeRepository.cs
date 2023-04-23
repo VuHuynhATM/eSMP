@@ -282,7 +282,7 @@ namespace eSMP.Services.DataExchangeRepo
             Result result = new Result();
             try
             {
-                var Exchange = _context.DataExchangeUsers.FirstOrDefault(os => os.ExchangeUserID == DataExchange.ExchangeUserID);
+                var Exchange = _context.DataExchangeUsers.FirstOrDefault(os => os.ExchangeUserID == DataExchange.ExchangeUserID && os.ExchangeStatusID!=1);
                 if (Exchange != null)
                 {
                     Exchange.CardNum = DataExchange.CardNum;

@@ -85,6 +85,14 @@ namespace eSMP.Services.StoreAssetRepo
             Result result = new Result();
             try
             {
+                if (request.Price <= 10000)
+                {
+                    result.Success = false;
+                    result.Message = "số tiền phải lớn hơn 10.000 VND";
+                    result.Data = "";
+                    result.TotalPage = 1;
+                    return result;
+                }
                 Guid myuuid = Guid.NewGuid();
                 string myuuidAsString = myuuid.ToString();
                 var filename = "eSMP1" + myuuidAsString;
@@ -110,7 +118,7 @@ namespace eSMP.Services.StoreAssetRepo
                 if (systemeSMP.Asset < request.Price)
                 {
                     result.Success = false;
-                    result.Message = "Tài khoản hhienej khhongo đủ số dư";
+                    result.Message = "Tài khoản hiện không đủ số dư";
                     result.Data = "";
                     result.TotalPage = 1;
                     return result;

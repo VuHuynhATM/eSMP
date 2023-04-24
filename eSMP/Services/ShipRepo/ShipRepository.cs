@@ -204,6 +204,14 @@ namespace eSMP.Services.ShipRepo
                         if (order.PaymentMethod == "COD")
                         {
                             order.OrderStatusID = 1;
+                            
+                            OrderBuy_Transacsion tran = new OrderBuy_Transacsion();
+                            tran.OrderID=orderID;
+                            tran.ResultCode = 0;
+                            tran.Create_Date = GetVnTime();
+                            tran.TransactionID = 0;
+                            tran.RequestID = "COD";
+                            _context.orderBuy_Transacsions.Add(tran);
                             _context.SaveChanges();
                         }
                         if (shipOrder.OrderID != null)

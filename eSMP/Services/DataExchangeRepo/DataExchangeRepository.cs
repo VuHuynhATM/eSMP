@@ -311,5 +311,37 @@ namespace eSMP.Services.DataExchangeRepo
                 return result;
             }
         }
+
+        public Result ErorCardUserDataExchange(int DataExchangeID)
+        {
+            Result result = new Result();
+            try
+            {
+                var Exchange = _context.DataExchangeUsers.FirstOrDefault(os => os.ExchangeUserID == DataExchangeID && os.ExchangeStatusID ==4);
+                if (Exchange != null)
+                {
+                    Exchange.ExchangeStatusID = 2;
+                    _context.SaveChanges();
+                    result.Success = true;
+                    result.Message = "Thành công";
+                    result.Data = "";
+                    result.TotalPage = 1;
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "Đối soát không tồn tại";
+                result.Data = "";
+                result.TotalPage = 1;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = 1;
+                return result;
+            }
+        }
     }
 }

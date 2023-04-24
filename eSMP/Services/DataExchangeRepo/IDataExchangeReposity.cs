@@ -9,6 +9,7 @@ namespace eSMP.Services.DataExchangeRepo
 
         public Result GetUserDataExchanges(int? userID, int? orderID, int? serviceID, DateTime? from, DateTime? to, int? exchangeStatusID, int? page);
         public Result FinishUserDataExchange(DataExchangeUserFinish DataExchange);
+        public Result ErorCardUserDataExchange(int DataExchangeID);
         public Result AddCardUserDataExchange(DataExchangeUserAddCard DataExchange);
     }
 }

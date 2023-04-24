@@ -341,7 +341,7 @@ namespace eSMP.Services.StatusRepo
                     status = new Status
                     {
                         Item_StatusID = statusID,
-                        StatusName = "Khoá"
+                        StatusName = "Sai thông tin thẻ"
                     };
                     break;
                 case 3:

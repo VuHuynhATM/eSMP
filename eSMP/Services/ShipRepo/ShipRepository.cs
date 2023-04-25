@@ -236,7 +236,7 @@ namespace eSMP.Services.ShipRepo
 
                         if (status130 != null && statusshipcheck != null)
                         {
-                            if (shipOrder.OrderID != null)
+                            if (shipOrder.OrderID != null && order.PaymentMethod != "COD")
                             {
                                 var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
                             }
@@ -244,7 +244,7 @@ namespace eSMP.Services.ShipRepo
                         //doi soat khi giao hang that bai
                         else if ((status131 != null || status132 != null) && statusshipcheck != null)
                         {
-                            if (shipOrder.OrderID != null)
+                            if (shipOrder.OrderID != null && order.PaymentMethod != "COD")
                             {
                                 var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, refundpre);
                                 if (comfim.Success)
@@ -269,9 +269,6 @@ namespace eSMP.Services.ShipRepo
                             exchangeStore.ExchangeStoreName = "Đơn hàng";
                             _context.DataExchangeStores.Add(exchangeStore);
                             _context.SaveChanges();
-                            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 6);
-                            role.RoleName = "tao doisoatvs store e";
-                            _context.SaveChangesAsync();
                             // hoan tien cho nguoi mua
                             if (order.PaymentMethod != "COD")
                             {
@@ -283,7 +280,7 @@ namespace eSMP.Services.ShipRepo
                         }
                         else if (statusshipcheck != null)
                         {
-                            if (shipOrder.OrderID != null)
+                            if (shipOrder.OrderID != null && order.PaymentMethod != "COD")
                             {
                                 var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
                             }

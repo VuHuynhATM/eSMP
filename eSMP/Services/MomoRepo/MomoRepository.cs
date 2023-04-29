@@ -387,6 +387,11 @@ namespace eSMP.Services.MomoRepo
                     {
                         var orderid = payINP.orderId.Split('-')[0];
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
+                        var checktran = _context.orderBuy_Transacsions.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
+                        if(checktran != null)
+                        {
+                            return;
+                        }
                         if (order != null)
                         {
                             var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
@@ -665,7 +670,14 @@ namespace eSMP.Services.MomoRepo
                 OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
                 if (store_Transaction != null)
                 {
-                    store_Transaction.IsActive = false;
+                    if(numrefund == 1)
+                    {
+                        store_Transaction.IsActive = false;
+                    }
+                    else
+                    {
+                        store_Transaction.Price = (Gettotalprice(orderID) - order.FeeShip) * (1-numrefund) + order.FeeShip;
+                    }
                 }
                 OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
                 if (system_Transaction != null)

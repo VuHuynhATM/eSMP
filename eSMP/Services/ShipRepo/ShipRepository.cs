@@ -270,13 +270,18 @@ namespace eSMP.Services.ShipRepo
                             _context.DataExchangeStores.Add(exchangeStore);
                             _context.SaveChanges();
                             // hoan tien cho nguoi mua
-                            if (order.PaymentMethod != "COD")
+                            var status9 = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID && so.Status_ID == "9");
+                            if(status9 != null)
                             {
-                                if (shipOrder.OrderID != null)
+                                if (order.PaymentMethod != "COD")
                                 {
-                                    var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
+                                    if (shipOrder.OrderID != null)
+                                    {
+                                        var comfim = _momoReposity.Value.RefundOrder(shipOrder.OrderID.Value, 1);
+                                    }
                                 }
                             }
+                            
                         }
                         else if (statusshipcheck != null)
                         {

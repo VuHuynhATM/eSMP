@@ -209,6 +209,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
                 var listReveneu = _context.OrderSystem_Transactions.Where(ost=>ost.OrderStore_Transaction.Order.OrderStatusID==5&& ost.Price>0).AsQueryable();
+                listReveneu = listReveneu.Where(ost => ost.IsActive);
                 if (From.HasValue)
                 {
                     listReveneu = listReveneu.Where(ost => ost.Create_Date >= From);
@@ -333,7 +334,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
                 var listReveneu = _context.OrderStore_Transactions.Where(ost => ost.Order.OrderStatusID == 5).AsQueryable();
-                listReveneu = listReveneu.Where(ot => ot.StoreID == storeID);
+                listReveneu = listReveneu.Where(ot => ot.StoreID == storeID && ot.IsActive);
                 if (From.HasValue)
                 {
                     listReveneu = listReveneu.Where(ost => ost.Create_Date >= From);
@@ -669,7 +670,7 @@ namespace eSMP.Services.StoreAssetRepo
             try
             {
                 List<ChartStoreModel> list = new List<ChartStoreModel>();
-                var checkreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID);
+                var checkreveneu = _context.OrderStore_Transactions.Where(ost => ost.StoreID == storeID && ost.IsActive);
                 if (checkreveneu.Count() == 0)
                 {
                     result.Success = true;

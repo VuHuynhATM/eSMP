@@ -419,6 +419,22 @@ namespace eSMP.Services.MomoRepo
                                     }
                                 }
                             }
+                            OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
+                            transacsion.OrderID = order.OrderID;
+                            DateTime dateTime = new DateTime();
+                            dateTime = dateTime.AddYears(1969);
+                            dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToUniversalTime();
+
+                            string vnTimeZoneKey = "SE Asia Standard Time";
+                            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
+                            transacsion.Create_Date = VnTime;
+                            transacsion.ResultCode = payINP.resultCode;
+                            transacsion.TransactionID = payINP.transId;
+                            transacsion.OrderIDGateway = payINP.orderId;
+                            transacsion.RequestID = payINP.requestId;
+                            _context.orderBuy_Transacsions.Add(transacsion);
+                            _context.SaveChanges();
                             if (checkout == listdetail.Count)
                             {
                                 //create ship
@@ -427,23 +443,6 @@ namespace eSMP.Services.MomoRepo
                                 {
                                     if (shipReponse.success)
                                     {
-                                        OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
-                                        transacsion.OrderID = order.OrderID;
-                                        DateTime dateTime = new DateTime();
-                                        dateTime = dateTime.AddYears(1969);
-                                        dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToUniversalTime();
-
-                                        string vnTimeZoneKey = "SE Asia Standard Time";
-                                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
-                                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
-                                        transacsion.Create_Date = VnTime;
-                                        transacsion.ResultCode = payINP.resultCode;
-                                        transacsion.TransactionID = payINP.transId;
-                                        transacsion.OrderIDGateway = payINP.orderId;
-                                        transacsion.RequestID = payINP.requestId;
-                                        _context.orderBuy_Transacsions.Add(transacsion);
-                                        _context.SaveChanges();
-
                                         order.OrderStatusID = 1;
                                         order.FeeShip = shipReponse.order.fee;
                                         order.Create_Date = GetVnTime();
@@ -487,15 +486,20 @@ namespace eSMP.Services.MomoRepo
                                     else
                                     {
                                         refundnow(order.OrderID, payINP.amount, payINP.transId, order.UserID, order.User.FirebaseID);
-
-                                        /*var refund = RefundOrder(order.OrderID, 1);
-                                        if (refund.Success)
+                                        order.OrderStatusID = 3;
+                                        _context.SaveChanges();
+                                        _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thất bại", null, null, null);
+                                        Notification notification = new Notification
                                         {
-                                            order.OrderStatusID = 3;
-                                            order.Create_Date = GetVnTime();
-                                            order.Reason = shipReponse.message;
-                                            _context.SaveChanges();
-                                        }*/
+                                            title = "Đơn hàng",
+                                            body = "Đặt hàng thất bại do dịc vụ vận chuyển có sự số",
+                                        };
+                                        FirebaseNotification firebaseNotification = new FirebaseNotification
+                                        {
+                                            notification = notification,
+                                            to = order.User.FCM_Firebase,
+                                        };
+                                        _notification.Value.PushUserNotificationAsync(firebaseNotification);  
                                     }
                                 }
                             }
@@ -513,10 +517,10 @@ namespace eSMP.Services.MomoRepo
                                     to = order.User.FCM_Firebase,
                                 };
                                 _notification.Value.PushUserNotificationAsync(firebaseNotification);
+                                order.OrderStatusID = 3;
+                                _context.SaveChanges();
                                 refundnow(order.OrderID, payINP.amount, payINP.transId, order.UserID, order.User.FirebaseID);
-
                             }
-
                         }
                     }
                 }

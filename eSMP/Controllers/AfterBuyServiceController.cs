@@ -73,6 +73,34 @@ namespace eSMP.Controllers
             }
         }
         [HttpPut]
+        [Route("admin_cancel")]
+        [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1")]
+        public IActionResult AdminCancelService(CancelService cancelService)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var role = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                if (!_userReposity.CheckUser(int.Parse(userId)))
+                {
+                    return Ok(new Result { Success = false, Message = "Tài khoản đang bị hạn chế", Data = "", TotalPage = 1 });
+                }
+                if (role == "3")
+                {
+                    var store = _storeReposity.GetStore(int.Parse(userId));
+                    if (store == null)
+                    {
+                        return Ok(new Result { Success = false, Message = "chưa tạo cửa hàng", Data = "", TotalPage = 1 });
+                    }
+                }
+                return Ok(_afterBuyServiceReposity.AdminCancelService(cancelService.serviceID, cancelService.reason));
+            }
+            catch
+            {
+                return Ok(new Result { Success = false, Message = "Lỗi hệ thống", Data = "", TotalPage = 1 });
+            }
+        }
+        [HttpPut]
         [Route("accepct")]
         [Authorize(AuthenticationSchemes = "AuthDemo", Roles = "1, 3")]
         public IActionResult AcceptService(int serviceID)

@@ -141,9 +141,6 @@ namespace eSMP.Controllers
         [Route("store")]
         public IActionResult ipnStoreUrl(MomoPayINP payINP)
         {
-            var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-            role.RoleName = payINP.message;
-            _context.SaveChanges();
             int resultCode = payINP.resultCode;
             if (resultCode == 0)
                 _momoReposity.PayStoreINP(payINP);

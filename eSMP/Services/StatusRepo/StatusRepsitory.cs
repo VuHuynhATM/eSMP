@@ -416,6 +416,13 @@ namespace eSMP.Services.StatusRepo
                         StatusName = "Chờ xác nhận"
                     };
                     break;
+                case 4:
+                    status = new Status
+                    {
+                        Item_StatusID = statusID,
+                        StatusName = "Quản trị hủy"
+                    };
+                    break;
                 case 5:
                     status = new Status
                     {

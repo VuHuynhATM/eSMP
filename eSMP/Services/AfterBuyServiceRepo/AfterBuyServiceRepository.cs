@@ -670,5 +670,54 @@ namespace eSMP.Services.AfterBuyServiceRepo
                 return result;
             }
         }
+
+        public Result AdminCancelService(int serviceID, string reason)
+        {
+            Result result = new Result();
+            try
+            {
+                AfterBuyService afterBuyService = _context.AfterBuyServices.SingleOrDefault(afs => afs.AfterBuyServiceID == serviceID);
+                if (afterBuyService == null)
+                {
+                    result.Success = false;
+                    result.Message = "Mã dịch vụ không tồn tại";
+                    result.Data = "";
+                    result.TotalPage = 1;
+                    return result;
+                }
+                if (afterBuyService.ServicestatusID == 4)
+                {
+                    result.Success = false;
+                    result.Message = "Dịch vụ này đã hủy";
+                    result.Data = "";
+                    result.TotalPage = 1;
+                    return result;
+                }
+                if (afterBuyService.ServicestatusID != 3 && afterBuyService.ServicestatusID != 6)
+                {
+                    result.Success = false;
+                    result.Message = "Dịch vụ này không thể hủy";
+                    result.Data = "";
+                    result.TotalPage = 1;
+                    return result;
+                }
+                afterBuyService.ServicestatusID = 4;
+                afterBuyService.Reason = reason;
+                _context.SaveChanges();
+                result.Success = true;
+                result.Message = "Thành công";
+                result.Data = "";
+                result.TotalPage = 1;
+                return result;
+            }
+            catch
+            {
+                result.Success = false;
+                result.Message = "Lỗi hệ thống";
+                result.Data = "";
+                result.TotalPage = 1;
+                return result;
+            }
+        }
     }
 }

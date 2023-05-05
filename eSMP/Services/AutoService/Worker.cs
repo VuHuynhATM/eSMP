@@ -44,35 +44,41 @@ namespace eSMP.Services.AutoService
         {
             try
             {
-                var listShipFinish = _context.ShipOrders.Where(so => so.Status_ID == "6" && so.Order.OrderStatusID == 1).AsQueryable();
+                var listShipFinish = _context.ShipOrders.Where(so => (so.Status_ID == "6" && so.Order.OrderStatusID == 1) || so.Status_ID == "11").AsQueryable();
                 if (listShipFinish.Count() > 0)
                 {
                     foreach (var ship in listShipFinish.ToList())
                     {
                         var order = _context.Orders.SingleOrDefault(o => o.OrderID == ship.OrderID);
-                        order.OrderStatusID = 5;
-                        var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == ship.OrderID);
-                        if (confirmReponse != null)
+                        if(order != null)
                         {
-                            //layas thoi gian giai ngan
-                            var maxReturnTime = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).Max(od => od.ReturnAndExchange);
-                            DateTime now = GetVnTime();
-                            DateTime timeCanReturn = order.Create_Date.AddDays(maxReturnTime);
-                            if (confirmReponse.ResultCode == 0 && timeCanReturn <= now)
+                            order.OrderStatusID = 5;
+                            var confirmReponse = _context.orderBuy_Transacsions.SingleOrDefault(obt => obt.OrderID == ship.OrderID);
+                            if (confirmReponse != null)
                             {
-                                //ghi nhan doanh thu
-                                //store
-                                var store = GetStoreByorderID(ship.OrderID.Value);
-                                var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
-                                var orderStore_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderID == order.OrderID);
-                                store.Asset = store.Asset + orderStore_Transaction.Price;
-                                //sys
-                                var orderSystem_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == orderStore_Transaction.OrderStore_TransactionID);
-                                system.Asset = system.Asset + orderSystem_Transaction.Price;
-                                _context.SaveChanges();
+                                //layas thoi gian giai ngan
+                                var maxReturnTime = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).Max(od => od.ReturnAndExchange);
+                                DateTime now = GetVnTime();
+                                DateTime timeCanReturn = order.Create_Date.AddDays(maxReturnTime);
+                                if (confirmReponse.ResultCode == 0 && timeCanReturn <= now)
+                                {
+                                    //ghi nhan doanh thu
+                                    //store
+                                    var store = GetStoreByorderID(ship.OrderID.Value);
+                                    var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+                                    var orderStore_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderID == order.OrderID && os.IsActive);
+                                    if (orderStore_Transaction != null)
+                                    {
+                                        store.Asset = store.Asset + orderStore_Transaction.Price;
+                                        //sys
+                                        var orderSystem_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == orderStore_Transaction.OrderStore_TransactionID && os.IsActive);
+                                        if (orderSystem_Transaction != null)
+                                            system.Asset = system.Asset + orderSystem_Transaction.Price;
+                                    }
+                                    _context.SaveChanges();
+                                }
                             }
                         }
-                        
                     }
                 }
             }

@@ -118,4 +118,33 @@
     {
         public string partner_id { get; set; }
     }
+
+    public class ShipInfoReponse
+    {
+        public bool success { get; set; }
+        public string message { get; set; }
+        public ShipOrderInfoReponse order { get; set; }
+    }
+    public class ShipOrderInfoReponse
+    {
+        public string label_id { get; set; }
+        public string partner_id { get; set; }
+        public string status { get; set; }
+        public string status_text { get; set; }
+        public string pick_date { get; set; }
+        public string deliver_date { get; set; }
+        public string ship_money { get; set; }
+    }
+    public class ShipReponseAgain
+    {
+        public bool success { get; set; }
+        public string message { get; set; }
+        public ShipReponseError error { get; set; }
+    }
+    public class ShipReponseError
+    {
+        public string code { get; set; }
+        public string ghtk_label { get; set; }
+        public string status { get; set; }
+    }
 }

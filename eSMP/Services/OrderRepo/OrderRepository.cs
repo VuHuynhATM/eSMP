@@ -1485,14 +1485,34 @@ namespace eSMP.Services.OrderRepo
             int numpage = 1;
             try
             {
-                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID && o.OrderStatusID == 1);
+                var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
                 if (order != null)
                 {
-                    result.Success = true;
-                    result.Message = "Thanh toán thành công";
-                    result.Data = "";
-                    result.TotalPage = numpage;
-                    return result;
+                    if (order.OrderStatusID == 1)
+                    {
+                        result.Success = true;
+                        result.Message = "Thanh toán thành công";
+                        result.Data = 1;
+                        result.TotalPage = numpage;
+                        return result;
+                    }
+                    else if(order.OrderStatusID == 3)
+                    {
+                        result.Success = false;
+                        result.Message = "Thanh toán thất bại";
+                        result.Data = 2;
+                        result.TotalPage = numpage;
+                        return result;
+                    }
+                    else if (order.OrderStatusID == 2)
+                    {
+                        result.Success = false;
+                        result.Message = "Chờ xử lí";
+                        result.Data = 3;
+                        result.TotalPage = numpage;
+                        return result;
+                    }
+                    
                 }
                 result.Success = false;
                 result.Message = "Thanh toán thất bại";

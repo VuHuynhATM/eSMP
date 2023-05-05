@@ -206,7 +206,7 @@ namespace eSMP.Services.SpecificationRepo
                         subCate_speremove.IsActive = false;
                     }
                 }
-                _context.SaveChangesAsync();
+                _context.SaveChanges();
                 result.Success = true;
                 result.Message = "Thêm thông số thành công";
                 result.Data = "";

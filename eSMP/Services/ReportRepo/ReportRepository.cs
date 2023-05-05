@@ -147,7 +147,7 @@ namespace eSMP.Services.ReportRepo
                 if (reportc != null)
                 {
                     result.Success = false;
-                    result.Message = "Bạn đã báo cáo cửa hàng này rồi";
+                    result.Message = "Bạn đã báo cáo gian hàng này rồi";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;
@@ -165,7 +165,7 @@ namespace eSMP.Services.ReportRepo
                     _context.Reports.Add(report);
                     _context.SaveChanges();
                     result.Success = true;
-                    result.Message = "Báo cáo sản phẩm thành công";
+                    result.Message = "Báo cáo gian hàng thành công";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;
@@ -173,7 +173,7 @@ namespace eSMP.Services.ReportRepo
                 else
                 {
                     result.Success = false;
-                    result.Message = "Sản phẩm hoặc người báo cáo không tồn tại";
+                    result.Message = "Gian hàng hoặc người báo cáo không tồn tại";
                     result.Data = "";
                     result.TotalPage = numpage;
                     return result;

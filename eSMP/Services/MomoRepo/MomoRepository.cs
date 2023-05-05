@@ -7,6 +7,7 @@ using eSMP.Services.StoreRepo;
 using eSMP.VModels;
 using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -24,6 +25,7 @@ namespace eSMP.Services.MomoRepo
         string accessKey = "klm05TvNBzhg7h7j";
         string secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
         string partnerCode = "MOMOBKUN20180529";
+        public static string TOKEN = "D1f7d11dFA5D417D35F136A02e0C812EEC613Fcb";
 
         public MomoRepository(WebContext context, Lazy<IShipReposity> shipReposity, Lazy<IOrderReposity> orderReposity, Lazy<INotificationReposity> notification)
         {
@@ -104,7 +106,7 @@ namespace eSMP.Services.MomoRepo
                     {
                         feeShip = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(orderID), priceitem).fee.fee;
                     }
-                    
+
                     if (feeShip != 0 && priceitem != 0)
                     {
                         return (long)(feeShip + priceitem);
@@ -137,7 +139,7 @@ namespace eSMP.Services.MomoRepo
                 if (order != null)
                 {
                     var priceitem = _orderReposity.Value.GetPriceItemOrder(orderID);
-                    var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(order.OrderID),priceitem);
+                    var ship = _shipReposity.Value.GetFeeAsync(order.Province, order.District, order.Pick_Province, order.Pick_District, _orderReposity.Value.GetWeightOrder(order.OrderID), priceitem);
                     if (ship != null)
                     {
                         if (ship.success && ship.fee.delivery)
@@ -159,7 +161,7 @@ namespace eSMP.Services.MomoRepo
             try
             {
                 var order = _context.Orders.SingleOrDefault(o => o.OrderID == orderID);
-                if (_orderReposity.Value.GetPriceItemOrder(order.OrderID)>= 20000000)
+                if (_orderReposity.Value.GetPriceItemOrder(order.OrderID) >= 20000000)
                 {
                     result.Success = false;
                     result.Message = "Tổng đơn hàng không được quá 20.000.000 VND";
@@ -281,6 +283,19 @@ namespace eSMP.Services.MomoRepo
                                         {
                                             if (shipReponse.success)
                                             {
+                                                ShipOrder shipOrder = new ShipOrder();
+                                                shipOrder.Status_ID = "-2";
+                                                DateTime datetime = GetVnTime();
+                                                shipOrder.Create_Date = datetime;
+                                                shipOrder.LabelID = shipReponse.order.label;
+                                                shipOrder.Reason = "";
+                                                shipOrder.OrderID = int.Parse(shipReponse.order.partner_id);
+                                                shipOrder.Reason_code = "";
+                                                order.Pick_Time = shipReponse.order.estimated_pick_time;
+                                                order.Deliver_time = shipReponse.order.estimated_deliver_time;
+                                                _context.ShipOrders.Add(shipOrder);
+                                                _context.SaveChanges();
+
                                                 order.OrderStatusID = 4;
                                                 order.FeeShip = shipReponse.order.fee;
                                                 order.Create_Date = GetVnTime();
@@ -377,24 +392,19 @@ namespace eSMP.Services.MomoRepo
                 return result;
             }
         }
-        public void PayOrderINPAsync(MomoPayINP payINP)
+        public async Task PayOrderINPAsync(MomoPayINP payINP)
         {
-            try
+            lock (looker)
             {
-                lock (looker)
+                try
                 {
                     if (payINP.resultCode == 0)
                     {
                         var orderid = payINP.orderId.Split('-')[0];
-                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
-                        var checktran = _context.orderBuy_Transacsions.SingleOrDefault(o => o.OrderID == int.Parse(orderid));
-                        if(checktran != null)
-                        {
-                            return;
-                        }
+                        var order = _context.Orders.SingleOrDefault(o => o.OrderID == int.Parse(orderid) && o.OrderStatusID==2);
                         if (order != null)
                         {
-                            var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID).ToList();
+                            var listdetail = _context.OrderDetails.Where(od => od.OrderID == order.OrderID && order.OrderStatusID == 2).ToList();
                             var checkout = 0;
                             var itemerro = "";
                             if (listdetail.Count > 0)
@@ -405,7 +415,6 @@ namespace eSMP.Services.MomoRepo
                                     if (subItem != null)
                                     {
                                         item.ReturnAndExchange = subItem.ReturnAndExchange;
-                                        _context.SaveChanges();
                                         checkout++;
                                     }
                                     else
@@ -418,31 +427,135 @@ namespace eSMP.Services.MomoRepo
                                             itemerro = itemerro + ", " + GetSub_Item(item.Sub_ItemID).Sub_ItemName;
                                     }
                                 }
-                            }
-                            OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
-                            transacsion.OrderID = order.OrderID;
-                            DateTime dateTime = new DateTime();
-                            dateTime = dateTime.AddYears(1969);
-                            dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToUniversalTime();
 
-                            string vnTimeZoneKey = "SE Asia Standard Time";
-                            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
-                            DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
-                            transacsion.Create_Date = VnTime;
-                            transacsion.ResultCode = payINP.resultCode;
-                            transacsion.TransactionID = payINP.transId;
-                            transacsion.OrderIDGateway = payINP.orderId;
-                            transacsion.RequestID = payINP.requestId;
-                            _context.orderBuy_Transacsions.Add(transacsion);
-                            _context.SaveChanges();
+                                _context.SaveChanges();
+                            }
+
                             if (checkout == listdetail.Count)
                             {
                                 //create ship
                                 var shipReponse = _shipReposity.Value.CreateOrder(order.OrderID);
+                                /*ShipReponse  shipReponse=null;
+                                try
+                                {
+                                    var listoderdetai = _orderReposity.Value.GetOrderDetailModels(order.OrderID, 2);
+                                    var listproduct = new List<productsShip>();
+                                    foreach (var item in listoderdetai)
+                                    {
+                                        productsShip pro = new productsShip
+                                        {
+                                            name = item.Sub_ItemName,
+                                            price = (int)item.PricePurchase,
+                                            product_code = item.Sub_ItemID,
+                                            quantity = item.Amount,
+                                            weight = GetWeightOfSubItem(item.ItemID) / (double)1000,
+                                        };
+                                        listproduct.Add(pro);
+                                    }
+                                    var priceOrder = _orderReposity.Value.GetPriceItemOrder(order.OrderID);
+                                    orderrequest shiporder = new orderrequest
+                                    {
+                                        id = order.OrderID + "",
+                                        pick_name = order.Pick_Name,
+                                        pick_address = order.Pick_Address,
+                                        pick_ward = order.Pick_Ward,
+                                        pick_district = order.Pick_District,
+                                        pick_province = order.Pick_Province,
+                                        pick_street = "",
+                                        pick_tel = order.Pick_Tel,
+                                        pick_money = 0,
+                                        is_freeship = 1,
+                                        name = order.Name,
+                                        address = order.Address,
+                                        district = order.District,
+                                        province = order.Province,
+                                        hamlet = order.Address,
+                                        street = "",
+                                        ward = order.Ward,
+                                        tel = order.Tel,
+                                        value = (int)priceOrder,
+                                        transport = "road",
+                                        pick_option = "cod",
+                                    };
+                                    if (order.PaymentMethod == "COD")
+                                    {
+                                        shiporder.is_freeship = 0;
+                                        shiporder.pick_money = (int)GetPriceItemOrder(order.OrderID);
+                                    }
+                                    var system = _context.eSMP_Systems.SingleOrDefault(s => s.SystemID == 1);
+                                    if (system != null)
+                                    {
+                                        if (system.Co_Examination)
+                                        {
+                                            shiporder.tags = new int[1] { 11 };
+                                        }
+                                    }
+                                    if (order != null)
+                                    {
+                                        ShipOrderRequest request = new ShipOrderRequest
+                                        {
+                                            order = shiporder,
+                                            products = listproduct,
+                                        };
+
+                                        var client = new HttpClient();
+                                        client.DefaultRequestHeaders.Add("Token", TOKEN);
+                                        StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+                                        try
+                                        {
+                                            using (var httpClient = new HttpClient())
+                                            {
+                                                using (var response =  client.PostAsync("https://services-staging.ghtklab.com/services/shipment/order/?ver=1.5", httpContent).Result)
+                                                {
+                                                    var contents = response.Content.ReadFromJsonAsync<ShipReponse>();
+                                                    shipReponse = new ShipReponse();
+                                                    shipReponse = contents.Result;
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                }*/
+
+
                                 if (shipReponse != null)
                                 {
                                     if (shipReponse.success)
                                     {
+                                        ShipOrder shipOrder = new ShipOrder();
+                                        shipOrder.Status_ID = "-2";
+                                        DateTime datetime = GetVnTime();
+                                        shipOrder.Create_Date = datetime;
+                                        shipOrder.LabelID = shipReponse.order.label;
+                                        shipOrder.Reason = "";
+                                        shipOrder.OrderID = int.Parse(shipReponse.order.partner_id);
+                                        shipOrder.Reason_code = "";
+                                        order.Pick_Time = shipReponse.order.estimated_pick_time;
+                                        order.Deliver_time = shipReponse.order.estimated_deliver_time;
+                                        _context.ShipOrders.Add(shipOrder);
+                                        _context.SaveChanges();
+
+
+                                        OrderBuy_Transacsion transacsion = new OrderBuy_Transacsion();
+                                        transacsion.OrderID = order.OrderID;
+                                        DateTime dateTime = new DateTime();
+                                        dateTime = dateTime.AddYears(1969);
+                                        dateTime = dateTime.AddMilliseconds(payINP.responseTime).ToUniversalTime();
+
+                                        string vnTimeZoneKey = "SE Asia Standard Time";
+                                        TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(vnTimeZoneKey);
+                                        DateTime VnTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, vnTimeZone);
+                                        transacsion.Create_Date = VnTime;
+                                        transacsion.ResultCode = payINP.resultCode;
+                                        transacsion.TransactionID = payINP.transId;
+                                        transacsion.OrderIDGateway = payINP.orderId;
+                                        transacsion.RequestID = payINP.requestId;
+                                        _context.orderBuy_Transacsions.Add(transacsion);
                                         order.OrderStatusID = 1;
                                         order.FeeShip = shipReponse.order.fee;
                                         order.Create_Date = GetVnTime();
@@ -482,26 +595,33 @@ namespace eSMP.Services.MomoRepo
                                             to = store.User.FCM_Firebase,
                                         };
                                         _notification.Value.PushUserNotificationAsync(firebaseNotificationSupp);
-                                    }
-                                    else
-                                    {
-                                        refundnow(order.OrderID, payINP.amount, payINP.transId, order.UserID, order.User.FirebaseID);
-                                        order.OrderStatusID = 3;
-                                        _context.SaveChanges();
-                                        _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thất bại", null, null, null);
-                                        Notification notification = new Notification
-                                        {
-                                            title = "Đơn hàng",
-                                            body = "Đặt hàng thất bại do dịc vụ vận chuyển có sự số",
-                                        };
-                                        FirebaseNotification firebaseNotification = new FirebaseNotification
-                                        {
-                                            notification = notification,
-                                            to = order.User.FCM_Firebase,
-                                        };
-                                        _notification.Value.PushUserNotificationAsync(firebaseNotification);  
+                                        return;
                                     }
                                 }
+                                refundnow(order.OrderID, payINP.amount, payINP.transId, order.UserID, order.User.FirebaseID);
+                                order.OrderStatusID = 3;
+                                ShipOrder model = new ShipOrder();
+                                model.OrderID = order.OrderID;
+                                model.Create_Date = GetVnTime();
+                                model.LabelID = order.OrderID+"";
+                                model.Reason = "";
+                                model.Reason_code = "";
+                                model.Status_ID = "-3";
+                                _context.ShipOrders.Add(model);
+                                _context.SaveChanges();
+                                _notification.Value.CreateNotifiaction(order.UserID, "Đặt hàng thất bại", null, null, null);
+                                Notification notifications = new Notification
+                                {
+                                    title = "Đơn hàng",
+                                    body = "Đặt hàng thất bại do dịch vụ vận chuyển có sự số",
+                                };
+                                FirebaseNotification firebaseNotifications = new FirebaseNotification
+                                {
+                                    notification = notifications,
+                                    to = order.User.FCM_Firebase,
+                                };
+                                _notification.Value.PushUserNotificationAsync(firebaseNotifications);
+                                return;
                             }
                             else
                             {
@@ -518,23 +638,74 @@ namespace eSMP.Services.MomoRepo
                                 };
                                 _notification.Value.PushUserNotificationAsync(firebaseNotification);
                                 order.OrderStatusID = 3;
+                                ShipOrder model = new ShipOrder();
+                                model.OrderID = order.OrderID;
+                                model.Create_Date = GetVnTime();
+                                model.LabelID = order.OrderID + "";
+                                model.Reason = "";
+                                model.Reason_code = "";
+                                model.Status_ID = "-3";
+                                _context.ShipOrders.Add(model);
                                 _context.SaveChanges();
                                 refundnow(order.OrderID, payINP.amount, payINP.transId, order.UserID, order.User.FirebaseID);
+                                return;
                             }
+                        }
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
+                    role.RoleName = ex.Message;
+                    _context.SaveChanges();
+                    return;
+                }
+            }
+                
+            
+        }
+        public double GetPriceItemOrder(int orderID)
+        {
+            try
+            {
+                double total = 0;
+                var listorderdetail = _context.OrderDetails.Where(od => od.OrderID == orderID);
+
+                if (_context.Orders.SingleOrDefault(o => o.OrderID == orderID).OrderStatusID == 1)
+                {
+                    if (listorderdetail.Count() > 0)
+                    {
+                        foreach (var item in listorderdetail.ToList())
+                        {
+                            total = total + item.PricePurchase * item.Amount * (1 - item.DiscountPurchase);
                         }
                     }
                 }
-
+                else
+                {
+                    if (listorderdetail.Count() > 0)
+                    {
+                        foreach (var item in listorderdetail.ToList())
+                        {
+                            total = total + item.Sub_Item.Price * item.Amount * (1 - item.Sub_Item.Discount);
+                        }
+                    }
+                }
+                return total;
             }
-            catch (Exception ex)
+            catch
             {
-                var role = _context.Roles.SingleOrDefault(r => r.RoleID == 4);
-                role.RoleName = ex.Message;
-                _context.SaveChanges();
-                return;
+                return 0;
             }
         }
-        public async void refundnow(int orderID, long amount, long transId, int userID, string FCM_Firebase)
+        public int GetWeightOfSubItem(int itemID)
+        {
+            var weight = _context.Specification_Values.SingleOrDefault(sv => sv.ItemID == itemID && sv.SpecificationID == 2).Value;
+            return int.Parse(weight);
+        }
+
+        public void refundnow(int orderID, long amount, long transId, int userID, string FCM_Firebase)
         {
             RefundRequest request = new RefundRequest();
             Guid myuuid = Guid.NewGuid();
@@ -552,7 +723,7 @@ namespace eSMP.Services.MomoRepo
             request.signature = getSignature(rawSignature, secretKey);
             var client = new HttpClient();
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
-            var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent);
+            var quickPayResponse =  client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent).Result;
             var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>().Result;
             if (contents != null)
             {
@@ -667,20 +838,20 @@ namespace eSMP.Services.MomoRepo
             request.signature = getSignature(rawSignature, secretKey);
             var client = new HttpClient();
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
-            var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent);
+            var quickPayResponse = client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/refund", httpContent).Result;
             var contents = quickPayResponse.Content.ReadFromJsonAsync<RefundReponse>();
             if (contents.Result.resultCode == 0)
             {
                 OrderStore_Transaction store_Transaction = _context.OrderStore_Transactions.SingleOrDefault(os => os.OrderStore_TransactionID == ordertransaction.TransactionID);
                 if (store_Transaction != null)
                 {
-                    if(numrefund == 1)
+                    if (numrefund == 1)
                     {
                         store_Transaction.IsActive = false;
                     }
                     else
                     {
-                        store_Transaction.Price = (Gettotalprice(orderID) - order.FeeShip) * (1-numrefund) + order.FeeShip;
+                        store_Transaction.Price = (Gettotalprice(orderID) - order.FeeShip) * (1 - numrefund) + order.FeeShip;
                     }
                 }
                 OrderSystem_Transaction system_Transaction = _context.OrderSystem_Transactions.SingleOrDefault(so => so.OrderStore_TransactionID == store_Transaction.OrderStore_TransactionID);
@@ -688,7 +859,6 @@ namespace eSMP.Services.MomoRepo
                 {
                     system_Transaction.IsActive = false;
                 }
-
                 order.RefundPrice = price;
                 ordertransaction.ResultCode = -1;
                 _context.SaveChanges();
@@ -702,6 +872,32 @@ namespace eSMP.Services.MomoRepo
             exchangeUser.ExchangeUserName = "Hoàn tiền thất bại";
             _context.DataExchangeUsers.Add(exchangeUser);
             _context.SaveChanges();
+            _notification.Value.CreateNotifiaction(order.UserID, "Hoàn tiền đơn hàng " + orderID, null, order.OrderID, null);
+            Notification notificationOfuser = new Notification
+            {
+                title = "Hoàn tiền",
+                body = "Đối soát đơn hàng " + order.OrderID + ", hoàn tiền thất bại",
+            };
+            FirebaseNotification firebaseNotificationuser = new FirebaseNotification
+            {
+                notification = notificationOfuser,
+                to = order.User.FCM_Firebase,
+            };
+            _notification.Value.PushUserNotificationAsync(firebaseNotificationuser);
+            //admin
+            var admin = _context.Users.FirstOrDefault(u => u.RoleID == 1);
+            _notification.Value.CreateNotifiaction(admin.UserID, "Hoàn tiền đơn hàng " + orderID + " thất bại", null, order.OrderID, null);
+            Notification notificationOfAD = new Notification
+            {
+                title = "Đối soát - Huỷ đơn",
+                body = "Đối soát đơn hàng " + order.OrderID + ", hoàn tiền thất bại",
+            };
+            FirebaseNotification firebaseNotificationAD = new FirebaseNotification
+            {
+                notification = notificationOfAD,
+                to = admin.FCM_Firebase,
+            };
+            _notification.Value.PushUserNotificationAsync(firebaseNotificationAD);
             return contents.Result;
         }
         public Result CancelOrder(int orderID, string reason)
@@ -725,10 +921,10 @@ namespace eSMP.Services.MomoRepo
                     {
                         if (shipReponse.Success)
                         {
-                            var comfim = new Result();
+                            var comfim = true;
                             if (order.PaymentMethod != "COD")
                             {
-                                comfim = RefundOrder(orderID, 1);
+                                comfim = RefundOrder(orderID, 1).Success;
                             }
                             var labelID = _context.ShipOrders.FirstOrDefault(so => so.OrderID == orderID).LabelID;
                             order.Reason = reason;
@@ -757,43 +953,6 @@ namespace eSMP.Services.MomoRepo
                                 to = store.User.FCM_Firebase,
                             };
                             _notification.Value.PushUserNotificationAsync(firebaseNotification);
-
-                            //hoan thất bại tạo đối soát
-                            if (!comfim.Success)
-                            {
-                                result.Success = true;
-                                result.Message = "Hoàn tiền chờ đối soát";
-                                result.Data = "";
-                                // user
-                                _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng " + orderID, null, order.OrderID, null);
-                                Notification notificationOfuser = new Notification
-                                {
-                                    title = "Huỷ đơn",
-                                    body = "Huỷ đơn hàng " + order.OrderID + " thành công, chờ đối soát hoàn tiền",
-                                };
-                                FirebaseNotification firebaseNotificationuser = new FirebaseNotification
-                                {
-                                    notification = notificationOfuser,
-                                    to = order.User.FCM_Firebase,
-                                };
-                                _notification.Value.PushUserNotificationAsync(firebaseNotificationuser);
-                                //admin
-                                var admin = _context.Users.FirstOrDefault(u => u.RoleID == 1);
-                                _notification.Value.CreateNotifiaction(admin.UserID, "Huỷ đơn hàng " + orderID, null, order.OrderID, null);
-                                Notification notificationOfAD = new Notification
-                                {
-                                    title = "Đối soát - Huỷ đơn",
-                                    body = "Đối soát đơn hàng " + order.OrderID + ", hoàn tiền thất bại",
-                                };
-                                FirebaseNotification firebaseNotificationAD = new FirebaseNotification
-                                {
-                                    notification = notificationOfAD,
-                                    to = admin.FCM_Firebase,
-                                };
-                                _notification.Value.PushUserNotificationAsync(firebaseNotificationAD);
-                                return result;
-                            }
-
                             // user
                             _notification.Value.CreateNotifiaction(order.UserID, "Huỷ đơn hàng " + orderID, null, order.OrderID, null);
                             Notification notificationOfU = new Notification
@@ -807,6 +966,7 @@ namespace eSMP.Services.MomoRepo
                                 to = order.User.FCM_Firebase,
                             };
                             _notification.Value.PushUserNotificationAsync(firebaseNotificationU);
+
                             result.Success = true;
                             result.Message = "Hủy đơn hàng thành công";
                             result.Data = "";
@@ -922,7 +1082,7 @@ namespace eSMP.Services.MomoRepo
                     orderStore_Transaction.IsActive = true;
                     orderStore_Transaction.Price = shipprice + storeprice;
                     orderStore_Transaction.Create_Date = GetVnTime();
-                    store.Asset = store.Asset + orderStore_Transaction.Price;
+                    //store.Asset = store.Asset + orderStore_Transaction.Price;
                     _context.OrderStore_Transactions.Add(orderStore_Transaction);
                     _context.SaveChanges();
 
@@ -1174,7 +1334,7 @@ namespace eSMP.Services.MomoRepo
                     orderStore_Transaction.IsActive = true;
                     orderStore_Transaction.Price = shipprice + orderprivce;
                     orderStore_Transaction.Create_Date = GetVnTime();
-                    store.Asset = store.Asset + orderStore_Transaction.Price;
+                    //store.Asset = store.Asset + orderStore_Transaction.Price;
                     _context.OrderStore_Transactions.Add(orderStore_Transaction);
                     _context.SaveChanges();
 
